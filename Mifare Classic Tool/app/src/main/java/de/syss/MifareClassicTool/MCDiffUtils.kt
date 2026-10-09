@@ -15,18 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package de.syss.MifareClassicTool
 
-package de.syss.MifareClassicTool;
-
-import android.util.SparseArray;
-
-import java.util.ArrayList;
+import android.util.SparseArray
+import java.util.ArrayList
 
 /**
  * Provides functions to compare two dumps.
  * @author Gerhard Klostermeier
  */
-public class MCDiffUtils {
+object MCDiffUtils {
 
     /**
      * Compare two dumps and get a list of all indices where
@@ -42,55 +40,56 @@ public class MCDiffUtils {
      * exists only in dump1. If the value is Integer[1][0] then the sector
      * exists only in dump2.
      */
-    public static SparseArray<Integer[][]> diffIndices(
-            SparseArray<String[]> dump1, SparseArray<String[]> dump2) {
-        SparseArray<Integer[][]> ret =
-                new SparseArray<>();
+    @JvmStatic
+    fun diffIndices(
+        dump1: SparseArray<Array<String>>,
+        dump2: SparseArray<Array<String>>
+    ): SparseArray<Array<Array<Int>>> {
+        val ret = SparseArray<Array<Array<Int>>>()
         // Walk through all sectors of dump1.
-        for (int i = 0; i < dump1.size(); i++) {
-            String[] sector1 = dump1.valueAt(i);
-            int sectorNr = dump1.keyAt(i);
-            String[] sector2 = dump2.get(sectorNr);
+        for (i in 0 until dump1.size()) {
+            val sector1 = dump1.valueAt(i)
+            val sectorNr = dump1.keyAt(i)
+            val sector2 = dump2.get(sectorNr)
 
             // Check if dump2 has the current sector of dump1.
             if (sector2 == null) {
-                ret.put(sectorNr, new Integer[0][0]);
-                continue;
+                ret.put(sectorNr, Array(0) { emptyArray() })
+                continue
             }
 
             // Check the blocks.
-            Integer[][] diffSector = new Integer[sector1.length][];
+            val diffSector = arrayOfNulls<Array<Int>>(sector1.size)
             // Walk through all blocks.
-            for (int j = 0; j < sector1.length; j++) {
-                ArrayList<Integer> diffIndices = new ArrayList<>();
+            for (j in sector1.indices) {
+                val diffIndices = ArrayList<Int>()
                 // Walk through all symbols.
-                for (int k = 0; k < sector1[j].length(); k++) {
-                    if (sector1[j].charAt(k) != sector2[j].charAt(k)) {
+                for (k in 0 until sector1[j].length) {
+                    if (sector1[j][k] != sector2[j][k]) {
                         // Found different symbol at index k.
-                        diffIndices.add(k);
+                        diffIndices.add(k)
                     }
                 }
                 if (diffIndices.isEmpty()) {
                     // Block was identical.
-                    diffSector[j] = new Integer[0];
+                    diffSector[j] = emptyArray()
                 } else {
-                    diffSector[j] = diffIndices.toArray(
-                            new Integer[0]);
+                    diffSector[j] = diffIndices.toTypedArray()
                 }
             }
-            ret.put(sectorNr, diffSector);
+            @Suppress("UNCHECKED_CAST")
+            ret.put(sectorNr, diffSector as Array<Array<Int>>)
         }
 
         // Are there sectors that occur only in dump2?
-        for (int i = 0; i < dump2.size(); i++) {
-            int sectorNr = dump2.keyAt(i);
+        for (i in 0 until dump2.size()) {
+            val sectorNr = dump2.keyAt(i)
             if (dump1.get(sectorNr) == null) {
                 // Sector only exists in dump2.
-                ret.put(sectorNr, new Integer[1][0]);
+                ret.put(sectorNr, Array(1) { emptyArray() })
             }
         }
 
-        return ret;
+        return ret
     }
-
 }

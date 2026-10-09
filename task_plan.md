@@ -15,14 +15,14 @@
 - [x] 记录基线指标与审计报告至 `findings.md`
 - [x] 阶段 0 提交基线测试与配置
 
-### 阶段 1：基础工具与算法层迁移 (Foundation & Utils) [in_progress]
-- [ ] `IActivityThatReactsToSave.java` → `IActivityThatReactsToSave.kt`
-- [ ] `MCDiffUtils.java` → `MCDiffUtils.kt`
-- [ ] `Common.java` → `Common.kt`（含常量、文件/算法/NFC 工具方法、静态度与 Java 互操作注解 `@JvmStatic` / `@JvmField`）
-- [ ] 单元测试验证与全量编译验证
-- [ ] 中文 Conventional Commit (`refactor(core): ...`)
+### 阶段 1：基础工具与算法层迁移 (Foundation & Utils) [complete]
+- [x] `IActivityThatReactsToSave.java` → `IActivityThatReactsToSave.kt`
+- [x] `MCDiffUtils.java` → `MCDiffUtils.kt`
+- [x] `Common.java` → `Common.kt`（含常量、文件/算法/NFC 工具方法、静态度与 Java 互操作注解 `@JvmStatic` / `@JvmField`）
+- [x] 单元测试验证与全量编译验证 (`testDebugUnitTest` 8/8 通过，`assembleDebug` 成功)
+- [x] 中文 Conventional Commit (`refactor(core): ...`)
 
-### 阶段 2：独立工具 Activity 迁移 (Leaf Tool Activities) [pending]
+### 阶段 2：独立工具 Activity 迁移 (Leaf Tool Activities) [in_progress]
 - [ ] `HelpAndInfo.java` → `HelpAndInfo.kt`
 - [ ] `HexToAscii.java` → `HexToAscii.kt`
 - [ ] `BccTool.java` → `BccTool.kt`
