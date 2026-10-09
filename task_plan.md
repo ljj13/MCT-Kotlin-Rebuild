@@ -48,17 +48,17 @@
 - [x] 编译验证与单元测试 (`testDebugUnitTest` 8/8 通过，`assembleDebug` 成功)
 - [x] 中文 Conventional Commit (`refactor(activities): ...`)
 
-### 阶段 4：NFC 核心引擎与主流程迁移 (Core NFC Engine & Main Activities) [in_progress]
-- [ ] `MCReader.java` → `MCReader.kt`（核心 NFC 扇区认证、数据读写、转码与异常处理）
-- [ ] `KeyMapCreator.java` → `KeyMapCreator.kt`
-- [ ] `ReadTag.java` → `ReadTag.kt`
-- [ ] `WriteTag.java` → `WriteTag.kt`
-- [ ] `MainMenu.java` → `MainMenu.kt`
-- [ ] 处理 `package-info.java`
-- [ ] 编译验证与单元测试
-- [ ] 中文 Conventional Commit (`refactor(nfc): ...`)
+### 阶段 4：NFC 核心引擎与主流程迁移 (Core NFC Engine & Main Activities) [complete]
+- [x] `MCReader.java` → `MCReader.kt`（核心 NFC 扇区认证、数据读写、转码与异常处理）
+- [x] `KeyMapCreator.java` → `KeyMapCreator.kt`
+- [x] `ReadTag.java` → `ReadTag.kt`
+- [x] `WriteTag.java` → `WriteTag.kt`
+- [x] `MainMenu.java` → `MainMenu.kt`
+- [x] 处理 `package-info.java`
+- [x] 编译验证与单元测试 (`testDebugUnitTest` 8/8 通过，`compileDebugJavaWithJavac NO-SOURCE`, `assembleDebug` 成功)
+- [x] 中文 Conventional Commit (`refactor(nfc): ...`)
 
-### 阶段 5：全面验证、覆盖率盘点与总结汇报 [pending]
+### 阶段 5：全面验证、覆盖率盘点与总结汇报 [in_progress]
 - [ ] 全量 `assembleDebug` 与 `testDebugUnitTest` 回归
 - [ ] 统计 Kotlin 迁移率 (类数量、代码行数变化)
 - [ ] 遗留风险审计（高风险模块审查、异常语义保持、Android 生命周期契约）

@@ -221,7 +221,8 @@ class CloneUidTool : BasicActivity() {
 
         // Write to block 0.
         appendToLog(getString(R.string.text_writing_block_0))
-        val result = reader.writeBlock(0, 0, Common.hex2Bytes(mBlock0Complete), key, keyB)
+        val block0Bytes = Common.hex2Bytes(mBlock0Complete) ?: return
+        val result = reader.writeBlock(0, 0, block0Bytes, key, keyB)
 
         // Error handling.
         when (result) {
