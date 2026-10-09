@@ -34,21 +34,21 @@
 - [x] 编译验证与单元测试 (`testDebugUnitTest` 8/8 通过，`assembleDebug` 成功)
 - [x] 中文 Conventional Commit (`refactor(tools): ...`)
 
-### 阶段 3：基础 Activity 与高级工具/文件管理迁移 (Base & Complex Activities) [in_progress]
-- [ ] `BasicActivity.java` → `BasicActivity.kt`（所有 Activity 基类，处理 NFC 前台调度与公共菜单）
-- [ ] `FileChooser.java` → `FileChooser.kt`
-- [ ] `Preferences.java` → `Preferences.kt`
-- [ ] `DiffTool.java` → `DiffTool.kt`
-- [ ] `UidLogTool.java` → `UidLogTool.kt`
-- [ ] `CloneUidTool.java` → `CloneUidTool.kt`
-- [ ] `TagInfoTool.java` → `TagInfoTool.kt`
-- [ ] `KeyEditor.java` → `KeyEditor.kt`
-- [ ] `DumpEditor.java` → `DumpEditor.kt`
-- [ ] `ImportExportTool.java` → `ImportExportTool.kt`
-- [ ] 编译验证与单元测试
-- [ ] 中文 Conventional Commit (`refactor(activities): ...`)
+### 阶段 3：基础 Activity 与高级工具/文件管理迁移 (Base & Complex Activities) [complete]
+- [x] `BasicActivity.java` → `BasicActivity.kt`（所有 Activity 基类，处理 NFC 前台调度与公共菜单）
+- [x] `FileChooser.java` → `FileChooser.kt`
+- [x] `Preferences.java` → `Preferences.kt`
+- [x] `DiffTool.java` → `DiffTool.kt`
+- [x] `UidLogTool.java` → `UidLogTool.kt`
+- [x] `CloneUidTool.java` → `CloneUidTool.kt`
+- [x] `TagInfoTool.java` → `TagInfoTool.kt`
+- [x] `KeyEditor.java` → `KeyEditor.kt`
+- [x] `DumpEditor.java` → `DumpEditor.kt`
+- [x] `ImportExportTool.java` → `ImportExportTool.kt`
+- [x] 编译验证与单元测试 (`testDebugUnitTest` 8/8 通过，`assembleDebug` 成功)
+- [x] 中文 Conventional Commit (`refactor(activities): ...`)
 
-### 阶段 4：NFC 核心引擎与主流程迁移 (Core NFC Engine & Main Activities) [pending]
+### 阶段 4：NFC 核心引擎与主流程迁移 (Core NFC Engine & Main Activities) [in_progress]
 - [ ] `MCReader.java` → `MCReader.kt`（核心 NFC 扇区认证、数据读写、转码与异常处理）
 - [ ] `KeyMapCreator.java` → `KeyMapCreator.kt`
 - [ ] `ReadTag.java` → `ReadTag.kt`

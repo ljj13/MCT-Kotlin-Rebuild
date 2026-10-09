@@ -15,64 +15,51 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package de.syss.MifareClassicTool.Activities
 
-package de.syss.MifareClassicTool.Activities;
-
-import android.app.Activity;
-import android.content.Intent;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import de.syss.MifareClassicTool.Common;
+import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
+import de.syss.MifareClassicTool.Common
 
 /**
  * An Activity implementing the NFC foreground dispatch system overwriting
  * onResume() and onPause(). New Intents will be treated as new Tags.
- * @see Common#enableNfcForegroundDispatch(Activity)
- * @see Common#disableNfcForegroundDispatch(Activity)
- * @see Common#treatAsNewTag(Intent, android.content.Context)
+ * @see Common.enableNfcForegroundDispatch
+ * @see Common.disableNfcForegroundDispatch
+ * @see Common.treatAsNewTag
  * @author Gerhard Klostermeier
- *
  */
-public abstract class BasicActivity extends AppCompatActivity {
+abstract class BasicActivity : AppCompatActivity() {
 
     /**
      * Enable NFC foreground dispatch system.
-     * @see Common#disableNfcForegroundDispatch(Activity)
      */
-    @Override
-    public void onResume() {
-        super.onResume();
-        Common.setPendingComponentName(this.getComponentName());
-        Common.enableNfcForegroundDispatch(this);
+    public override fun onResume() {
+        super.onResume()
+        Common.setPendingComponentName(componentName)
+        Common.enableNfcForegroundDispatch(this)
     }
 
     /**
      * Disable NFC foreground dispatch system.
-     * @see Common#disableNfcForegroundDispatch(Activity)
      */
-    @Override
-    public void onPause() {
-        super.onPause();
-        Common.disableNfcForegroundDispatch(this);
-
+    public override fun onPause() {
+        super.onPause()
+        Common.disableNfcForegroundDispatch(this)
     }
 
     /**
      * Handle new Intent as a new tag Intent and if the tag/device does not
-     * support MIFARE Classic, then run {@link TagInfoTool}.
-     * @see Common#treatAsNewTag(Intent, android.content.Context)
-     * @see TagInfoTool
+     * support MIFARE Classic, then run [TagInfoTool].
      */
-    @Override
-    public void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        int typeCheck = Common.treatAsNewTag(intent, this);
+    public override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        val typeCheck = Common.treatAsNewTag(intent, this)
         if (typeCheck == -1 || typeCheck == -2) {
             // Device or tag does not support MIFARE Classic.
             // Run the only thing that is possible: The tag info tool.
-            Intent i = new Intent(this, TagInfoTool.class);
-            startActivity(i);
+            val i = Intent(this, TagInfoTool::class.java)
+            startActivity(i)
         }
     }
 }
