@@ -22,19 +22,19 @@
 - [x] 单元测试验证与全量编译验证 (`testDebugUnitTest` 8/8 通过，`assembleDebug` 成功)
 - [x] 中文 Conventional Commit (`refactor(core): ...`)
 
-### 阶段 2：独立工具 Activity 迁移 (Leaf Tool Activities) [in_progress]
-- [ ] `HelpAndInfo.java` → `HelpAndInfo.kt`
-- [ ] `HexToAscii.java` → `HexToAscii.kt`
-- [ ] `BccTool.java` → `BccTool.kt`
-- [ ] `ValueBlocksToInt.java` → `ValueBlocksToInt.kt`
-- [ ] `ValueBlockTool.java` → `ValueBlockTool.kt`
-- [ ] `DataConversionTool.java` → `DataConversionTool.kt`
-- [ ] `AccessConditionDecoder.java` → `AccessConditionDecoder.kt`
-- [ ] `AccessConditionTool.java` → `AccessConditionTool.kt`
-- [ ] 编译验证与单元测试
-- [ ] 中文 Conventional Commit (`refactor(tools): ...`)
+### 阶段 2：独立工具 Activity 迁移 (Leaf Tool Activities) [complete]
+- [x] `HelpAndInfo.java` → `HelpAndInfo.kt`
+- [x] `HexToAscii.java` → `HexToAscii.kt`
+- [x] `BccTool.java` → `BccTool.kt`
+- [x] `ValueBlocksToInt.java` → `ValueBlocksToInt.kt`
+- [x] `ValueBlockTool.java` → `ValueBlockTool.kt`
+- [x] `DataConversionTool.java` → `DataConversionTool.kt`
+- [x] `AccessConditionDecoder.java` → `AccessConditionDecoder.kt`
+- [x] `AccessConditionTool.java` → `AccessConditionTool.kt`
+- [x] 编译验证与单元测试 (`testDebugUnitTest` 8/8 通过，`assembleDebug` 成功)
+- [x] 中文 Conventional Commit (`refactor(tools): ...`)
 
-### 阶段 3：基础 Activity 与高级工具/文件管理迁移 (Base & Complex Activities) [pending]
+### 阶段 3：基础 Activity 与高级工具/文件管理迁移 (Base & Complex Activities) [in_progress]
 - [ ] `BasicActivity.java` → `BasicActivity.kt`（所有 Activity 基类，处理 NFC 前台调度与公共菜单）
 - [ ] `FileChooser.java` → `FileChooser.kt`
 - [ ] `Preferences.java` → `Preferences.kt`

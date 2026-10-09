@@ -15,31 +15,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package de.syss.MifareClassicTool.Activities
 
-package de.syss.MifareClassicTool.Activities;
-
-import android.os.Bundle;
-import android.webkit.WebView;
-
-import de.syss.MifareClassicTool.R;
+import android.os.Bundle
+import android.webkit.WebView
+import de.syss.MifareClassicTool.R
 
 /**
  * In-App (offline) help and info.
  * @author Gerhard Klostermeier
  */
-public class HelpAndInfo extends BasicActivity {
+class HelpAndInfo : BasicActivity() {
 
     /**
      * Initialize the layout and the web view (browser) on local
      * help website.
      */
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_help);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_help)
 
         // Init. help from local website.
-        WebView wv = findViewById(R.id.webViewHelpText);
-        wv.loadUrl("file:///android_asset/help/help.html");
+        val wv = findViewById<WebView>(R.id.webViewHelpText)
+        wv.loadUrl("file:///android_asset/help/help.html")
     }
 }
