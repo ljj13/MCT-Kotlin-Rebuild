@@ -58,9 +58,9 @@
 - [x] 编译验证与单元测试 (`testDebugUnitTest` 8/8 通过，`compileDebugJavaWithJavac NO-SOURCE`, `assembleDebug` 成功)
 - [x] 中文 Conventional Commit (`refactor(nfc): ...`)
 
-### 阶段 5：全面验证、覆盖率盘点与总结汇报 [in_progress]
-- [ ] 全量 `assembleDebug` 与 `testDebugUnitTest` 回归
-- [ ] 统计 Kotlin 迁移率 (类数量、代码行数变化)
-- [ ] 遗留风险审计（高风险模块审查、异常语义保持、Android 生命周期契约）
-- [ ] Git 状态确认（保留在 `refactor/kotlin-migration` 分支，绝不合入 master）
-- [ ] 生成最终审计与迁移成果报告
+### 阶段 5：全面验证、覆盖率盘点与总结汇报 [complete]
+- [x] 全量 `assembleDebug` 与 `testDebugUnitTest` 回归（全部成功通过，Java 编译为 NO-SOURCE）
+- [x] 统计 Kotlin 迁移率（26/26 业务类完成迁移，100% Kotlin 覆盖，源码净减少 2,854 行）
+- [x] 遗留风险审计（高风险模块审查、异常语义保持、Android 生命周期契约）
+- [x] Git 状态确认（保留在 `refactor/kotlin-migration` 分支，绝不合入 master）
+- [x] 生成最终审计与迁移成果报告
