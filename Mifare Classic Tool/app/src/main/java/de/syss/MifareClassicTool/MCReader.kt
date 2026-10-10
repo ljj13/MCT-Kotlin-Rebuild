@@ -95,7 +95,7 @@ class MCReader private constructor(tag: Tag) {
         }
     }
 
-    private val mMFC: MifareClassic = try {
+    private val mMFC: MifareClassic? = try {
         MifareClassic.get(tag)
     } catch (e: Exception) {
         Log.e(
@@ -164,18 +164,19 @@ class MCReader private constructor(tag: Tag) {
      */
     @Throws(TagLostException::class)
     fun readSector(sectorIndex: Int, key: ByteArray, useAsKeyB: Boolean): Array<String>? {
+        val mfc = mMFC ?: return null
         val auth = authenticate(sectorIndex, key, useAsKeyB)
         var ret: Array<String>? = null
         if (auth) {
             val blocks = ArrayList<String>()
-            val firstBlock = mMFC.sectorToBlock(sectorIndex)
+            val firstBlock = mfc.sectorToBlock(sectorIndex)
             var lastBlock = firstBlock + 4
-            if (mMFC.size == MifareClassic.SIZE_4K && sectorIndex > 31) {
+            if (mfc.size == MifareClassic.SIZE_4K && sectorIndex > 31) {
                 lastBlock = firstBlock + 16
             }
             for (i in firstBlock until lastBlock) {
                 try {
-                    var blockBytes = mMFC.readBlock(i)
+                    var blockBytes = mfc.readBlock(i)
                     if (blockBytes.size < 16) {
                         throw IOException()
                     }
@@ -228,10 +229,11 @@ class MCReader private constructor(tag: Tag) {
         sectorIndex: Int, blockIndex: Int, data: ByteArray,
         key: ByteArray, useAsKeyB: Boolean
     ): Int {
+        val mfc = mMFC ?: return -1
         if (sectorCount - 1 < sectorIndex) {
             return 1
         }
-        if (mMFC.getBlockCountInSector(sectorIndex) - 1 < blockIndex) {
+        if (mfc.getBlockCountInSector(sectorIndex) - 1 < blockIndex) {
             return 2
         }
         if (data.size != 16) {
@@ -240,9 +242,9 @@ class MCReader private constructor(tag: Tag) {
         if (!authenticate(sectorIndex, key, useAsKeyB)) {
             return 4
         }
-        val block = mMFC.sectorToBlock(sectorIndex) + blockIndex
+        val block = mfc.sectorToBlock(sectorIndex) + blockIndex
         try {
-            mMFC.writeBlock(block, data)
+            mfc.writeBlock(block, data)
         } catch (e: IOException) {
             Log.e(LOG_TAG, "Error while writing block to tag.", e)
             return -1
@@ -257,17 +259,18 @@ class MCReader private constructor(tag: Tag) {
         if (data.size != 16) {
             return 1
         }
+        val mfc = mMFC ?: return -1
         val writeCommand = byteArrayOf(0x90.toByte(), 0xF0.toByte(), 0xCC.toByte(), 0xCC.toByte(), 0x10.toByte())
         val fullCommand = ByteArray(writeCommand.size + data.size)
         System.arraycopy(writeCommand, 0, fullCommand, 0, writeCommand.size)
         System.arraycopy(data, 0, fullCommand, writeCommand.size, data.size)
         try {
-            val gen3Tag = NfcA.get(mMFC.tag) ?: throw IOException("Tag is not IsoDep compatible.")
-            mMFC.close()
+            val gen3Tag = NfcA.get(mfc.tag) ?: throw IOException("Tag is not IsoDep compatible.")
+            mfc.close()
             gen3Tag.connect()
             gen3Tag.transceive(fullCommand)
             gen3Tag.close()
-            mMFC.connect()
+            mfc.connect()
         } catch (e: IOException) {
             Log.e(LOG_TAG, "Error while writing block to tag.", e)
             return -1
@@ -282,23 +285,24 @@ class MCReader private constructor(tag: Tag) {
         sectorIndex: Int, blockIndex: Int, value: Int,
         increment: Boolean, key: ByteArray, useAsKeyB: Boolean
     ): Int {
+        val mfc = mMFC ?: return -1
         if (sectorCount - 1 < sectorIndex) {
             return 1
         }
-        if (mMFC.getBlockCountInSector(sectorIndex) - 1 < blockIndex) {
+        if (mfc.getBlockCountInSector(sectorIndex) - 1 < blockIndex) {
             return 2
         }
         if (!authenticate(sectorIndex, key, useAsKeyB)) {
             return 3
         }
-        val block = mMFC.sectorToBlock(sectorIndex) + blockIndex
+        val block = mfc.sectorToBlock(sectorIndex) + blockIndex
         try {
             if (increment) {
-                mMFC.increment(block, value)
+                mfc.increment(block, value)
             } else {
-                mMFC.decrement(block, value)
+                mfc.decrement(block, value)
             }
-            mMFC.transfer(block)
+            mfc.transfer(block)
         } catch (e: IOException) {
             Log.e(LOG_TAG, "Error while writing Value Block to tag.", e)
             return -1
@@ -310,6 +314,7 @@ class MCReader private constructor(tag: Tag) {
      * Build Key-Value Pairs in which keys represent the sector and values are keys (A/B).
      */
     fun buildNextKeyMapPart(): Int {
+        val mfc = mMFC ?: return -1
         var error = false
         cancelCreateKeyMap = false
         val keysWithOrder = mKeysWithOrder
@@ -345,14 +350,14 @@ class MCReader private constructor(tag: Tag) {
                                 return -1
                             }
                             if (!foundKeys[0]) {
-                                auth = mMFC.authenticateSectorWithKeyA(mKeyMapStatus, bytesKey)
+                                auth = mfc.authenticateSectorWithKeyA(mKeyMapStatus, bytesKey)
                                 if (auth) {
                                     keys[0] = key
                                     foundKeys[0] = true
                                 }
                             }
                             if (!foundKeys[1]) {
-                                auth = mMFC.authenticateSectorWithKeyB(mKeyMapStatus, bytesKey)
+                                auth = mfc.authenticateSectorWithKeyB(mKeyMapStatus, bytesKey)
                                 if (auth) {
                                     keys[1] = key
                                     foundKeys[1] = true
@@ -475,6 +480,7 @@ class MCReader private constructor(tag: Tag) {
         pos: HashMap<Int, IntArray>,
         keyMap: SparseArray<Array<ByteArray?>>
     ): HashMap<Int, HashMap<Int, Int>?>? {
+        val mfc = mMFC ?: return null
         val ret = HashMap<Int, HashMap<Int, Int>?>()
         for (i in 0 until keyMap.size()) {
             val sector = keyMap.keyAt(i)
@@ -493,9 +499,9 @@ class MCReader private constructor(tag: Tag) {
                     return null
                 }
 
-                val acBlock = mMFC.sectorToBlock(sector) + mMFC.getBlockCountInSector(sector) - 1
+                val acBlock = mfc.sectorToBlock(sector) + mfc.getBlockCountInSector(sector) - 1
                 try {
-                    acBlockBytes = mMFC.readBlock(acBlock)
+                    acBlockBytes = mfc.readBlock(acBlock)
                 } catch (e: Exception) {
                     ret[sector] = null
                     continue
@@ -570,13 +576,14 @@ class MCReader private constructor(tag: Tag) {
         if ((block == 3 && sector <= 31) || (block == 15 && sector >= 32)) {
             return 0
         }
+        val mfc = mMFC ?: return -1
         if (key == null || !authenticate(sector, key, useAsKeyB)) {
             return -1
         }
-        val acBlock = mMFC.sectorToBlock(sector) + mMFC.getBlockCountInSector(sector) - 1
+        val acBlock = mfc.sectorToBlock(sector) + mfc.getBlockCountInSector(sector) - 1
         val acBlockBytes: ByteArray
         try {
-            acBlockBytes = mMFC.readBlock(acBlock)
+            acBlockBytes = mfc.readBlock(acBlock)
         } catch (e: Exception) {
             return -1
         }
@@ -665,64 +672,66 @@ class MCReader private constructor(tag: Tag) {
         keyStage: ByteArray, useKeyBStage: Boolean,
         keyDest: ByteArray, useKeyBDest: Boolean
     ): Int {
+        val mfc = mMFC ?: return -1
         try {
             if (!isConnected) {
-                mMFC.connect()
+                mfc.connect()
             }
 
-            val stageBlocks = mMFC.getBlockCountInSector(stageSector)
-            val destBlocks = mMFC.getBlockCountInSector(destSector)
+            val stageBlocks = mfc.getBlockCountInSector(stageSector)
+            val destBlocks = mfc.getBlockCountInSector(destSector)
             if (stageBlock < 0 || stageBlock >= stageBlocks) return 2
             if (destBlock < 0 || destBlock >= destBlocks) return 2
 
             if (stageBlock == stageBlocks - 1 || (stageSector == 0 && stageBlock == 0)) return 1
             if (destBlock == destBlocks - 1 || (destSector == 0 && destBlock == 0)) return 1
 
-            val stageAbs = mMFC.sectorToBlock(stageSector) + stageBlock
-            val destAbs = mMFC.sectorToBlock(destSector) + destBlock
+            val stageAbs = mfc.sectorToBlock(stageSector) + stageBlock
+            val destAbs = mfc.sectorToBlock(destSector) + destBlock
 
             var ok = if (useKeyBStage) {
-                mMFC.authenticateSectorWithKeyB(stageSector, keyStage)
+                mfc.authenticateSectorWithKeyB(stageSector, keyStage)
             } else {
-                mMFC.authenticateSectorWithKeyA(stageSector, keyStage)
+                mfc.authenticateSectorWithKeyA(stageSector, keyStage)
             }
             if (!ok) return -1
 
-            val original = mMFC.readBlock(stageAbs)
-            mMFC.writeBlock(stageAbs, valueBlock16)
-            mMFC.restore(stageAbs)
+            val original = mfc.readBlock(stageAbs)
+            mfc.writeBlock(stageAbs, valueBlock16)
+            mfc.restore(stageAbs)
 
             ok = if (useKeyBDest) {
-                mMFC.authenticateSectorWithKeyB(destSector, keyDest)
+                mfc.authenticateSectorWithKeyB(destSector, keyDest)
             } else {
-                mMFC.authenticateSectorWithKeyA(destSector, keyDest)
+                mfc.authenticateSectorWithKeyA(destSector, keyDest)
             }
             if (!ok) return -1
 
-            mMFC.transfer(destAbs)
+            mfc.transfer(destAbs)
 
             if (stageSector != destSector) {
                 ok = if (useKeyBStage) {
-                    mMFC.authenticateSectorWithKeyB(stageSector, keyStage)
+                    mfc.authenticateSectorWithKeyB(stageSector, keyStage)
                 } else {
-                    mMFC.authenticateSectorWithKeyA(stageSector, keyStage)
+                    mfc.authenticateSectorWithKeyA(stageSector, keyStage)
                 }
                 if (!ok) return -1
             }
-            mMFC.writeBlock(stageAbs, original)
+            mfc.writeBlock(stageAbs, original)
 
             return 0
         } catch (e: Exception) {
             return -1
         } finally {
             try {
-                mMFC.close()
+                mfc.close()
             } catch (ignored: Exception) {
             }
         }
     }
 
     private fun authenticate(sectorIndex: Int, key: ByteArray?, useAsKeyB: Boolean): Boolean {
+        val mfc = mMFC ?: return false
         val retryAuth = Common.getPreferences().getBoolean(
             Preference.UseRetryAuthentication.toString(), false
         )
@@ -736,9 +745,9 @@ class MCReader private constructor(tag: Tag) {
         for (i in 0 until retryCount + 1) {
             try {
                 ret = if (!useAsKeyB) {
-                    mMFC.authenticateSectorWithKeyA(sectorIndex, key)
+                    mfc.authenticateSectorWithKeyA(sectorIndex, key)
                 } else {
-                    mMFC.authenticateSectorWithKeyB(sectorIndex, key)
+                    mfc.authenticateSectorWithKeyB(sectorIndex, key)
                 }
             } catch (e: Exception) {
                 when (e) {
@@ -774,10 +783,10 @@ class MCReader private constructor(tag: Tag) {
     }
 
     val isMifareClassic: Boolean
-        get() = true
+        get() = mMFC != null
 
     val size: Int
-        get() = mMFC.size
+        get() = mMFC?.size ?: 0
 
     val sectorCount: Int
         get() {
@@ -789,22 +798,22 @@ class MCReader private constructor(tag: Tag) {
                     Preference.CustomSectorCount.toString(), 16
                 )
             } else {
-                mMFC.sectorCount
+                mMFC?.sectorCount ?: 0
             }
         }
 
     val blockCount: Int
-        get() = mMFC.blockCount
+        get() = mMFC?.blockCount ?: 0
 
     fun getBlockCountInSector(sectorIndex: Int): Int {
-        return mMFC.getBlockCountInSector(sectorIndex)
+        return mMFC?.getBlockCountInSector(sectorIndex) ?: 0
     }
 
     val isConnected: Boolean
         get() {
             var connected = false
             try {
-                connected = mMFC.isConnected
+                connected = mMFC?.isConnected == true
             } catch (ex: RuntimeException) {
                 connected = false
             }
@@ -815,7 +824,7 @@ class MCReader private constructor(tag: Tag) {
         get() {
             if (isConnected) {
                 try {
-                    mMFC.readBlock(0)
+                    mMFC?.readBlock(0)
                 } catch (e: IOException) {
                     return true
                 }
@@ -826,7 +835,8 @@ class MCReader private constructor(tag: Tag) {
     @Throws(Exception::class)
     fun connect() {
         val error = AtomicBoolean(false)
-        if (mMFC.tag == null) {
+        val mfc = mMFC
+        if (mfc == null || mfc.tag == null) {
             error.set(true)
         }
 
@@ -837,7 +847,7 @@ class MCReader private constructor(tag: Tag) {
         if (!error.get()) {
             val t = Thread {
                 try {
-                    mMFC.connect()
+                    mfc?.connect()
                 } catch (ex: Exception) {
                     when (ex) {
                         is IOException, is RuntimeException -> error.set(true)
@@ -861,7 +871,7 @@ class MCReader private constructor(tag: Tag) {
 
     fun close() {
         try {
-            mMFC.close()
+            mMFC?.close()
         } catch (ex: Exception) {
             when (ex) {
                 is IOException, is RuntimeException -> Log.d(LOG_TAG, "Error on closing tag.")
