@@ -172,4 +172,155 @@ public class BaselineTest {
         assertNull(Common.hex2Bin(null));
         assertNull(Common.bin2Hex(null));
     }
+
+    @Test
+    public void testAccessConditionsMatrixAndRoundTrip() {
+        // Transport configuration AC bytes: FF 07 80
+        byte[] transportAc = new byte[]{(byte) 0xFF, (byte) 0x07, (byte) 0x80};
+        byte[][] matrix = Common.acBytesToACMatrix(transportAc);
+        // Should decode into 3 rows (C1, C2, C3) x 4 blocks
+        assertEquals(3, matrix.length);
+        assertEquals(4, matrix[0].length);
+
+        // Blocks 0..2 should have C1=0, C2=0, C3=0
+        for (int block = 0; block < 3; block++) {
+            assertEquals(0, matrix[0][block]);
+            assertEquals(0, matrix[1][block]);
+            assertEquals(0, matrix[2][block]);
+        }
+        // Sector trailer (block 3) should have C1=0, C2=0, C3=1
+        assertEquals(0, matrix[0][3]);
+        assertEquals(0, matrix[1][3]);
+        assertEquals(1, matrix[2][3]);
+
+        // Round-trip encoding
+        byte[] encodedAc = Common.acMatrixToACBytes(matrix);
+        assertArrayEquals(transportAc, encodedAc);
+
+        // Invalid AC bytes (inverted bits do not match)
+        byte[] invalidAc = new byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x00};
+        assertNull(Common.acBytesToACMatrix(invalidAc));
+
+        // Invalid inputs
+        assertNull(Common.acBytesToACMatrix(null));
+        assertNull(Common.acBytesToACMatrix(new byte[]{1, 2}));
+        assertNull(Common.acMatrixToACBytes(null));
+    }
+
+    @Test
+    public void testIsKeyBReadable() {
+        assertTrue(Common.isKeyBReadable((byte) 0, (byte) 0, (byte) 0));
+        assertTrue(Common.isKeyBReadable((byte) 0, (byte) 1, (byte) 0));
+        assertTrue(Common.isKeyBReadable((byte) 0, (byte) 0, (byte) 1));
+
+        assertFalse(Common.isKeyBReadable((byte) 0, (byte) 1, (byte) 1));
+        assertFalse(Common.isKeyBReadable((byte) 1, (byte) 0, (byte) 0));
+        assertFalse(Common.isKeyBReadable((byte) 1, (byte) 1, (byte) 0));
+        assertFalse(Common.isKeyBReadable((byte) 1, (byte) 0, (byte) 1));
+        assertFalse(Common.isKeyBReadable((byte) 1, (byte) 1, (byte) 1));
+    }
+
+    @Test
+    public void testOperationRequirements() {
+        // Data block with C1=0, C2=0, C3=0 and Key B readable
+        // Read: returns 1 (Key A) when Key B is readable, or 3 (Key A|B) if not
+        assertEquals(1, Common.getOperationRequirements((byte) 0, (byte) 0, (byte) 0,
+                Common.Operation.Read, false, true));
+        assertEquals(3, Common.getOperationRequirements((byte) 0, (byte) 0, (byte) 0,
+                Common.Operation.Read, false, false));
+
+        // Sector trailer with C1=0, C2=0, C3=1
+        // Read Key A: returns 0 (Never)
+        assertEquals(0, Common.getOperationRequirements((byte) 0, (byte) 0, (byte) 1,
+                Common.Operation.ReadKeyA, true, false));
+        // Read AC: returns 1 (Key A)
+        assertEquals(1, Common.getOperationRequirements((byte) 0, (byte) 0, (byte) 1,
+                Common.Operation.ReadAC, true, false));
+    }
+
+    @Test
+    public void testDecimalAndHexConversionBigInteger() {
+        // Large decimal requiring BigInteger (> 18 digits)
+        String largeDec = "12345678901234567890";
+        String hexFromDec = Common.decBE2Hex(largeDec);
+        String decFromHex = Common.hex2DecBE(hexFromDec);
+        assertEquals(largeDec, decFromHex);
+
+        // Standard decimal
+        assertEquals("0A", Common.decBE2Hex("10"));
+        assertEquals("10", Common.hex2DecBE("0A"));
+
+        // Little Endian conversion
+        String leHex = Common.decLE2Hex("256"); // 256 in hex is 0100, LE is 0001
+        assertEquals("0001", leHex);
+        assertEquals("256", Common.hex2DecLE(leHex));
+
+        assertNull(Common.decBE2Hex("not_a_number"));
+        assertNull(Common.decLE2Hex(null));
+        assertNull(Common.hex2DecBE("invalid_hex"));
+        assertNull(Common.hex2DecLE(null));
+    }
+
+    @Test
+    public void testByte2FmtString() {
+        byte[] bytes = new byte[]{(byte) 0x12, (byte) 0x34};
+        // Format 0 = Hex
+        assertEquals("1234", Common.byte2FmtString(bytes, 0));
+        // Format 1 = DecBE (0x1234 = 4660)
+        assertEquals("4660", Common.byte2FmtString(bytes, 1));
+        // Format 2 = DecLE (0x3412 = 13330)
+        assertEquals("13330", Common.byte2FmtString(bytes, 2));
+    }
+
+    @Test
+    public void testBlockToSector() {
+        // Standard 1K/2K sectors (4 blocks each, sectors 0..31)
+        assertEquals(0, MCReader.blockToSector(0));
+        assertEquals(0, MCReader.blockToSector(3));
+        assertEquals(1, MCReader.blockToSector(4));
+        assertEquals(31, MCReader.blockToSector(127));
+
+        // 4K large sectors (16 blocks each, sectors 32..39)
+        assertEquals(32, MCReader.blockToSector(128));
+        assertEquals(32, MCReader.blockToSector(143));
+        assertEquals(33, MCReader.blockToSector(144));
+        assertEquals(39, MCReader.blockToSector(255));
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testBlockToSectorNegativeThrows() {
+        MCReader.blockToSector(-1);
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testBlockToSectorOver255Throws() {
+        MCReader.blockToSector(256);
+    }
+
+    @Test
+    public void testIsValidBlock0() {
+        // Valid 4-byte UID block 0:
+        // UID: 01020304, BCC: 04, SAK: 08 (MFC 1K), ATQA: 0400
+        // SAK start for 4-byte UID = 4*2 + 2 = 10 -> substring(10, 12) = 08
+        // ATQA start = 12 -> substring(12, 16) = 0400
+        // Rest = 16 bytes total (32 hex chars)
+        String validBlock0 = "01020304040804000000000000000000";
+        // Check BCC = 0x01 ^ 0x02 ^ 0x03 ^ 0x04 = 0x04
+        assertTrue(Common.isValidBlock0(validBlock0, 4, 1024, false));
+
+        // Invalid BCC
+        String badBccBlock0 = "01020304FF0804000000000000000000";
+        assertFalse(Common.isValidBlock0(badBccBlock0, 4, 1024, false));
+
+        // Skip BCC check should pass
+        assertTrue(Common.isValidBlock0(badBccBlock0, 4, 1024, true));
+
+        // Forbidden initial byte 0x88 or 0xF8 for 4-byte UID
+        String forbidden88 = "880203048D0804000000000000000000";
+        assertFalse(Common.isValidBlock0(forbidden88, 4, 1024, true));
+
+        // Invalid length
+        assertFalse(Common.isValidBlock0("SHORT", 4, 1024, true));
+        assertFalse(Common.isValidBlock0(null, 4, 1024, true));
+    }
 }
