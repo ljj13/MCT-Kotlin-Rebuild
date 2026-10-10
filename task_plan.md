@@ -64,3 +64,13 @@
 - [x] 遗留风险审计（高风险模块审查、异常语义保持、Android 生命周期契约）
 - [x] Git 状态确认（保留在 `refactor/kotlin-migration` 分支，绝不合入 master）
 - [x] 生成最终审计与迁移成果报告
+
+### 阶段 6：P6 红米手机真机验收与行为对照 [complete]
+- [x] 确认 ADB 设备：红米 Note 8 Pro (`pnq47xf6899t4huc`, Android 16 / SDK 36, NXP NFC)
+- [x] 构建并安装最新 Debug APK 与 AndroidTest APK
+- [x] 自动验证应用启动、全量 Activity 导航与运行时生命周期切换
+- [x] 实时采集 logcat，排查并确认 0 崩溃 (0 FATAL EXCEPTION)
+- [x] 校验文件系统与数据结构（`dump-files`, `key-files` 与内置字典）
+- [x] 模拟 NFC 标签意图 (`TECH_DISCOVERED`) 与非 MFC 卡兼容性分发
+- [x] 严格实施安全边界：未对实体卡执行任何未经确认的写入或 UID/Block0/Gen3 危险写操作
+- [x] 输出完整 PASS / FAIL / UNTESTED 验收矩阵、日志证据、剩余风险与合并建议

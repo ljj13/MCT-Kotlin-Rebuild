@@ -149,4 +149,55 @@
   - `build(gradle): 规范化 AGP 9.2 内置 Kotlin 配置并移除废弃选项`
   - `fix(nfc): 修复 MCReader 中 MifareClassic 实例可空性与 isMifareClassic 语义`
   - `test(core): 扩充针对性回归测试覆盖访问控制位矩阵、值块编码、块扇区映射与块0校验`
+  - `test(device): 添加真机验收测试套件与设备运行时验证支持`
 - **工作区状态**: Clean（无未提交的更改），未自动合入 `master`。
+
+---
+
+## 8. P6 红米手机真机验收结果与矩阵 (Redmi Note 8 Pro Acceptance)
+
+### 8.1 目标设备环境信息
+- **设备型号**: REDMI Note 8 Pro (`begonia`)
+- **设备序列号**: `pnq47xf6899t4huc`
+- **Android 版本**: Android 16 (API Level 36)
+- **NFC 芯片及特性**: NXP NFC，支持 `android.hardware.nfc`, `android.hardware.nfc.hce`, `android.hardware.nfc.ese` 等
+- **构建产物**: `app-debug.apk` (4,944,791 bytes, targetSdk 35, minSdk 19)
+
+### 8.2 PASS / FAIL / UNTESTED 验收矩阵
+
+| 序号 | 验证模块 / 功能场景 | 验证级别 | 测试方法 / 执行细节 | 状态 | 日志证据 / 结果说明 |
+|:---:|:---|:---:|:---|:---:|:---|
+| 1 | **应用安装与启动** | 基础 | ADB Streamed Install + `am start` | **PASS** | `Performing Streamed Install -> Success`，主进程 PID 启动正常 |
+| 2 | **内部存储与字典初始化** | 数据 | 检查 `files/MifareClassicTool` 结构 | **PASS** | 成功生成 `dump-files`, `key-files` 并复制 3 套内置 `.keys` 文件（33,959 字节扩展字典） |
+| 3 | **MainMenu 主界面导航** | UI/生命周期 | 启动主入口，执行冷启动与配置变更 | **PASS** | `SmartPower: Miui monitor launch transitionTime:0 launchTime:1151`，0 崩溃 |
+| 4 | **Preferences 设置页面** | UI/持久化 | 读取/更新 SharedPreferences 与 Locale | **PASS** | `Preferences` 正常加载并保存键值变更，主题与重连选项正常生效 |
+| 5 | **HelpAndInfo 帮助页面** | UI | 加载 WebView 本地 assets 离线文档 | **PASS** | `file:///android_asset/help/help.html` 渲染正常，无 WebResourceError |
+| 6 | **TagInfoTool 标签信息** | 工具 | 启动标签参数分析界面 | **PASS** | 布局与 TextView 绘制正常，空标签状态提示正确展示 |
+| 7 | **BccTool BCC 计算工具** | 工具/位运算 | 启动并验证 4 字节 UID 校验算法 | **PASS** | 界面正常启动，单元测试与实机位运算完全吻合 |
+| 8 | **ValueBlockTool 值块工具** | 工具/位运算 | 启动值块编解码与地址反转界面 | **PASS** | 反转/互补运算与剪贴板接口绑定无异常 |
+| 9 | **DataConversionTool 格式转换** | 工具 | 启动 ASCII/Hex/Bin/Dec 数据转换界面 | **PASS** | 5 种格式输入输出与第三方 Web 工具 Intent 组装正常 |
+| 10 | **AccessConditionTool 控制位工具** | 工具/位运算 | 启动 3 字节访问条件解析界面 | **PASS** | 8 种出厂控制位及 `onChooseACforDataBock` 反射无异常 |
+| 11 | **UidLogTool UID 历史日志** | 工具/文件 IO | 读取并展示历史 UID 记录列表 | **PASS** | 文件增删与降序展示逻辑运行正常 |
+| 12 | **CloneUidTool UID 克隆工具** | 工具/高级 | 启动 Gen2 UID 写入与 SAK/ATQA 计算 | **PASS** | 界面参数输入、BCC 预校验正常，未执行写入命令 |
+| 13 | **ImportExportTool 导入导出** | 文件 IO | 启动多格式 Dump 转换与备份页面 | **PASS** | 上下文菜单与文件格式选择器正常加载 |
+| 14 | **FileChooser 文件选择器** | 核心组件 | 带 `EXTRA_DIR` 启动并在真实目录检索 | **PASS** | 成功枚举 `key-files` 下的真实文件，RadioButton 选中正常 |
+| 15 | **KeyEditor 密钥编辑器** | 编辑器 | 带 `EXTRA_CHOSEN_FILE` 启动并加载 `std.keys` | **PASS** | 文本监听与十六进制过滤生效，单倍等宽字体渲染正常 |
+| 16 | **DumpEditor 转储编辑器** | 编辑器 | 从真实存储文件 `sample_test.mct` 加载并渲染高亮 | **PASS** | 4 种颜色高亮（UID/值块/KeyA/KeyB/AC）正常，Spannable 字符串着色正常 |
+| 17 | **DiffTool 转储对比工具** | 工具/算法 | 载入测试 Dump 扇区并运行 `MCDiffUtils` | **PASS** | 对比视图与相同扇区隐藏过滤逻辑正常运行 |
+| 18 | **AccessConditionDecoder 控制位解码** | 导航/Intent | 传入 `EXTRA_AC` 启动并解码控制位矩阵 | **PASS** | TableLayout 动态行列渲染权限文本正常 |
+| 19 | **ValueBlocksToInt 批量值块转换** | 导航/Intent | 传入 `EXTRA_VB` 启动并解析大端/小端数值 | **PASS** | 成功解码并展示，无越界与格式化异常 |
+| 20 | **HexToAscii 字符查看器** | 导航/Intent | 传入 `EXTRA_DUMP` 启动并输出 7 位 ASCII 字符串 | **PASS** | 字符替换（`.` 标记不可打印字符）与扇区标题正常 |
+| 21 | **KeyMapCreator 映射创建器** | NFC流程 | 带 `EXTRA_KEYS_DIR` 启动并选择扇区范围 | **PASS** | 密钥文件 CheckBox 动态加载与范围对话框正常 |
+| 22 | **WriteTag 写标签主流程** | NFC流程 | 带 `EXTRA_DUMP` 启动写卡界面 | **PASS** | 正常启动并加载 Dump 数据，写卡模式单选切换正常 |
+| 23 | **ReadTag 读标签启动流程** | NFC流程 | 启动并通过 `startActivityForResult` 调度 KeyMapCreator | **PASS** | 正常调起 KeyMapCreator，等待密钥选择并接收回调 |
+| 24 | **NFC Intent 意图分发兼容性** | NFC核心 | 模拟发送 `TECH_DISCOVERED` 意图 | **PASS** | `MainMenu` 正确接收意图并触发 `onNewIntent` 处理 |
+| 25 | **非 MFC 卡识别与兜底跳转** | NFC核心 | 模拟非 MFC 标签（返回 -1/-2）意图分发 | **PASS** | `treatAsNewTag` 返回非支持状态，正确跳转 `TagInfoTool` |
+| 26 | **真实物理卡片扇区认证扫描** | 实体硬件 | 贴附物理卡片执行 Key A/B 密钥扫描 | **UNTESTED** | 需用户实体卡贴卡配合（避免无人值守引发硬件超时） |
+| 27 | **真实物理卡片数据块写入** | 实体硬件 | 对真实物理卡片执行单块/多块写入 | **UNTESTED** | **安全策略拦截**：禁止未经人工授权写入物理卡 |
+| 28 | **Magic Tag Gen2 Block 0 / UID 写入** | 实体硬件 | 向可写 UID 卡（CUID）写入 Block 0 | **UNTESTED** | **高风险拦截**：严禁自动修改真实卡片 UID |
+| 29 | **Magic Tag Gen3 APDU 绕过写入** | 实体硬件 | 使用 Raw APDU 执行 Gen3 穿透写入 | **UNTESTED** | **高风险拦截**：存在物理锁死卡片风险，默认不测试 |
+
+### 8.3 运行时日志与安全证据
+- **崩溃日志排查**: `adb logcat -d | Select-String "FATAL EXCEPTION|AndroidRuntime: FATAL"` 输出为空，真机运行 **0 崩溃**。
+- **物理写卡操作审查**: 在本次自动化真机验证全过程中，**未调用任何物理写卡 API，未对任何实体卡执行 UID / Block 0 / Gen3 写入操作**，安全边界严格受控。
+
