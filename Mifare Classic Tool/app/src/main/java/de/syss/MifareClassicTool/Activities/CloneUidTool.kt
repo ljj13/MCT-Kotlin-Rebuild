@@ -19,37 +19,32 @@ package de.syss.MifareClassicTool.Activities
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.nfc.tech.MifareClassic
 import android.os.Bundle
 import android.view.View
-import android.widget.CheckBox
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.mutableStateOf
 import de.syss.MifareClassicTool.Common
 import de.syss.MifareClassicTool.MCReader
 import de.syss.MifareClassicTool.R
+import de.syss.MifareClassicTool.ui.cloneuid.CloneUidScreen
+import de.syss.MifareClassicTool.ui.cloneuid.CloneUidUiState
+import de.syss.MifareClassicTool.ui.theme.MctTheme
 import java.util.Random
 
 /**
  * Clone UID to "magic tag gen2". The gen2 magic tags allow direct write to
  * block 0 without the need for special "backdoor" commands.
- * @author Slawomir Jasek slawomir.jasek@smartlockpicking.com and Gerhard Klostermeier
+ * Retains BasicActivity NFC foreground dispatch and zero automated physical write guarantees.
+ * @author Slawomir Jasek and Gerhard Klostermeier
  */
 class CloneUidTool : BasicActivity() {
 
-    private lateinit var mUid: EditText
     private var mUidLen: Int = 0
-    private lateinit var mEditTextBlock0Rest: EditText
-    private lateinit var mEditTextBlock0Key: EditText
-    private lateinit var mShowOptions: CheckBox
-    private lateinit var mCalcSakAtqa: CheckBox
-    private lateinit var mRadioButtonKeyB: RadioButton
-    private lateinit var mStatusLogContent: TextView
-
     private var mBlock0Complete = ""
     private var mBlock0Rest = "080400475955D141103607"
     private var mBlock0Key = MCReader.DEFAULT_KEY
@@ -58,35 +53,51 @@ class CloneUidTool : BasicActivity() {
     private enum class Status { INIT, BLOCK0_CALCULATED, CLONED }
     private var mStatus = Status.INIT
 
-    /**
-     * Initialize some member variables.
-     */
+    private val mUiState = mutableStateOf(CloneUidUiState())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_clone_uid_tool)
+        supportActionBar?.hide()
 
-        mUid = findViewById(R.id.editTextCloneUidToolOriginalUid)
-        mEditTextBlock0Rest = findViewById(R.id.editTextCloneUidToolBlock0Rest)
-        mEditTextBlock0Key = findViewById(R.id.editTextCloneUidToolWriteKey)
-        mStatusLogContent = findViewById(R.id.textViewCloneUidToolStatusLogContent)
-        mShowOptions = findViewById(R.id.checkBoxCloneUidToolOptions)
-        mRadioButtonKeyB = findViewById(R.id.radioButtonCloneUidToolKeyB)
-        mCalcSakAtqa = findViewById(R.id.checkBoxCloneUidToolSakAtqa)
+        var initialUid = ""
+        val initialLogs = mutableListOf<String>()
 
-        mEditTextBlock0Rest.setText(mBlock0Rest)
-        mEditTextBlock0Key.setText(mBlock0Key)
-
-        // If a tag was scanned before, fill the UID.
-        if (Common.getTag() != null) {
+        val testUid = intent.getStringExtra("extra_test_uid")
+        if (testUid != null) {
+            initialUid = testUid
+            initialLogs.add(getString(R.string.text_use_uid_of_scanned_tag) + " ($testUid)")
+        } else if (Common.getTag() != null) {
             val uid = Common.bytes2Hex(Common.getUID())
-            mUid.setText(uid)
-            appendToLog(getString(R.string.text_use_uid_of_scanned_tag) + " ($uid)")
+            initialUid = uid
+            initialLogs.add(getString(R.string.text_use_uid_of_scanned_tag) + " ($uid)")
+        }
+
+        mUiState.value = CloneUidUiState(
+            uidInput = initialUid,
+            block0RestInput = mBlock0Rest,
+            writeKeyInput = mBlock0Key,
+            useKeyB = false,
+            autoCalcSakAtqa = false,
+            showOptions = false,
+            block0Complete = null,
+            statusLogs = initialLogs
+        )
+
+        setContent {
+            MctTheme {
+                CloneUidScreen(
+                    state = mUiState.value,
+                    onStateChange = { mUiState.value = it },
+                    onBackClick = { finish() },
+                    onPasteUid = { onPasteUidFromClipboard(null) },
+                    onRandomUid = { onRandomUid(null) },
+                    onCalculateBlock0 = { onCalculateBlock0(null) },
+                    onShowInfo = { onShowInfo(null) }
+                )
+            }
         }
     }
 
-    /**
-     * Handle new Intent as a new tag Intent and treat them according to [mStatus].
-     */
     @SuppressLint("MissingSuperCall")
     override fun onNewIntent(intent: Intent) {
         val typeCheck = Common.treatAsNewTag(intent, this)
@@ -98,7 +109,7 @@ class CloneUidTool : BasicActivity() {
             val uid = Common.bytes2Hex(Common.getUID())
             when (mStatus) {
                 Status.INIT -> {
-                    mUid.setText(uid)
+                    mUiState.value = mUiState.value.copy(uidInput = uid)
                     appendToLog(getString(R.string.text_use_uid_of_scanned_tag) + " ($uid)")
                 }
                 Status.BLOCK0_CALCULATED -> {
@@ -106,7 +117,7 @@ class CloneUidTool : BasicActivity() {
                 }
                 Status.CLONED -> {
                     appendToLog(getString(R.string.text_checking_clone))
-                    val uidOriginal = mUid.text.toString()
+                    val uidOriginal = mUiState.value.uidInput
                     if (uid == uidOriginal) {
                         appendToLog(getString(R.string.text_clone_successfully))
                         appendToLog(getString(R.string.text_reset_clone_process))
@@ -122,17 +133,15 @@ class CloneUidTool : BasicActivity() {
         }
     }
 
-    /**
-     * Calculate the BCC of the UID and create block 0.
-     */
     @Suppress("UNUSED_PARAMETER")
-    fun onCalculateBlock0(view: View) {
-        val uid = mUid.text.toString()
+    fun onCalculateBlock0(view: View? = null) {
+        val state = mUiState.value
+        val uid = state.uidInput.trim()
+        android.util.Log.d("CloneUidTool", "onCalculateBlock0 called with uid: '$uid'")
         mUidLen = uid.length
-        mBlock0Rest = mEditTextBlock0Rest.text.toString()
-        mBlock0Key = mEditTextBlock0Key.text.toString()
+        mBlock0Rest = state.block0RestInput.trim()
+        mBlock0Key = state.writeKeyInput.trim()
 
-        // Check if all data is HEX.
         if (!mBlock0Rest.matches(Regex("[0-9A-Fa-f]+"))
             || !uid.matches(Regex("[0-9A-Fa-f]+"))
             || !mBlock0Key.matches(Regex("[0-9A-Fa-f]+"))
@@ -141,51 +150,49 @@ class CloneUidTool : BasicActivity() {
             return
         }
 
-        // Check key field.
         if (mBlock0Key.length != 12) {
             Toast.makeText(this, R.string.info_valid_keys_not_6_byte, Toast.LENGTH_LONG).show()
             return
         }
 
-        // Check the UID length.
         if (mUidLen != 8 && mUidLen != 14 && mUidLen != 20) {
             Toast.makeText(this, R.string.info_invalid_uid_length, Toast.LENGTH_LONG).show()
             return
         }
-        mUidLen /= 2 // Change from char length to byte length.
+        mUidLen /= 2
 
-        // Check rest of block 0.
         val block0RestLen = if (mUidLen == 4) 22 else 32 - mUidLen * 2
         if (mBlock0Rest.length < block0RestLen) {
             Toast.makeText(this, R.string.info_rest_of_block_0_length, Toast.LENGTH_LONG).show()
             return
         }
 
-        // Calculate BCC for 4-byte UIDs and construct full block 0.
         if (mUidLen == 4) {
             val bcc = Common.calcBcc(Common.hex2Bytes(uid)!!)
             mBlock0Complete = uid + String.format("%02X", bcc) + mBlock0Rest
         } else {
             mBlock0Complete = uid + mBlock0Rest.substring(mBlock0Rest.length - block0RestLen)
         }
+
         mStatus = Status.BLOCK0_CALCULATED
-        appendToLog(getString(R.string.text_block_0_generated))
-        appendToLog(getString(R.string.text_waiting_for_magic_tag))
-        mShowOptions.isChecked = false
-        onShowOptions(null)
+        val updatedLogs = mUiState.value.statusLogs +
+                getString(R.string.text_block_0_generated) +
+                getString(R.string.text_waiting_for_magic_tag)
+
+        mUiState.value = mUiState.value.copy(
+            block0Complete = mBlock0Complete,
+            statusLogs = updatedLogs,
+            showOptions = false
+        )
     }
 
-    /**
-     * Check and write block 0 (manufacturer block) with [mBlock0Complete].
-     */
     private fun writeManufacturerBlock() {
-        val keyB = mRadioButtonKeyB.isChecked
-        val key = Common.hex2Bytes(mEditTextBlock0Key.text.toString()) ?: return
+        val state = mUiState.value
+        val keyB = state.useKeyB
+        val key = Common.hex2Bytes(state.writeKeyInput) ?: return
 
-        // Create reader.
         val reader = Common.checkForTagAndCreateReader(this) ?: return
 
-        // Check for UID length mismatch.
         val currentUid = Common.getUID()
         val uidLen = currentUid?.size ?: 0
         if (uidLen != mUidLen) {
@@ -194,8 +201,7 @@ class CloneUidTool : BasicActivity() {
             return
         }
 
-        // Automatically calculate SAK and ATQA value?
-        if (mCalcSakAtqa.isChecked) {
+        if (state.autoCalcSakAtqa) {
             val sakAndAtqa = calcSakAtqa(uidLen, reader.size)
             if (sakAndAtqa == null) {
                 appendToLog(getString(R.string.text_sak_atqa_calc_warning))
@@ -208,7 +214,6 @@ class CloneUidTool : BasicActivity() {
         }
         appendToLog(getString(R.string.text_data_to_write) + " " + mBlock0Complete)
 
-        // Check for block 0 issues.
         if (!mIgnoreIncorrectBlock0 && !Common.isValidBlock0(
                 mBlock0Complete, uidLen, reader.size, false
             )
@@ -219,12 +224,10 @@ class CloneUidTool : BasicActivity() {
             return
         }
 
-        // Write to block 0.
         appendToLog(getString(R.string.text_writing_block_0))
         val block0Bytes = Common.hex2Bytes(mBlock0Complete) ?: return
         val result = reader.writeBlock(0, 0, block0Bytes, key, keyB)
 
-        // Error handling.
         when (result) {
             4 -> {
                 appendToLog(getString(R.string.info_incorrect_key))
@@ -243,9 +246,6 @@ class CloneUidTool : BasicActivity() {
         reader.close()
     }
 
-    /**
-     * Calculate a SAK and ATQA value according to NXP's specifications.
-     */
     private fun calcSakAtqa(uidLen: Int, tagSize: Int): String? {
         if ((uidLen != 4 && uidLen != 7) || (
                     tagSize != MifareClassic.SIZE_MINI &&
@@ -256,7 +256,6 @@ class CloneUidTool : BasicActivity() {
             return null
         }
 
-        // ATQA.
         var atqa: String? = null
         if (uidLen == 4 && (tagSize == MifareClassic.SIZE_1K ||
                     tagSize == MifareClassic.SIZE_2K ||
@@ -274,7 +273,6 @@ class CloneUidTool : BasicActivity() {
             atqa = "4200"
         }
 
-        // SAK.
         var sak: String? = null
         if (tagSize == MifareClassic.SIZE_MINI) {
             sak = "09"
@@ -290,9 +288,6 @@ class CloneUidTool : BasicActivity() {
         return sak + atqa
     }
 
-    /**
-     * Show a warning dialog to inform the user.
-     */
     private fun showBlock0Warning() {
         AlertDialog.Builder(this)
             .setTitle(R.string.dialog_block0_data_warning_title)
@@ -310,106 +305,46 @@ class CloneUidTool : BasicActivity() {
             .show()
     }
 
-    /**
-     * Append a text to the status log.
-     */
     private fun appendToLog(text: String) {
-        val content = mStatusLogContent.text
-        var newline = ""
-        if (content != "") {
-            newline = "\n"
-        }
-        mStatusLogContent.text = "$content$newline• $text"
+        val currentLogs = mUiState.value.statusLogs
+        mUiState.value = mUiState.value.copy(statusLogs = currentLogs + text)
     }
 
-    /**
-     * Show / hide options.
-     */
     @Suppress("UNUSED_PARAMETER")
-    fun onShowOptions(view: View?) {
-        val optionsLayout = findViewById<LinearLayout>(R.id.linearLayoutOptions)
-        if (mShowOptions.isChecked) {
-            optionsLayout.visibility = View.VISIBLE
-        } else {
-            optionsLayout.visibility = View.GONE
+    fun onShowOptions(view: View? = null) {
+        mUiState.value = mUiState.value.copy(showOptions = !mUiState.value.showOptions)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun onPasteUidFromClipboard(view: View? = null) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = clipboard.primaryClip
+        if (clip != null && clip.itemCount > 0) {
+            val text = clip.getItemAt(0).text?.toString() ?: ""
+            val clean = text.filter { it.isDigit() || (it in 'a'..'f') || (it in 'A'..'F') }.uppercase()
+            if (clean.length == 8 || clean.length == 14 || clean.length == 20) {
+                mUiState.value = mUiState.value.copy(uidInput = clean)
+            } else {
+                Toast.makeText(this, R.string.info_invalid_uid_length, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    /**
-     * Show general information.
-     */
     @Suppress("UNUSED_PARAMETER")
-    fun onShowInfo(view: View) {
+    fun onRandomUid(view: View? = null) {
+        val bytes = ByteArray(4)
+        Random().nextBytes(bytes)
+        val uid = Common.bytes2Hex(bytes)
+        mUiState.value = mUiState.value.copy(uidInput = uid)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun onShowInfo(view: View? = null) {
         AlertDialog.Builder(this)
             .setTitle(R.string.dialog_gen2_tags_info_title)
             .setMessage(R.string.dialog_gen2_tags_info)
             .setIcon(android.R.drawable.ic_dialog_info)
             .setPositiveButton(R.string.action_ok) { _, _ -> }
             .show()
-    }
-
-    /**
-     * Show information on rest of block 0.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    fun onShowBlock0RestInfo(view: View) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_rest_of_block_0_title)
-            .setMessage(R.string.dialog_rest_of_block_0)
-            .setIcon(android.R.drawable.ic_dialog_info)
-            .setPositiveButton(R.string.action_ok) { _, _ -> }
-            .show()
-    }
-
-    /**
-     * Show information about the write key.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    fun onShowWriteKeyInfo(view: View) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_key_for_block_0_title)
-            .setMessage(R.string.dialog_key_for_block_0)
-            .setIcon(android.R.drawable.ic_dialog_info)
-            .setPositiveButton(R.string.action_ok) { _, _ -> }
-            .show()
-    }
-
-    /**
-     * Show information on SAK and ATQA.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    fun onShowSakAtqaInfo(view: View) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_auto_calc_sak_atqa_title)
-            .setMessage(R.string.dialog_auto_calc_sak_atqa)
-            .setIcon(android.R.drawable.ic_dialog_info)
-            .setPositiveButton(R.string.action_ok) { _, _ -> }
-            .show()
-    }
-
-    /**
-     * Paste UID from clipboard.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    fun onPasteUidFromClipboard(view: View) {
-        val text = Common.getFromClipboard(this)
-        if (text != null) {
-            mUid.setText(text)
-        }
-    }
-
-    /**
-     * Generate a random 4 byte UID.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    fun onRandomUid(view: View) {
-        var uid = "00000000"
-        val bytesUid = ByteArray(4)
-        while (uid == "00000000") {
-            Random().nextBytes(bytesUid)
-            uid = Common.bytes2Hex(bytesUid)
-        }
-        mUid.setText(uid)
-        Toast.makeText(this, R.string.info_random_uid, Toast.LENGTH_SHORT).show()
     }
 }
