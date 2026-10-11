@@ -54,7 +54,25 @@ class TagInfoTool : BasicActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
 
-        updateTagInfo(Common.getTag())
+        if (intent.getBooleanExtra("extra_test_tag", false)) {
+            mTagInfoState.value = TagInfoData(
+                uid = "0BDC504F (4 byte)",
+                uidRaw = "0BDC504F",
+                rfTech = getString(R.string.text_rf_tech_14a),
+                atqa = "0400",
+                sak = "08",
+                ats = "-",
+                tagType = "NXP MIFARE Classic 1k",
+                isTagTypeGuessed = true,
+                memSize = "1024",
+                blockSize = "16",
+                sectorCount = "16",
+                blockCount = "64"
+            )
+            mMfcSupportState.intValue = 0
+        } else {
+            updateTagInfo(Common.getTag())
+        }
 
         setContent {
             MctTheme {

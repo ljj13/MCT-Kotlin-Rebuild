@@ -525,7 +525,12 @@ class MainMenu : AppCompatActivity() {
         mNfcState.value = getNfcHardwareState()
         runStartUpNode(StartUpNode.FirstUseDialog)
         try {
-            registerReceiver(mNfcStateReceiver, android.content.IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED))
+            androidx.core.content.ContextCompat.registerReceiver(
+                this,
+                mNfcStateReceiver,
+                android.content.IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED),
+                androidx.core.content.ContextCompat.RECEIVER_EXPORTED
+            )
         } catch (e: Exception) {
             Log.w(LOG_TAG, "Failed to register NFC state receiver", e)
         }
