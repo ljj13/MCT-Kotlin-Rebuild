@@ -332,5 +332,56 @@
 1. **复杂编辑器隔离保护**: `DumpEditor`、`WriteTag` 与 `KeyEditor` 保持纯传统 View 架构，未进行单 Activity 或激进 Compose 重构，彻底隔绝高风险 NFC 写入时序衰退风险；
 2. **Git 分支与标签纯净性**: `master` 分支与基线标签 `v4.3.1-kotlin-migration-baseline` 严格锁定在 commit `50593d9`，未向远程仓库推送任何改动。
 
+---
+
+## 13. P12 剩余中低风险页面 Compose 现代化与文件体系收口报告
+
+### 13.1 迁移范围与成果概述
+在 `feature/compose-modernization` 分支上，按照“低风险至高风险”渐进式推进策略，完成了 4 个关键业务页面的 Jetpack Compose + Material 3 现代化改造，并对复杂只读对比页面 `DiffTool` 完成了专项架构评估：
+
+1. **AccessConditionDecoder（控制位解码器 - 低风险）**:
+   - 职责：展示扇区访问控制位（数据块读写加减控制、扇区尾块 Key A/Key B/AC 位访问策略）；
+   - 现代化架构：`AccessConditionDecoderScreen` + `MctSectionCard`，支持多扇区与 16 块大扇区 (`*` 前缀) 动态解析；彩色权限徽章 (`Never`, `Key A`, `Key B`, `Key A|B`, `Error`) 可视化；
+   - 真机验收截图：`access_condition_decoder_compose_screenshot.png`；
+   - 提交：`389e151 refactor(ac): 将 AccessConditionDecoder 迁移至 Compose Material 3 并实现扇区控制矩阵可视化`。
+
+2. **ValueBlocksToInt（值块转整数 - 低风险）**:
+   - 职责：将转储中的 16 字节值块解码为十进制大数与地址字节；
+   - 现代化架构：`ValueBlocksToIntScreen` + `MctSectionCard`，清晰展示原始 16 进制块与对应十进制整数，支持一键复制；
+   - 真机验收截图：`value_blocks_to_int_compose_screenshot.png`；
+   - 提交：`dd86943 refactor(vb): 将 ValueBlocksToInt 迁移至 Compose Material 3 并优化值块整数解析呈现`。
+
+3. **FileChooser（文件选择器 - 中风险核心枢纽）**:
+   - 职责：作为 `DumpEditor`、`KeyEditor`、`ReadTag`、`WriteTag`、`DiffTool` 的文件交互枢纽，支持单选、新建、删除、导入导出入口；
+   - 契约保真：严格保留 `EXTRA_DIR`、`EXTRA_TITLE`、`EXTRA_CHOOSER_TEXT`、`EXTRA_BUTTON_TEXT`、`EXTRA_ALLOW_NEW_FILE`、`EXTRA_CHOSEN_FILE`、`EXTRA_CHOSEN_FILENAME` 及返回码 `RESULT_OK` / `RESULT_CANCELED`；
+   - 现代化架构：`FileChooserScreen` + `MctActionButton` + 响应式单选卡片流 + Material 3 新建/删除二次确认弹窗；
+   - 真机验收截图：`file_chooser_compose_screenshot.png`；
+   - 提交：`4f03d8a refactor(filechooser): 将 FileChooser 迁移至 Compose Material 3 并保持文件交互与 Intent 契约兼容`。
+
+4. **ImportExportTool（导入/导出工具 - 中风险文件桥梁）**:
+   - 职责：转储文件格式转换（MCT, JSON, BIN/MFD, EML）、密钥字典转换（KEYS, BIN）、整库 ZIP 打包备份与 SAF Storage Access Framework 外部授权交互；
+   - 契约保真：保留原有 `convertDump`、`convertKeys`、`backupDumpsAndKeys`、`ACTION_OPEN_DOCUMENT` 与 `ACTION_CREATE_DOCUMENT` 授权流程；
+   - 现代化架构：`ImportExportScreen` + 格式选择 Material 3 弹窗 + 分段式操作卡片；
+   - 真机验收截图：`import_export_tool_compose_screenshot.png`；
+   - 提交：`70b6d4e refactor(importexport): 将 ImportExportTool 迁移至 Compose Material 3 并保持文件格式转换与 SAF 备份兼容`。
+
+### 13.2 DiffTool 复杂度评估与架构决策
+- **功能特性**: `DiffTool` 用于对比两个转储文件（最多 40 扇区、256 个十六进制块），基于 `MCDiffUtils` 生成逐字符差异标记行；
+- **评估结论**:
+  1. `DiffTool` 为纯只读分析工具，零物理写卡与硬件风险，其调用的 `FileChooser` 在本阶段已完成现代化并验证契约兼容；
+  2. 但转储差异对比在大数据量下涉及多行等宽文本字符高亮、扇区折叠与复杂的差异百分比统计；
+  3. 依据“遇到复杂高风险模块可暂缓，不为追求迁移数量牺牲稳定性”的原则，**在本阶段对 DiffTool 维持纯 Kotlin 稳定基线实现，不在此阶段仓促重构**，建议留待后续专项版本进行专门对比组件优化。
+
+### 13.3 构建与产物体积分析
+| 指标项 | P11 核心功能迁移 | P12 剩余中低风险收口 | 差异与说明 |
+| :--- | :--- | :--- | :--- |
+| **Debug APK 体积** | 12.11 MB (12,702,577 字节) | **12.16 MB** (12,749,682 字节) | 增量仅 0.05 MB (新增 4 页面 Compose 组件) |
+| **Release APK 体积** | 8.47 MB (8,877,381 字节) | **8.51 MB** (8,922,653 字节) | R8 混淆优化后净增仅 0.04 MB |
+| **纯逻辑单元测试** | 17/17 全部通过 | **17/17 全部通过 (100%)** | 核心算法与基线逻辑 100% 保持稳定 |
+
+### 13.4 架构边界与安全准则核查
+1. **核心编辑器绝对隔离**: `DumpEditor`、`WriteTag` 以及底层硬件通信引擎 `MCReader` 100% 保持原有视图与底层实现，严禁引入单 Activity 架构；
+2. **Git 分支与基线隔离**: `master` 分支锁定在提交 `50593d9`，基线标签 `v4.3.1-kotlin-migration-baseline` 绝对冻结；未向任何远程仓库推送。
+
 
 

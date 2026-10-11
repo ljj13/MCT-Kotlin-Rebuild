@@ -28,3 +28,9 @@
 | 2026-10-11 | P11 页面迁移 | 迁移 Preferences 至 Compose M3，严格对齐 SharedPreferences 数据字段 | 完成 | 验证设置落盘与即时生效，截取 `preferences_compose_screenshot.png` |
 | 2026-10-11 | P11 页面迁移 | 迁移 UidLogTool 至 Compose M3，实现时间倒序卡片流与一键清除 | 完成 | 截取并核对 `uid_log_compose_screenshot.png` |
 | 2026-10-11 | P11 收口验证 | 全量回归纯逻辑与仪器测试，测定 Release APK 体积 (8.47 MB) | 完成 | 单元测试 17/17 通过，分支独立干净，未动 master |
+| 2026-10-11 | P12 状态加固 | 优化 NFC 动态广播导出兼容性，真机验收真实卡片 UID 参数展示 | 完成 | 截取并核对 `tag_info_real_card_screenshot.png`，提交 `fix(nfc)` |
+| 2026-10-11 | P12 页面迁移 | 迁移 AccessConditionDecoder 至 Compose M3，实现扇区控制矩阵可视化 | 完成 | 截取并核对 `access_condition_decoder_compose_screenshot.png` |
+| 2026-10-11 | P12 页面迁移 | 迁移 ValueBlocksToInt 至 Compose M3，优化值块与整数互转呈现 | 完成 | 截取并核对 `value_blocks_to_int_compose_screenshot.png` |
+| 2026-10-11 | P12 页面迁移 | 迁移 FileChooser 至 Compose M3，严格对齐 Intent 契约与文件 CRUD 操作 | 完成 | 截取并核对 `file_chooser_compose_screenshot.png` |
+| 2026-10-11 | P12 页面迁移 | 迁移 ImportExportTool 至 Compose M3，保持格式转换与 SAF 备份兼容 | 完成 | 截取并核对 `import_export_tool_compose_screenshot.png` |
+| 2026-10-11 | P12 评估与收口 | 深入评估 DiffTool 差异比对复杂度，建议保持稳定，Release APK 8.51 MB | 完成 | 单元测试 17/17 全部通过，保持 master 与既有 Tag 不变 |

@@ -120,3 +120,12 @@
 - [x] 迁移 UidLogTool 至 Compose M3，优化为倒序卡片流、一键复制与日志清除确认，真机截图 `uid_log_compose_screenshot.png`
 - [x] 编写各页面针对性 Compose UI 自动化测试套件与单元测试回归 (17/17 通过)
 - [x] Release 构建验证 (体积 8.47 MB)，保持 master 和原有 tag 不变，未向远程推送
+
+### 阶段 12：P12 剩余中低风险页面 Compose 现代化与文件体系收口 [complete]
+- [x] 补齐 P11 遗留项：优化 NFC 动态广播注册生命周期（兼容 API 33+ `RECEIVER_NOT_EXPORTED`），真机贴卡/模拟卡信息渲染截图，Compose 自动化测试加固
+- [x] 迁移 AccessConditionDecoder 至 Compose M3，保留矩阵解码算法与权限解析展示，真机截图 `access_condition_decoder_compose_screenshot.png`
+- [x] 迁移 ValueBlocksToInt 至 Compose M3，保留转储数据块与整数互转呈现，真机截图 `value_blocks_to_int_compose_screenshot.png`
+- [x] 迁移 FileChooser 至 Compose M3，严格对齐 Intent 契约（单选、多选、新建、删除、重命名与原有编辑器调用兼容），真机截图 `file_chooser_compose_screenshot.png`
+- [x] 迁移 ImportExportTool 至 Compose M3，保留 SAF DocumentPicker 授权、内置目录导入导出逻辑，真机截图 `import_export_tool_compose_screenshot.png`
+- [x] 深入评估 DiffTool 差异比对复杂度并给出架构决策（按需迁移或隔离保护）
+- [x] 全量回归单元测试 (17/17) 与 Release APK 构建度量 (8.51 MB)，输出功能等价性报告与最终 Git 状态
