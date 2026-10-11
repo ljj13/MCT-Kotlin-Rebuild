@@ -17,4 +17,7 @@
 | 2026-10-10 | 质量审计 | 扩充针对性回归测试用例至 17 个并全量验证通过 | 完成 | 覆盖 AC 控制位矩阵、大数运算、值块编码、块映射与块 0 校验，提交 `test(core)` |
 | 2026-10-11 | P6 真机验收 | 红米 Note 8 Pro / Android 16 真机基础功能与 20 个 Activity 导航 | 完成 | 0 崩溃，拉取基线与验证应用运行时与文件系统 |
 | 2026-10-11 | P7 物理读卡 | OPPO Find X8s+ 真实 MIFARE Classic 物理卡片只读认证与 Dump 读取 | 完成 | 成功识别 UID `0BDC504F` (MFC 1K)，读取扇区 0..15 全部数据并截图留存，无危险写入 |
-| 2026-10-11 | P7 最终收口 | 最终测试矩阵整理、显式 merge commit 合并至 master、构建并打 Tag | 进行中 | 完成收口与合并，创建基线 Tag `v4.3.1-kotlin-migration-baseline` |
+| 2026-10-11 | P7 最终收口 | 最终测试矩阵整理、显式 merge commit 合并至 master、构建并打 Tag | 完成 | 完成收口与合并，创建基线 Tag `v4.3.1-kotlin-migration-baseline` |
+| 2026-10-11 | P8 试点 | 在新分支 `feature/compose-modernization` 开展 Compose M3 试点 | 完成 | 配置 Compose 依赖、minSdk 21，建立 MctTheme，迁移 BccTool 并真机截图验收 |
+| 2026-10-11 | P9 深度演进 | 联动 MctTheme 与主题设置、测定 Release APK 体积、建立组件规范库 | 完成 | 统一组件间距排版，测定 Release APK 体积 8.41 MB (增量 4.5 MB) |
+| 2026-10-11 | P9 工具迁移 | 陆续迁移 HexToAscii, ValueBlockTool, DataConversionTool, AccessConditionTool | 完成 | 4 个独立工具全部迁移至 Compose Material 3，真机截图验收并通过全量测试 |

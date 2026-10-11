@@ -213,3 +213,46 @@
 - **合并动作**: 已通过显式 merge commit 将 `refactor/kotlin-migration` 合并至 `master`，并在 `master` 分支创建带有详细说明的基线标签 `v4.3.1-kotlin-migration-baseline`。
 - **发布原则**: 仅保留本地 Git 合并与 Tag 产物，未向远程仓库执行推送或发布 Release。
 
+---
+
+## 10. P8/P9 Jetpack Compose + Material 3 现代化演进成果报告
+
+### 10.1 分支与隔离策略
+- **研发分支**: `feature/compose-modernization` (基于本地 `master` 的 `v4.3.1-kotlin-migration-baseline` 创建)
+- **保护边界**: `master` 分支与原有 `v4.3.1-kotlin-migration-baseline` 标签保持绝对纯净与冻结，未执行任何回写、合并或远程推送。
+
+### 10.2 依赖与 SDK 基准
+- `minSdk` 依据 Compose 运行时硬性要求调整至 `21`（原 `19`）；
+- AGP 9.2 内置 Kotlin 搭配 `org.jetbrains.kotlin.plugin.compose:2.2.10`；
+- Compose BOM `2024.10.00` + Material 3 + `activity-compose:1.9.3`；
+- 其余已有依赖保持不变，零过度升级。
+
+### 10.3 统一 Material 3 设计规范 (`MctComponents`)
+- **主题联动**: `MctTheme` 深度联动 `Preferences.Preference.CustomAppTheme`，精准响应用户在 MCT 设置中选择的深色 (0)、浅色 (1) 与系统跟随 (2)，并对 Android 12+ 开放 Dynamic Color；
+- **组件规范**: 抽取 `MctTopAppBar` (统一样式与回退导航)、`MctSectionCard` (16dp 内边距与表面容器色)、`MctMonospaceField` (等宽字体与单倍高度)、`MctActionButton` (52dp 统一按钮高度)。
+
+### 10.4 迁移完成的独立工具页面 (5 个)
+
+| 页面名称 | 职责与交互 | 状态 | 实机截图凭证 |
+|:---|:---|:---:|:---|
+| **BccTool** | 4 字节 UID BCC 异或校验计算与剪贴板存取 | **PASS** | `bcc_tool_compose_screenshot.png` |
+| **HexToAscii** | 接收 Intent 转储数据并渲染 7 位 ASCII 视图与扇区标题 | **PASS** | `hextoascii_compose_screenshot.png` |
+| **ValueBlockTool** | 16 字节值块与整型数值/地址双向编解码与格式反转 | **PASS** | `valueblock_compose_screenshot.png` |
+| **DataConversionTool** | ASCII / Hex / Bin / DecBE / DecLE 互相转换与外部在线工具集成 | **PASS** | `dataconversion_compose_screenshot.png` |
+| **AccessConditionTool** | 3 字节控制位与 C1-C3 矩阵解码选择，多块权限联动弹窗 | **PASS** | `accesscondition_compose_screenshot.png` |
+
+### 10.5 产物体积与构建性能实测
+
+| 构建变体 | 迁移前 (纯 Kotlin/XML) | 迁移后 (Compose M3) | 增量变化分析 |
+|:---|:---:|:---:|:---|
+| **Debug APK** | 4.71 MB (`4,944,791` 字节) | **11.91 MB** (`12,491,892` 字节) | Debug 包含完整 Compose 调试与测试元数据 (+7.2 MB) |
+| **Release APK (R8/脱糖)** | 3.84 MB (`4,032,252` 字节) | **8.41 MB** (`8,813,441` 字节) | 经 R8 优化后净增约 **4.57 MB**，体积受控 |
+| **单元测试回归** | 17/17 通过 | **17/17 全部通过** | 核心算法与领域模型 100% 保持稳定 |
+| **增量编译耗时** | ~3 秒 | ~4 ~ 7 秒 | 编译管线略有增量但依然迅速 |
+
+### 10.6 剩余风险与后续建议
+1. **未迁移模块说明**: `DumpEditor`、`WriteTag` 依然保持原有 XML 与传统视图架构，不进行激进的 Compose 改造，有效规避了十六进制高频打字重组性能瓶颈与复杂写卡状态机回归风险。
+2. **NFC 核心生命周期保护**: 原生 `BasicActivity` 前台调度与 Intent 路由零侵入，`MCReader` 与硬件交互零改动。
+3. **后续推广建议**: 建议在分支 `feature/compose-modernization` 上保持当前独立工具的 Compose 混编形态，等待多机型长效稳定性测试后，再行决定是否向非关键页面扩大范围。
+
+

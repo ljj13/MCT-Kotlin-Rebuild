@@ -84,3 +84,20 @@
 - [x] 严格执行只读验收，零实体写卡操作
 - [x] 显式 merge commit 将 `refactor/kotlin-migration` 合并至 `master`
 - [x] 重新构建并打基线标签 `v4.3.1-kotlin-migration-baseline`，保留本地结果未向远程推送
+
+### 阶段 8：P8 Compose M3 现代化试点与 BccTool 迁移 [complete]
+- [x] 基于本地 master 新建 `feature/compose-modernization` 分支
+- [x] 核对 AGP 9.2 + Compose Compiler (2.2.10) + Compose BOM (2024.10.00) 依赖，设定 minSdk 21
+- [x] 建立 MctTheme 设计系统（支持深浅色与 Android 12+ 动态取色）
+- [x] 迁移 BccTool 至 Compose Material 3 并编写 BccToolComposeTest
+- [x] 真机验收并截取 `bcc_tool_compose_screenshot.png`
+
+### 阶段 9：P9 独立工具页面 Material 3 全面现代化 [complete]
+- [x] 联动 MctTheme 与原有主题偏好 (`CustomAppTheme`)，实测 Release APK 体积 (8.41 MB)
+- [x] 建立统一的 MctComponents 组件库（TopAppBar、SectionCard、MonospaceField、ActionButton）
+- [x] 迁移 HexToAscii 至 Compose M3，真机验收并截取 `hextoascii_compose_screenshot.png`
+- [x] 迁移 ValueBlockTool 至 Compose M3，真机验收并截取 `valueblock_compose_screenshot.png`
+- [x] 迁移 DataConversionTool 至 Compose M3，真机验收并截取 `dataconversion_compose_screenshot.png`
+- [x] 迁移 AccessConditionTool 至 Compose M3，真机验收并截取 `accesscondition_compose_screenshot.png`
+- [x] 全量测试回归与 Release APK 产物体积度量
+- [x] 保持 master 和原有 tag 不变，未向远程推送或发布 Release
