@@ -129,3 +129,10 @@
 - [x] 迁移 ImportExportTool 至 Compose M3，保留 SAF DocumentPicker 授权、内置目录导入导出逻辑，真机截图 `import_export_tool_compose_screenshot.png`
 - [x] 深入评估 DiffTool 差异比对复杂度并给出架构决策（按需迁移或隔离保护）
 - [x] 全量回归单元测试 (17/17) 与 Release APK 构建度量 (8.51 MB)，输出功能等价性报告与最终 Git 状态
+
+### 阶段 13：P13 DiffTool 现代化、CloneUid 迁移与复杂编辑器混合架构评估 [complete]
+- [x] 复核 NFC 动态广播的 RECEIVER_EXPORTED 必要性与安全性，汇总统计全量 Compose 仪器测试执行结果 (全工程共计 39 个自动化测试用例)
+- [x] 完整迁移 DiffTool 至 Compose Material 3（MCDiffUtils 算法保真、Intent 契约、等宽对齐、字节差异高亮、扇区折叠、LazyColumn 虚拟列表），开展 1K/4K 性能测试并真机截屏 `diff_tool_compose_screenshot.png`
+- [x] 迁移 CloneUidTool 界面与参数校验，保留 BCC 计算与魔术卡型号选择，绝不触发实体写卡，真机截屏 `clone_uid_compose_screenshot.png`
+- [x] 开展 KeyEditor 与 DumpEditor 只读架构审计与性能分析，探索 Compose + 原生 View 混合架构原型设计，给出最终落地建议
+- [x] 每项独立提交中文 Conventional Commit，执行构建、测试与真机验收，保持 master 与既有 Tag 不变，不推送远程

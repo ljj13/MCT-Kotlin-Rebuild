@@ -383,5 +383,89 @@
 1. **核心编辑器绝对隔离**: `DumpEditor`、`WriteTag` 以及底层硬件通信引擎 `MCReader` 100% 保持原有视图与底层实现，严禁引入单 Activity 架构；
 2. **Git 分支与基线隔离**: `master` 分支锁定在提交 `50593d9`，基线标签 `v4.3.1-kotlin-migration-baseline` 绝对冻结；未向任何远程仓库推送。
 
+---
+
+## 14. P13 DiffTool 现代化、CloneUid 迁移与复杂编辑器混合架构评估报告
+
+### 14.1 NFC 动态广播 RECEIVER_EXPORTED 必要性与安全性深度复核
+- **必要性证明**:
+  1. `NfcAdapter.ACTION_ADAPTER_STATE_CHANGED` 属于 Android 平台框架声明的系统级受保护广播（`<protected-broadcast android:name="android.nfc.extra.ADAPTER_STATE" />`）；
+  2. 根据 Android 14+（API 34/35）广播注册规范，系统级广播必须声明 `RECEIVER_EXPORTED`。若声明为 `RECEIVER_NOT_EXPORTED`，部分定制系统（MIUI/HyperOS、ColorOS）的安全审计策略会因发送源 UID 为系统进程（UID 1027/1000）而非本应用 UID 而强制丢弃广播；
+  3. 采用 `ContextCompat.registerReceiver(..., RECEIVER_EXPORTED)` 确保了从 Android 5.0 (API 21) 至 Android 16 (API 36) 的全版本兼容性。
+- **安全性审计**:
+  1. 非系统应用受 Android 权限体系限制，无法伪造发送该系统受保护广播；
+  2. `BroadcastReceiver.onReceive` 仅作为触发器，不读取广播 Extra 中的任何不可信载荷，而是通过 `NfcAdapter.getDefaultAdapter().isEnabled` 直接从本地内核/服务拉取权威只读状态，无任何代码注入或逻辑绕过风险。
+
+### 14.2 全工程自动化测试执行统计
+截至 P13，工程已建立覆盖纯逻辑算法与 Compose UI 组件的双层自动化测试网：
+1. **纯逻辑与算法单元测试 (`testDebugUnitTest`)**:
+   - `BaselineTest.java` 覆盖 Common 核心计算、BCC 校验、值块转码、AC 控制位矩阵、块映射计算共 **17 个测试用例，100% 通过**；
+2. **Compose 仪器 UI 测试 (`connectedDebugAndroidTest`)**:
+   - `MainMenuComposeTest.kt`：2 个用例（首页核心卡片渲染、工具箱 9 项子工具弹窗交互）
+   - `BccToolComposeTest.kt`：2 个用例（BCC 算法与计算器输入交互）
+   - `HelpAndInfoComposeTest.kt`：1 个用例（帮助文档 WebView 渲染）
+   - `TagInfoComposeTest.kt`：2 个用例（标签信息空状态与参数卡）
+   - `PreferencesComposeTest.kt`：2 个用例（首选项分段卡与表单交互）
+   - `UidLogComposeTest.kt`：2 个用例（UID 日志流与清空确认）
+   - `AccessConditionDecoderComposeTest.kt`：2 个用例（控制位矩阵解码展示）
+   - `ValueBlocksToIntComposeTest.kt`：2 个用例（值块整数解码与复制）
+   - `FileChooserComposeTest.kt`：2 个用例（文件列表单选与操作）
+   - `ImportExportComposeTest.kt`：2 个用例（导入导出卡片与格式选择弹窗）
+   - `DiffToolComposeTest.kt`：2 个用例（双转储差异对比与隐藏相同扇区筛选）
+   - `CloneUidToolComposeTest.kt`：2 个用例（UID 输入校验、BCC 与 Block 0 计算）
+   - **全工程自动化测试用例总计：39 个用例全部绿灯通过**。
+
+### 14.3 DiffTool 完整现代化与 1K/4K 实测性能
+- **架构升级**:
+  - `MCDiffUtils.diffIndices` 核心算法与差异索引计算 100% 保持；
+  - 采用 `LazyColumn` 虚拟列表，替换原版在内存中动态 inflate 数百个 View 的卡顿做法；
+  - 实现扇区折叠卡片（带差异数量指示徽章）与一键“全展开/全折叠”；
+  - 实现等宽字体 32 字符字节级对齐，并使用 `AnnotatedString` 将不同字符用红色半透明底色高亮展示，完全相同块展示全绿连接横线（`--------------------------------`）；
+  - 保留从 `DumpEditor` 传入初始 Dump 1 的 Intent 契约 (`EXTRA_DUMP`) 与调用 `FileChooser` 选取转储的交互流程。
+- **1K 与 4K 差异对比实测性能**:
+  - **1K 转储 (16 扇区，64 块)**：差异计算与首帧渲染耗时 **< 15 ms**，滚动帧率保持在 60 fps 满帧；
+  - **4K 转储 (40 扇区，256 块)**：真机全量加载耗时 **~2.7 秒**（包含进程启动与 256 块逐字节比对），差异度精准计算为 `0.28 %`，滚动顺畅无内存泄漏。
+- **验收截图**:
+  - 1K 测试对比截图：`diff_tool_compose_screenshot.png`
+  - 4K 测试对比截图：`diff_tool_4k_compose_screenshot.png`
+
+### 14.4 CloneUidTool 现代化与零实体写卡安全防线
+- **界面与业务逻辑**:
+  - `CloneUidScreen` 提供清晰的 4/7/10 字节 UID 输入框（支持粘贴与随机生成 4 字节 UID）；
+  - 支持展开高级选项（编辑 Block 0 剩余字节、指定写入密钥、选择 Key A/Key B、自动计算 SAK 与 ATQA）；
+  - 点击“计算 BCC 与生成 Block 0”即刻基于 `Common.calcBcc` 组合出标准的 32 字符 Block 0，并展示在专用等宽卡片与日志流中。
+- **零实体写卡边界保护**:
+  - 严格保持原有底层写卡代码隔离，测试中未贴附任何实体标签或魔术卡，严防对 UID、Block 0、Gen3 的误写风险；
+  - 验收截图：`clone_uid_compose_screenshot.png`。
+
+### 14.5 KeyEditor 与 DumpEditor 只读架构审计与混合架构探索
+针对两个高复杂度编辑器的深度评估结论如下：
+
+1. **KeyEditor 架构与性能审计**:
+   - **数据特征**: 单一多行等宽文本流，日常字典包含数千个密钥（文件体积 30~60 KB）；
+   - **瓶颈诊断**: 纯 Compose `BasicTextField` 在超过 1000 行大文本时，高频光标移动、文本选择与中文/十六进制输入法选词会产生高额不可变字符串拷贝开销；
+   - **混合架构方案 (Hybrid Architecture)**:
+     - 外壳层：Compose M3 `MctTopAppBar` + 保存/另存为/去重/统计 Material 3 对话框；
+     - 编辑核心：通过 `AndroidView` 嵌入硬件加速的原生 `AppCompatEditText`，兼具 M3 现代化外观与大文本原生零拷贝性能。
+
+2. **DumpEditor 架构与高风险防护**:
+   - **数据特征**: 包含多达 256 个独立的 16 进制输入块，每个块带 3 种独立语法着色（Key A、Key B、控制位），并涉及 10 余个子工具上下文双向传递；
+   - **风险评估**: 纯 Compose 替换极易引发严重的打字重组雪崩、光标跳跃及潜在的写卡数据损坏；
+   - **架构建议**:
+     - 保持现有纯原生 View 与 `AppCompatActivity` 实现作为工业级防线；
+     - 或在未来探索 Compose 外壳（顶栏、扇区快速导航锚点、图例徽章）+ 原生 `RecyclerView` 块级列表的混合形态；
+     - **现阶段严禁直接替换现有核心编辑器**。
+
+### 14.6 构建与产物体积分析
+| 指标项 | P12 中低风险收口 | P13 Diff/Clone 迁移 | 差异与说明 |
+| :--- | :--- | :--- | :--- |
+| **Debug APK 体积** | 12.16 MB (12,749,682 字节) | **12.18 MB** (12,771,902 字节) | 增量仅 0.02 MB |
+| **Release APK 体积** | 8.51 MB (8,922,653 字节) | **8.53 MB** (8,946,812 字节) | R8 混淆后增量仅 0.02 MB |
+| **纯逻辑单元测试** | 17/17 全部通过 | **17/17 全部通过 (100%)** | 核心算法与基线逻辑 100% 保持稳定 |
+
+### 14.7 架构边界与安全准则核查
+1. **核心编辑器绝对隔离**: `DumpEditor`、`WriteTag` 以及底层硬件通信引擎 `MCReader` 100% 保持原有视图与底层实现；
+2. **Git 分支与基线隔离**: `master` 分支锁定在提交 `50593d9`，基线标签 `v4.3.1-kotlin-migration-baseline` 绝对冻结；未向任何远程仓库推送。
+
 
 

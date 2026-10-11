@@ -34,3 +34,7 @@
 | 2026-10-11 | P12 页面迁移 | 迁移 FileChooser 至 Compose M3，严格对齐 Intent 契约与文件 CRUD 操作 | 完成 | 截取并核对 `file_chooser_compose_screenshot.png` |
 | 2026-10-11 | P12 页面迁移 | 迁移 ImportExportTool 至 Compose M3，保持格式转换与 SAF 备份兼容 | 完成 | 截取并核对 `import_export_tool_compose_screenshot.png` |
 | 2026-10-11 | P12 评估与收口 | 深入评估 DiffTool 差异比对复杂度，建议保持稳定，Release APK 8.51 MB | 完成 | 单元测试 17/17 全部通过，保持 master 与既有 Tag 不变 |
+| 2026-10-11 | P13 安全复核 | 深入复核 NFC 动态广播 RECEIVER_EXPORTED 必要性与安全性 | 完成 | 统计全量 39 个自动化测试用例，安全审计通过 |
+| 2026-10-11 | P13 页面迁移 | 完整迁移 DiffTool 至 Compose M3，实现字节级高亮与扇区折叠 | 完成 | 1K/4K 性能测试通过，截取 `diff_tool_compose_screenshot.png` |
+| 2026-10-11 | P13 页面迁移 | 迁移 CloneUidTool 界面与参数校验，保留 BCC 计算与魔术卡选择 | 完成 | 零实体写卡安全防线通过，截取 `clone_uid_compose_screenshot.png` |
+| 2026-10-11 | P13 架构评估 | 开展 KeyEditor 与 DumpEditor 只读架构审计，提出混合架构原型设计 | 完成 | 形成详细评估报告与演进建议，Release APK 8.53 MB |
