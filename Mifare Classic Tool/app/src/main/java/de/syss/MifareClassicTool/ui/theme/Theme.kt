@@ -10,6 +10,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+import de.syss.MifareClassicTool.Activities.Preferences
+import de.syss.MifareClassicTool.Common
+
 private val DarkColorScheme = darkColorScheme(
     primary = MctPrimaryDark,
     onPrimary = MctOnPrimaryDark,
@@ -45,8 +48,25 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
+fun isMctDarkTheme(): Boolean {
+    val systemDark = isSystemInDarkTheme()
+    return try {
+        val pref = Common.getPreferences()
+        val defaultTheme = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) 0 else 2
+        val themeID = pref.getInt(Preferences.Preference.CustomAppTheme.toString(), defaultTheme)
+        when (themeID) {
+            0 -> true
+            1 -> false
+            else -> systemDark
+        }
+    } catch (e: Exception) {
+        systemDark
+    }
+}
+
+@Composable
 fun MctTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = isMctDarkTheme(),
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
