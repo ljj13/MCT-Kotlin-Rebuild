@@ -101,3 +101,13 @@
 - [x] 迁移 AccessConditionTool 至 Compose M3，真机验收并截取 `accesscondition_compose_screenshot.png`
 - [x] 全量测试回归与 Release APK 产物体积度量
 - [x] 保持 master 和原有 tag 不变，未向远程推送或发布 Release
+
+### 阶段 10：P10 首页 MainMenu 完整 UI 现代化 [complete]
+- [x] 保留原有 NFC 前台分发、onNewIntent 意图路由、StartUpNode 状态机与全部 Activity 导航
+- [x] 使用 MctTheme + Material 3 重新设计 MainMenu 界面层级与入口映射
+- [x] 引入动态 NfcStatusBanner（实时反应就绪、未开启、仅编辑器、不支持状态）
+- [x] 重新组织读/写核心卡片、离线转储/密钥编辑卡片与 9 项工具弹窗
+- [x] 编写针对性 MainMenuComposeTest 覆盖全部入口、弹窗与状态显示
+- [x] 红米 Note 8 Pro 真机验证与前后台切换，截取 `main_menu_compose_screenshot.png` 与 `main_menu_tools_dialog_screenshot.png`
+- [x] 全量测试回归与 Release 构建验证（Release APK 体积 8.43 MB）
+- [x] 保持 master 和基线 tag 不变，未向远程推送或发布 Release

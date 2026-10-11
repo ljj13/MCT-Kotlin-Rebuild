@@ -255,4 +255,34 @@
 2. **NFC 核心生命周期保护**: 原生 `BasicActivity` 前台调度与 Intent 路由零侵入，`MCReader` 与硬件交互零改动。
 3. **后续推广建议**: 建议在分支 `feature/compose-modernization` 上保持当前独立工具的 Compose 混编形态，等待多机型长效稳定性测试后，再行决定是否向非关键页面扩大范围。
 
+---
+
+## 11. P10 MainMenu 首页 Material 3 现代化与功能等价性报告
+
+### 11.1 架构与生命周期保护
+- **AppCompatActivity 继承保持**: 保持继承 `AppCompatActivity`，无缝继承主题设置、语言环境与窗口管理；
+- **NFC 生命周期与状态机 100% 保真**:
+  - `runStartUpNode(StartUpNode)` 状态机（首用弹窗、捐赠弹窗、NFC 检测、MIFARE Classic 支持、启用 NFC、外部 NFC 服务、Intent 处理）完整保留并正常运转；
+  - `onNewIntent` 前台调度拦截、`Common.treatAsNewTag` 与 `Common.getPendingComponentName` 路由逻辑零改动；
+  - `onResume` 与 `onPause` 前台分发注册/注销零改动。
+- **Activity 间导航映射**: `onShowReadTag`、`onShowWriteTag`、`onOpenTagDumpEditor`、`onOpenKeyEditor`、`onShowHelp`、`onShowPreferences` 及 9 个工具子项全部映射至既有目标 Activity。
+
+### 11.2 UI 信息层级与交互设计
+1. **动态 NFC 状态卡片 (`NfcStatusBanner`)**:
+   - 绿色/PrimaryContainer: "NFC 已就绪" (硬件支持且启用，贴卡可读取)；
+   - 错误/ErrorContainer: "NFC 未启用" (附带快速跳转系统设置按钮)；
+   - 灰色/SurfaceVariant: "仅编辑器模式" / "设备不支持 MIFARE Classic"。
+2. **核心读写卡片组 (`RF 技术`)**: 2 列卡片，采用 `read_tag` 与 `write_tag` 原版图标，受 `isEditorOnly` 状态响应禁用态；
+3. **离线文件编辑组 (`使用离线模式`)**: 转储编辑器与密钥编辑器卡片；
+4. **工具箱与帮助卡片组 (`工具`)**: 点击“工具”弹出包含全部 9 个工具的 Material 3 弹窗列表，支持图标展示与禁用态处理；
+5. **顶栏与底栏**: 现代化 `TopAppBar` (集成设置与关于对话框入口) + 底部应用版本说明 (`App 版本: 4.3.1`)。
+
+### 11.3 实机与自动化测试
+- **Compose UI 测试套件 (`MainMenuComposeTest`)**: 覆盖核心卡片渲染、工具弹窗展开与关闭、NFC 状态响应；
+- **真机截屏凭证**:
+  - 首页整体 Material 3 渲染：`main_menu_compose_screenshot.png`
+  - 9 项工具弹窗交互：`main_menu_tools_dialog_screenshot.png`
+- **产物体积度量**: Release APK 最终体积为 **8.43 MB** (`8,835,801` 字节)，单元测试回归 **17/17 通过**。
+
+
 

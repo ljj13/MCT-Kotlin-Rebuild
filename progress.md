@@ -21,3 +21,4 @@
 | 2026-10-11 | P8 试点 | 在新分支 `feature/compose-modernization` 开展 Compose M3 试点 | 完成 | 配置 Compose 依赖、minSdk 21，建立 MctTheme，迁移 BccTool 并真机截图验收 |
 | 2026-10-11 | P9 深度演进 | 联动 MctTheme 与主题设置、测定 Release APK 体积、建立组件规范库 | 完成 | 统一组件间距排版，测定 Release APK 体积 8.41 MB (增量 4.5 MB) |
 | 2026-10-11 | P9 工具迁移 | 陆续迁移 HexToAscii, ValueBlockTool, DataConversionTool, AccessConditionTool | 完成 | 4 个独立工具全部迁移至 Compose Material 3，真机截图验收并通过全量测试 |
+| 2026-10-11 | P10 首页现代化 | 迁移 MainMenu 首页至 Compose Material 3，整合 9 项工具弹窗与 NFC 状态 | 完成 | 完整保留状态机与生命周期，截图验收，自动化测试全绿，Release APK 8.43 MB |
