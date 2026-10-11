@@ -192,12 +192,24 @@
 | 23 | **ReadTag 读标签启动流程** | NFC流程 | 启动并通过 `startActivityForResult` 调度 KeyMapCreator | **PASS** | 正常调起 KeyMapCreator，等待密钥选择并接收回调 |
 | 24 | **NFC Intent 意图分发兼容性** | NFC核心 | 模拟发送 `TECH_DISCOVERED` 意图 | **PASS** | `MainMenu` 正确接收意图并触发 `onNewIntent` 处理 |
 | 25 | **非 MFC 卡识别与兜底跳转** | NFC核心 | 模拟非 MFC 标签（返回 -1/-2）意图分发 | **PASS** | `treatAsNewTag` 返回非支持状态，正确跳转 `TagInfoTool` |
-| 26 | **真实物理卡片扇区认证扫描** | 实体硬件 | 贴附物理卡片执行 Key A/B 密钥扫描 | **UNTESTED** | 需用户实体卡贴卡配合（避免无人值守引发硬件超时） |
+| 26 | **真实物理卡片扇区认证扫描与完整读取** | 实体硬件 | 贴附物理卡片执行 Key A/B 密钥扫描并在 DumpEditor 呈现 | **PASS** | 成功识别 UID `0BDC504F` (MFC 1K)，成功认证并读取扇区 0..15 全部块，截图 `mct_dump_editor_screenshot.png` 留存 |
 | 27 | **真实物理卡片数据块写入** | 实体硬件 | 对真实物理卡片执行单块/多块写入 | **UNTESTED** | **安全策略拦截**：禁止未经人工授权写入物理卡 |
 | 28 | **Magic Tag Gen2 Block 0 / UID 写入** | 实体硬件 | 向可写 UID 卡（CUID）写入 Block 0 | **UNTESTED** | **高风险拦截**：严禁自动修改真实卡片 UID |
 | 29 | **Magic Tag Gen3 APDU 绕过写入** | 实体硬件 | 使用 Raw APDU 执行 Gen3 穿透写入 | **UNTESTED** | **高风险拦截**：存在物理锁死卡片风险，默认不测试 |
 
 ### 8.3 运行时日志与安全证据
 - **崩溃日志排查**: `adb logcat -d | Select-String "FATAL EXCEPTION|AndroidRuntime: FATAL"` 输出为空，真机运行 **0 崩溃**。
-- **物理写卡操作审查**: 在本次自动化真机验证全过程中，**未调用任何物理写卡 API，未对任何实体卡执行 UID / Block 0 / Gen3 写入操作**，安全边界严格受控。
+- **物理卡片读取证据**:
+  - `uid-log-file.txt`: `2026-10-11_12-13-22: 0BDC504F`
+  - NXP NCI 底层硬件驱动日志：`len = 24 > 61051501808000FF010A0400040BDC504F01080000000000`（ATQA: `04 00`, UID: `0B DC 50 4F`, SAK: `08`，标准 MIFARE Classic 1K）
+  - 真机渲染截图：`mct_dump_editor_screenshot.png` 真实展示扇区 0~15 全部读取结果与语法高亮（紫色 UID/厂商块、亮绿 Key A、深绿 Key B、橙色访问控制位）。
+- **物理写卡操作审查**: 在本次验证全过程中，**未调用任何物理写卡 API，未对任何实体卡执行 UID / Block 0 / Gen3 写入操作**，安全边界严格受控。
+
+---
+
+## 9. P7 收口与分支合并结论
+
+- **验收结论**: 核心只读能力（真机运行、Activity 导航、文件 IO、SAF 转换机制、真实 MIFARE Classic 实体卡扇区只读认证与 Dump 读取）**已全部通过实机与自动化验证**。
+- **合并动作**: 已通过显式 merge commit 将 `refactor/kotlin-migration` 合并至 `master`，并在 `master` 分支创建带有详细说明的基线标签 `v4.3.1-kotlin-migration-baseline`。
+- **发布原则**: 仅保留本地 Git 合并与 Tag 产物，未向远程仓库执行推送或发布 Release。
 

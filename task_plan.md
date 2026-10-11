@@ -74,3 +74,13 @@
 - [x] 模拟 NFC 标签意图 (`TECH_DISCOVERED`) 与非 MFC 卡兼容性分发
 - [x] 严格实施安全边界：未对实体卡执行任何未经确认的写入或 UID/Block0/Gen3 危险写操作
 - [x] 输出完整 PASS / FAIL / UNTESTED 验收矩阵、日志证据、剩余风险与合并建议
+
+### 阶段 7：P7 真实卡片读卡验收与最终收口合并 [complete]
+- [x] 用户配合连接支持 NFC 的 OPPO Find X8s+ 设备并授权 ADB
+- [x] 备份拉取官方原版 Java APK 为 `original-java-mct-v4.3.1.apk`
+- [x] 替换安装 Kotlin Debug APK 并验证应用沙盒文件初始化
+- [x] 贴卡只读认证：成功读取真实 MIFARE Classic 1K 测试卡（UID `0BDC504F`，ATQA `0400`，SAK `08`）
+- [x] Dump 读取验收：全 16 扇区（0..15）成功认证并完整读取，截取并保存真实渲染证据 `mct_dump_editor_screenshot.png`
+- [x] 严格执行只读验收，零实体写卡操作
+- [x] 显式 merge commit 将 `refactor/kotlin-migration` 合并至 `master`
+- [x] 重新构建并打基线标签 `v4.3.1-kotlin-migration-baseline`，保留本地结果未向远程推送

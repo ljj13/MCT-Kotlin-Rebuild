@@ -15,3 +15,6 @@
 | 2026-10-10 | 质量审计 | 规范化 AGP 9.2 内置 Kotlin 配置 | 完成 | 移除废弃选项与外部插件，AGP 9.2 原生内置编译，消除 Variant API 告警 |
 | 2026-10-10 | 质量审计 | 修复 MCReader 潜在 NPE 与 isMifareClassic 语义 | 完成 | 解决非 MFC 卡片可能触发平台强转 NPE 隐患，提交 `fix(nfc)` |
 | 2026-10-10 | 质量审计 | 扩充针对性回归测试用例至 17 个并全量验证通过 | 完成 | 覆盖 AC 控制位矩阵、大数运算、值块编码、块映射与块 0 校验，提交 `test(core)` |
+| 2026-10-11 | P6 真机验收 | 红米 Note 8 Pro / Android 16 真机基础功能与 20 个 Activity 导航 | 完成 | 0 崩溃，拉取基线与验证应用运行时与文件系统 |
+| 2026-10-11 | P7 物理读卡 | OPPO Find X8s+ 真实 MIFARE Classic 物理卡片只读认证与 Dump 读取 | 完成 | 成功识别 UID `0BDC504F` (MFC 1K)，读取扇区 0..15 全部数据并截图留存，无危险写入 |
+| 2026-10-11 | P7 最终收口 | 最终测试矩阵整理、显式 merge commit 合并至 master、构建并打 Tag | 进行中 | 完成收口与合并，创建基线 Tag `v4.3.1-kotlin-migration-baseline` |
