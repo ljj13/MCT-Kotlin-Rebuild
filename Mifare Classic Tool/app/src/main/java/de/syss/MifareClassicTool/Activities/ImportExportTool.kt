@@ -18,6 +18,7 @@
 package de.syss.MifareClassicTool.Activities
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -28,9 +29,14 @@ import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import de.syss.MifareClassicTool.Common
 import de.syss.MifareClassicTool.MCReader
 import de.syss.MifareClassicTool.R
+import de.syss.MifareClassicTool.ui.importexport.DumpFormatChoice
+import de.syss.MifareClassicTool.ui.importexport.ImportExportScreen
+import de.syss.MifareClassicTool.ui.importexport.KeysFormatChoice
+import de.syss.MifareClassicTool.ui.theme.MctTheme
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedInputStream
@@ -95,7 +101,7 @@ class ImportExportTool : BasicActivity() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_import_export_tool)
+        supportActionBar?.hide()
 
         if (savedInstanceState != null) {
             mIsDumpFile = savedInstanceState.getBoolean("is_dump_file")
@@ -103,6 +109,37 @@ class ImportExportTool : BasicActivity() {
             mIsCalledWithExportFile = savedInstanceState.getBoolean("is_called_with_export_file")
             mFile = savedInstanceState.getString("file")
             mConvertedContent = savedInstanceState.getStringArray("converted_content")
+        }
+
+        setContent {
+            MctTheme {
+                ImportExportScreen(
+                    onBackClick = { finish() },
+                    onImportDumpFormatSelected = { format ->
+                        mFileType = when (format) {
+                            DumpFormatChoice.MCT -> FileType.MCT
+                            DumpFormatChoice.JSON -> FileType.JSON
+                            DumpFormatChoice.BIN -> FileType.BIN
+                            DumpFormatChoice.EML -> FileType.EML
+                        }
+                        mIsExport = false
+                        mIsDumpFile = true
+                        showImportFileChooser()
+                    },
+                    onExportDumpClick = { onExportDump(null) },
+                    onImportKeysFormatSelected = { format ->
+                        mFileType = when (format) {
+                            KeysFormatChoice.KEYS -> FileType.KEYS
+                            KeysFormatChoice.BIN -> FileType.BIN
+                        }
+                        mIsExport = false
+                        mIsDumpFile = false
+                        showImportFileChooser()
+                    },
+                    onExportKeysClick = { onExportKeys(null) },
+                    onBackupAllClick = { onBackupAll(null) }
+                )
+            }
         }
     }
 
@@ -238,7 +275,7 @@ class ImportExportTool : BasicActivity() {
      * Start the dump import process.
      */
     @Suppress("UNUSED_PARAMETER")
-    fun onImportDump(view: View) {
+    fun onImportDump(view: View? = null) {
         mIsExport = false
         mIsDumpFile = true
         showDumpFileTypeChooserMenu()
@@ -248,7 +285,7 @@ class ImportExportTool : BasicActivity() {
      * Start the dump export process.
      */
     @Suppress("UNUSED_PARAMETER")
-    fun onExportDump(view: View) {
+    fun onExportDump(view: View? = null) {
         mIsExport = true
         mIsDumpFile = true
         val intent = Intent(this, FileChooser::class.java)
@@ -263,7 +300,7 @@ class ImportExportTool : BasicActivity() {
      * Start the keys import process.
      */
     @Suppress("UNUSED_PARAMETER")
-    fun onImportKeys(view: View) {
+    fun onImportKeys(view: View? = null) {
         mIsExport = false
         mIsDumpFile = false
         showKeysFileTypeChooserMenu()
@@ -273,7 +310,7 @@ class ImportExportTool : BasicActivity() {
      * Start the keys export process.
      */
     @Suppress("UNUSED_PARAMETER")
-    fun onExportKeys(view: View) {
+    fun onExportKeys(view: View? = null) {
         mIsExport = true
         mIsDumpFile = false
         val intent = Intent(this, FileChooser::class.java)
@@ -288,7 +325,7 @@ class ImportExportTool : BasicActivity() {
      * Create a full backup of all dump and key files.
      */
     @Suppress("UNUSED_PARAMETER")
-    fun onBackupAll(view: View) {
+    fun onBackupAll(view: View? = null) {
         val calendar = GregorianCalendar()
         val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         fmt.calendar = calendar
@@ -676,15 +713,55 @@ class ImportExportTool : BasicActivity() {
     }
 
     private fun showDumpFileTypeChooserMenu() {
-        val button = findViewById<View>(R.id.buttonImportExportToolImportDump)
-        registerForContextMenu(button)
-        openContextMenu(button)
+        val formats = arrayOf(
+            getString(R.string.action_file_type_mct),
+            getString(R.string.action_file_type_json),
+            getString(R.string.action_file_type_mdf_bin),
+            getString(R.string.action_file_type_eml)
+        )
+        AlertDialog.Builder(this)
+            .setTitle(R.string.text_select_file)
+            .setItems(formats) { _, which ->
+                when (which) {
+                    0 -> mFileType = FileType.MCT
+                    1 -> mFileType = FileType.JSON
+                    2 -> mFileType = FileType.BIN
+                    3 -> mFileType = FileType.EML
+                }
+                if (mIsExport) {
+                    val fileToExport = mFile
+                    if (fileToExport != null) {
+                        readAndConvertExportData(fileToExport)
+                    }
+                } else {
+                    showImportFileChooser()
+                }
+            }
+            .show()
     }
 
     private fun showKeysFileTypeChooserMenu() {
-        val button = findViewById<View>(R.id.buttonImportExportToolImportKeys)
-        registerForContextMenu(button)
-        openContextMenu(button)
+        val formats = arrayOf(
+            getString(R.string.action_file_type_keys),
+            getString(R.string.action_file_type_bin)
+        )
+        AlertDialog.Builder(this)
+            .setTitle(R.string.text_select_file)
+            .setItems(formats) { _, which ->
+                when (which) {
+                    0 -> mFileType = FileType.KEYS
+                    1 -> mFileType = FileType.BIN
+                }
+                if (mIsExport) {
+                    val fileToExport = mFile
+                    if (fileToExport != null) {
+                        readAndConvertExportData(fileToExport)
+                    }
+                } else {
+                    showImportFileChooser()
+                }
+            }
+            .show()
     }
 
     private fun showImportFileChooser() {
