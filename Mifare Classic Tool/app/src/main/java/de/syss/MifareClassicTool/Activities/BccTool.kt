@@ -19,80 +19,71 @@ package de.syss.MifareClassicTool.Activities
 
 import android.os.Bundle
 import android.view.View
-import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import de.syss.MifareClassicTool.Common
 import de.syss.MifareClassicTool.R
+import de.syss.MifareClassicTool.ui.bcc.BccScreen
+import de.syss.MifareClassicTool.ui.theme.MctTheme
 
 /**
- * Calculate the BCC value of a given UID.
+ * Calculate the BCC value of a given UID using Jetpack Compose + Material 3.
+ * Retains BasicActivity NFC lifecycle and hardware contract.
  * @author Gerhard Klostermeier
  */
 class BccTool : BasicActivity() {
 
-    private lateinit var mUid: EditText
-    private lateinit var mBcc: EditText
-
-    /**
-     * Initialize some member variables.
-     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_bcc_tool)
-
-        mUid = findViewById(R.id.editTextBccToolUid)
-        mBcc = findViewById(R.id.editTextBccToolBcc)
+        setContent {
+            MctTheme {
+                BccScreen(
+                    onBackClick = { finish() }
+                )
+            }
+        }
     }
 
     /**
-     * Calculate the BCC value of the given UID (part). This is done calling
-     * [Common.calcBcc] after some input checks (is the length
-     * of the given UID valid; are there only hex symbols).
-     * @param view The View object that triggered the method
-     * (in this case the calculate BCC button).
-     * @see Common.calcBcc
+     * Preserved calculation method for backward compatibility and test verification.
+     */
+    fun calculateBcc(uidHex: String): String? {
+        val data = uidHex.trim()
+        if (data.length != 8) {
+            Toast.makeText(this, R.string.info_invalid_uid_length, Toast.LENGTH_LONG).show()
+            return null
+        }
+        if (!data.matches(Regex("[0-9A-Fa-f]+"))) {
+            Toast.makeText(this, R.string.info_not_hex_data, Toast.LENGTH_LONG).show()
+            return null
+        }
+
+        val uidBytes = Common.hex2Bytes(data) ?: return null
+        val bcc = Common.calcBcc(uidBytes)
+        return String.format("%02X", bcc)
+    }
+
+    /**
+     * Legacy reflection stub preserved for XML compatibility.
      */
     @Suppress("UNUSED_PARAMETER")
     fun onCalculate(view: View) {
-        val data = mUid.text.toString()
-        if (data.length != 8) {
-            // Error. UID (parts) are 4 bytes long.
-            Toast.makeText(this, R.string.info_invalid_uid_length, Toast.LENGTH_LONG).show()
-            return
-        }
-        if (!data.matches(Regex("[0-9A-Fa-f]+"))) {
-            // Error, not hex.
-            Toast.makeText(this, R.string.info_not_hex_data, Toast.LENGTH_LONG).show()
-            return
-        }
-
-        // Calculate the BCC.
-        val uidBytes = Common.hex2Bytes(data) ?: return
-        val bcc = Common.calcBcc(uidBytes)
-        mBcc.setText(String.format("%02X", bcc))
+        // Compose handles calculation internally via BccScreen
     }
 
     /**
-     * Copy the calculated BCC to the Android clipboard.
-     * @param view The View object that triggered the method
-     * (in this case the copy button).
+     * Legacy reflection stub preserved for XML compatibility.
      */
     @Suppress("UNUSED_PARAMETER")
     fun onCopyToClipboard(view: View) {
-        Common.copyToClipboard(mBcc.text.toString(), this, true)
+        // Compose handles copy internally via BccScreen
     }
 
     /**
-     * Paste the content of the Android clipboard (if plain text) to the
-     * UID edit text.
-     * @param view The View object that triggered the method
-     * (in this case the paste button).
+     * Legacy reflection stub preserved for XML compatibility.
      */
     @Suppress("UNUSED_PARAMETER")
     fun onPasteFromClipboard(view: View) {
-        val text = Common.getFromClipboard(this)
-        if (text != null) {
-            mUid.setText(text)
-        }
+        // Compose handles paste internally via BccScreen
     }
 }
