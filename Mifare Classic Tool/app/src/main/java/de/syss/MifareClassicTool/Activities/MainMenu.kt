@@ -79,6 +79,14 @@ class MainMenu : AppCompatActivity() {
     private var mHasNoNfc = false
     private var mOldIntent: Intent? = null
 
+    private val mNfcStateReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == NfcAdapter.ACTION_ADAPTER_STATE_CHANGED) {
+                mNfcState.value = getNfcHardwareState()
+            }
+        }
+    }
+
     // Compose observable state
     private val mIsEditorOnlyState = mutableStateOf(false)
     private val mNfcState = mutableStateOf(NfcHardwareState.Ready)
@@ -153,7 +161,8 @@ class MainMenu : AppCompatActivity() {
     }
 
     private fun getNfcHardwareState(): NfcHardwareState {
-        val adapter = Common.getNfcAdapter() ?: NfcAdapter.getDefaultAdapter(this)
+        val adapter = NfcAdapter.getDefaultAdapter(this)
+        Common.setNfcAdapter(adapter)
         return when {
             Common.useAsEditorOnly() -> NfcHardwareState.EditorOnly
             adapter == null -> NfcHardwareState.Unsupported
@@ -515,11 +524,21 @@ class MainMenu : AppCompatActivity() {
         useAsEditorOnly(Common.useAsEditorOnly())
         mNfcState.value = getNfcHardwareState()
         runStartUpNode(StartUpNode.FirstUseDialog)
+        try {
+            registerReceiver(mNfcStateReceiver, android.content.IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED))
+        } catch (e: Exception) {
+            Log.w(LOG_TAG, "Failed to register NFC state receiver", e)
+        }
     }
 
     override fun onPause() {
         super.onPause()
         Common.disableNfcForegroundDispatch(this)
+        try {
+            unregisterReceiver(mNfcStateReceiver)
+        } catch (e: Exception) {
+            // Receiver might not be registered
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -45,6 +46,10 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -114,7 +119,11 @@ fun MainMenuScreen(
                     }
                     IconButton(
                         onClick = onAboutClick,
-                        modifier = Modifier.testTag("btn_about")
+                        modifier = Modifier
+                            .testTag("btn_about")
+                            .semantics {
+                                contentDescription = "About"
+                            }
                     ) {
                         Text(
                             text = "ⓘ",
@@ -285,18 +294,28 @@ fun MainMenuScreen(
             text = {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(1),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 420.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     items(toolsList) { item ->
+                        val itemTitle = stringResource(item.titleRes)
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable(enabled = item.isEnabled) {
+                                .clickable(
+                                    enabled = item.isEnabled,
+                                    role = Role.Button,
+                                    onClickLabel = itemTitle
+                                ) {
                                     showToolsDialog = false
                                     item.onClick()
                                 }
-                                .testTag(item.testTag),
+                                .testTag(item.testTag)
+                                .semantics {
+                                    contentDescription = itemTitle
+                                },
                             shape = MaterialTheme.shapes.small,
                             color = if (item.isEnabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         ) {
@@ -356,10 +375,26 @@ private fun NfcStatusBanner(
         NfcHardwareState.Unsupported -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
+    val statusTitle = when (nfcState) {
+        NfcHardwareState.Ready -> "NFC 已就绪"
+        NfcHardwareState.Disabled -> "NFC 未启用"
+        NfcHardwareState.EditorOnly -> "仅编辑器模式"
+        NfcHardwareState.Unsupported -> "设备不支持 MIFARE Classic"
+    }
+    val statusDesc = when (nfcState) {
+        NfcHardwareState.Ready -> "贴附 MIFARE Classic 卡片即可读取转储"
+        NfcHardwareState.Disabled -> "请在系统设置中开启 NFC 开关"
+        NfcHardwareState.EditorOnly -> "NFC 功能已关闭，支持转储与密钥离线编辑"
+        NfcHardwareState.Unsupported -> "硬件缺少 MIFARE Classic 控制器支持"
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .testTag("nfc_status_card"),
+            .testTag("nfc_status_card")
+            .semantics {
+                contentDescription = "$statusTitle, $statusDesc"
+            },
         colors = CardDefaults.cardColors(containerColor = cardColor)
     ) {
         Row(
@@ -370,18 +405,6 @@ private fun NfcStatusBanner(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                val statusTitle = when (nfcState) {
-                    NfcHardwareState.Ready -> "NFC 已就绪"
-                    NfcHardwareState.Disabled -> "NFC 未启用"
-                    NfcHardwareState.EditorOnly -> "仅编辑器模式"
-                    NfcHardwareState.Unsupported -> "设备不支持 MIFARE Classic"
-                }
-                val statusDesc = when (nfcState) {
-                    NfcHardwareState.Ready -> "贴附 MIFARE Classic 卡片即可读取转储"
-                    NfcHardwareState.Disabled -> "请在系统设置中开启 NFC 开关"
-                    NfcHardwareState.EditorOnly -> "NFC 功能已关闭，支持转储与密钥离线编辑"
-                    NfcHardwareState.Unsupported -> "硬件缺少 MIFARE Classic 控制器支持"
-                }
                 Text(
                     text = statusTitle,
                     style = MaterialTheme.typography.titleMedium,
@@ -420,8 +443,16 @@ private fun MainActionCard(
     Card(
         modifier = modifier
             .height(118.dp)
-            .clickable(enabled = enabled, onClick = onClick)
-            .testTag(testTag),
+            .clickable(
+                enabled = enabled,
+                role = Role.Button,
+                onClickLabel = title,
+                onClick = onClick
+            )
+            .testTag(testTag)
+            .semantics {
+                contentDescription = title
+            },
         colors = CardDefaults.cardColors(
             containerColor = if (enabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
         ),

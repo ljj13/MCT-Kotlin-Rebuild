@@ -1,11 +1,13 @@
 package de.syss.MifareClassicTool
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import de.syss.MifareClassicTool.Activities.MainMenu
+import de.syss.MifareClassicTool.ui.main.MainMenuScreen
+import de.syss.MifareClassicTool.ui.main.NfcHardwareState
+import de.syss.MifareClassicTool.ui.theme.MctTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -14,10 +16,37 @@ import org.junit.runner.RunWith
 class MainMenuComposeTest {
 
     @get:Rule
-    val composeTestRule = createAndroidComposeRule<MainMenu>()
+    val composeTestRule = createComposeRule()
 
     @Test
     fun testAllMainMenuEntriesDisplayed() {
+        composeTestRule.setContent {
+            MctTheme {
+                MainMenuScreen(
+                    versionCode = "4.3.1",
+                    isEditorOnly = false,
+                    nfcState = NfcHardwareState.Ready,
+                    onReadTagClick = {},
+                    onWriteTagClick = {},
+                    onOpenTagDumpEditorClick = {},
+                    onOpenKeyEditorClick = {},
+                    onHelpClick = {},
+                    onPreferencesClick = {},
+                    onAboutClick = {},
+                    onEnableNfcClick = {},
+                    onTagInfoClick = {},
+                    onCloneUidClick = {},
+                    onDiffToolClick = {},
+                    onAccessConditionToolClick = {},
+                    onValueBlockToolClick = {},
+                    onBccToolClick = {},
+                    onDataConversionToolClick = {},
+                    onUidLogToolClick = {},
+                    onImportExportToolClick = {}
+                )
+            }
+        }
+
         // Core entries
         composeTestRule.onNodeWithTag("nfc_status_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("btn_read_tag").assertIsDisplayed()
@@ -33,6 +62,33 @@ class MainMenuComposeTest {
 
     @Test
     fun testToolsDialogOpensAndCloses() {
+        composeTestRule.setContent {
+            MctTheme {
+                MainMenuScreen(
+                    versionCode = "4.3.1",
+                    isEditorOnly = false,
+                    nfcState = NfcHardwareState.Ready,
+                    onReadTagClick = {},
+                    onWriteTagClick = {},
+                    onOpenTagDumpEditorClick = {},
+                    onOpenKeyEditorClick = {},
+                    onHelpClick = {},
+                    onPreferencesClick = {},
+                    onAboutClick = {},
+                    onEnableNfcClick = {},
+                    onTagInfoClick = {},
+                    onCloneUidClick = {},
+                    onDiffToolClick = {},
+                    onAccessConditionToolClick = {},
+                    onValueBlockToolClick = {},
+                    onBccToolClick = {},
+                    onDataConversionToolClick = {},
+                    onUidLogToolClick = {},
+                    onImportExportToolClick = {}
+                )
+            }
+        }
+
         // Open tools dialog
         composeTestRule.onNodeWithTag("btn_tools").performClick()
 
