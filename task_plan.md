@@ -111,3 +111,12 @@
 - [x] 红米 Note 8 Pro 真机验证与前后台切换，截取 `main_menu_compose_screenshot.png` 与 `main_menu_tools_dialog_screenshot.png`
 - [x] 全量测试回归与 Release 构建验证（Release APK 体积 8.43 MB）
 - [x] 保持 master 和基线 tag 不变，未向远程推送或发布 Release
+
+### 阶段 11：P11 核心功能页面渐进式现代化与体验收口 [complete]
+- [x] 补齐 P10 遗留项：增加 NfcAdapter 状态广播监听 (`ACTION_ADAPTER_STATE_CHANGED`)，弹窗滚动高度约束与无障碍标签增强
+- [x] 迁移 HelpAndInfo 至 Compose Material 3，保留离线 WebView 与 HTML 资源解析，真机截图 `help_and_info_compose_screenshot.png`
+- [x] 迁移 TagInfoTool 至 Compose M3，保留 NFC 前台分发、新卡解析、SAK/ATQA/ATS 矩阵计算与不兼容提示，真机截图 `tag_info_compose_screenshot.png`
+- [x] 迁移 Preferences 至 Compose M3，100% 保持 SharedPreferences 键值规范与即时夜间/语言模式联动，真机截图 `preferences_compose_screenshot.png`
+- [x] 迁移 UidLogTool 至 Compose M3，优化为倒序卡片流、一键复制与日志清除确认，真机截图 `uid_log_compose_screenshot.png`
+- [x] 编写各页面针对性 Compose UI 自动化测试套件与单元测试回归 (17/17 通过)
+- [x] Release 构建验证 (体积 8.47 MB)，保持 master 和原有 tag 不变，未向远程推送

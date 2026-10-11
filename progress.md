@@ -22,3 +22,9 @@
 | 2026-10-11 | P9 深度演进 | 联动 MctTheme 与主题设置、测定 Release APK 体积、建立组件规范库 | 完成 | 统一组件间距排版，测定 Release APK 体积 8.41 MB (增量 4.5 MB) |
 | 2026-10-11 | P9 工具迁移 | 陆续迁移 HexToAscii, ValueBlockTool, DataConversionTool, AccessConditionTool | 完成 | 4 个独立工具全部迁移至 Compose Material 3，真机截图验收并通过全量测试 |
 | 2026-10-11 | P10 首页现代化 | 迁移 MainMenu 首页至 Compose Material 3，整合 9 项工具弹窗与 NFC 状态 | 完成 | 完整保留状态机与生命周期，截图验收，自动化测试全绿，Release APK 8.43 MB |
+| 2026-10-11 | P11 状态与测试强化 | MainMenu 广播动态监听 NFC 切换、弹窗高度约束与无障碍标签 | 完成 | 优化测试规则，红米 Note 8 Pro 仪器测试通过 |
+| 2026-10-11 | P11 页面迁移 | 迁移 HelpAndInfo 至 Compose M3 并接入离线 WebView | 完成 | 截取并核对 `help_and_info_compose_screenshot.png` |
+| 2026-10-11 | P11 页面迁移 | 迁移 TagInfoTool 至 Compose M3，保留 NFC 前台分发与卡型识别 | 完成 | 截取并核对 `tag_info_compose_screenshot.png` |
+| 2026-10-11 | P11 页面迁移 | 迁移 Preferences 至 Compose M3，严格对齐 SharedPreferences 数据字段 | 完成 | 验证设置落盘与即时生效，截取 `preferences_compose_screenshot.png` |
+| 2026-10-11 | P11 页面迁移 | 迁移 UidLogTool 至 Compose M3，实现时间倒序卡片流与一键清除 | 完成 | 截取并核对 `uid_log_compose_screenshot.png` |
+| 2026-10-11 | P11 收口验证 | 全量回归纯逻辑与仪器测试，测定 Release APK 体积 (8.47 MB) | 完成 | 单元测试 17/17 通过，分支独立干净，未动 master |

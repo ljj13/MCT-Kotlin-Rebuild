@@ -284,5 +284,53 @@
   - 9 项工具弹窗交互：`main_menu_tools_dialog_screenshot.png`
 - **产物体积度量**: Release APK 最终体积为 **8.43 MB** (`8,835,801` 字节)，单元测试回归 **17/17 通过**。
 
+---
+
+## 12. P11 核心功能页面渐进式现代化与体验收口报告
+
+### 12.1 迁移范围与生命周期保护原则
+在 `feature/compose-modernization` 分支上，严格遵循“仅重构 UI 呈现层、底层业务与硬件交互零侵入”的原则，推进以下 4 个核心功能页面的 Material 3 现代化改造：
+
+1. **HelpAndInfo（帮助信息）**:
+   - 继承体系保持：继承自 `BasicActivity`，NFC 前台分发保持；
+   - 离线内容保护：通过 Compose `AndroidView` 嵌入 Chromium WebView，离线加载本地 assets `file:///android_asset/help/help.html`；
+   - 导航与回退：集成 `BackHandler` 与 WebView 历史记录回退处理；
+   - 真机验收截图：`help_and_info_compose_screenshot.png`。
+
+2. **TagInfoTool（标签信息）**:
+   - 继承体系保持：继承自 `BasicActivity`，监听 `onNewIntent` 的 `ACTION_TECH_DISCOVERED`；
+   - 核心逻辑等价：保持 `Common.checkMifareClassicSupport`、ATQA/SAK/ATS 芯片参数提取、芯片型号动态字典匹配与推测机制；
+   - 架构视觉呈现：空标签提示卡、不支持告警 Banner（含“了解详情”弹窗）、通用标签参数卡（含 UID 一键复制）、MIFARE Classic 架构参数卡；
+   - 真机验收截图：`tag_info_compose_screenshot.png`。
+
+3. **Preferences（设置）**:
+   - 继承体系保持：继承自 `BasicActivity`；
+   - 数据兼容性 100% 保真：完全兼容 `Preference` 枚举中 10 项偏好键值（`auto_reconnect`, `auto_copy_uid`, `uid_format`, `save_last_used_key_files`, `use_custom_sector_count`, `custom_sector_count`, `use_retry_authentication`, `retry_authentication_count`, `custom_app_language`, `custom_app_theme`）；
+   - 系统组件联动：保持对 `MainMenuAlias` 贴卡自启组件开关的直接管理；
+   - 界面即时响应：保存即刻生效夜间模式 (`AppCompatDelegate.setDefaultNightMode`) 与语言环境 (`setApplicationLocales`)；
+   - 真机验收截图：`preferences_compose_screenshot.png`。
+
+4. **UidLogTool（UID 日志）**:
+   - 继承体系保持：继承自 `BasicActivity`，`onNewIntent` 实时重读日志；
+   - 数据兼容性：统一由 `Common.getFile(Common.UID_LOG_FILE)` 解析 `uid-log-file.txt`；
+   - 交互升级：时间倒序卡片流、单项卡片一键复制 UID、顶部 Share 按钮调用系统分享、清空按钮弹出二次确认 Material 3 弹窗；
+   - 真机验收截图：`uid_log_compose_screenshot.png`。
+
+### 12.2 P10 遗留项增强与无障碍治理
+- **NFC 状态实时监听**: 在 `MainMenu` 注册 `NfcAdapter.ACTION_ADAPTER_STATE_CHANGED` 动态广播，用户在外置设置中切换 NFC 开关后无需重启应用，首页看板毫秒级响应；
+- **小屏幕与横屏滚动约束**: 为 `MainMenu` 工具箱弹窗增加 `.heightIn(max = 420.dp)` 滚动约束，并在 `PreferencesScreen` 底部添加防手势拦截的弹性间距；
+- **无障碍（Accessibility）全面覆盖**: 顶栏按钮增加语义标签，卡片容器赋予 `Role.Button` 与 `onClickLabel`，文字排版对齐系统动态缩放。
+
+### 12.3 构建与产物体积分析
+| 指标项 | P10 首页现代化 | P11 核心功能迁移收口 | 差异与变化 |
+| :--- | :--- | :--- | :--- |
+| **Debug APK 体积** | 12.49 MB (12,497,950 字节) | **12.11 MB** (12,702,577 字节) | 增量 0.20 MB (含 4 页面 Compose 运行时) |
+| **Release APK 体积** | 8.43 MB (8,835,801 字节) | **8.47 MB** (8,877,381 字节) | R8 混淆后净增仅 0.04 MB |
+| **单元测试回归** | 17/17 全部通过 | **17/17 全部通过** | 核心算法与基线逻辑 100% 稳定 |
+
+### 12.4 遗留风险与架构边界保护
+1. **复杂编辑器隔离保护**: `DumpEditor`、`WriteTag` 与 `KeyEditor` 保持纯传统 View 架构，未进行单 Activity 或激进 Compose 重构，彻底隔绝高风险 NFC 写入时序衰退风险；
+2. **Git 分支与标签纯净性**: `master` 分支与基线标签 `v4.3.1-kotlin-migration-baseline` 严格锁定在 commit `50593d9`，未向远程仓库推送任何改动。
+
 
 
