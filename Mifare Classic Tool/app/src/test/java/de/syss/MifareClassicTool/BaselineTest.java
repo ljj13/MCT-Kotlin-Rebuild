@@ -8,6 +8,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import de.syss.MifareClassicTool.Activities.CloneUidTool;
+
 public class BaselineTest {
 
     @Test
@@ -322,5 +324,30 @@ public class BaselineTest {
         // Invalid length
         assertFalse(Common.isValidBlock0("SHORT", 4, 1024, true));
         assertFalse(Common.isValidBlock0(null, 4, 1024, true));
+    }
+
+    @Test
+    public void testCloneUidCalcSakAtqa() {
+        // 4-byte UID for 1K (1024 bytes): SAK=08, ATQA=0400 -> 080400
+        assertEquals("080400", CloneUidTool.calcSakAtqa(4, 1024));
+
+        // 4-byte UID for 2K (2048 bytes): SAK=08, ATQA=0400 -> 080400
+        assertEquals("080400", CloneUidTool.calcSakAtqa(4, 2048));
+
+        // 4-byte UID for 4K (4096 bytes): SAK=18, ATQA=0200 -> 180200
+        assertEquals("180200", CloneUidTool.calcSakAtqa(4, 4096));
+
+        // 4-byte UID for Mini (320 bytes): SAK=09, ATQA=0400 -> 090400
+        assertEquals("090400", CloneUidTool.calcSakAtqa(4, 320));
+
+        // 7-byte UID for 1K: SAK=08, ATQA=4400 -> 084400
+        assertEquals("084400", CloneUidTool.calcSakAtqa(7, 1024));
+
+        // 7-byte UID for 4K: SAK=18, ATQA=4200 -> 184200
+        assertEquals("184200", CloneUidTool.calcSakAtqa(7, 4096));
+
+        // Unsupported UID length or tag size returns null
+        assertNull(CloneUidTool.calcSakAtqa(10, 1024));
+        assertNull(CloneUidTool.calcSakAtqa(4, 512));
     }
 }

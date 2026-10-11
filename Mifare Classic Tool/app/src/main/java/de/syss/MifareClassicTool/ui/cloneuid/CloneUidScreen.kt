@@ -73,9 +73,12 @@ fun CloneUidScreen(
     onPasteUid: () -> Unit,
     onRandomUid: () -> Unit,
     onCalculateBlock0: () -> Unit,
-    onShowInfo: () -> Unit
+    onShowInfo: () -> Unit = {}
 ) {
     var showInfoDialog by remember { mutableStateOf(false) }
+    var showBlock0RestInfoDialog by remember { mutableStateOf(false) }
+    var showWriteKeyInfoDialog by remember { mutableStateOf(false) }
+    var showSakAtqaInfoDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -201,6 +204,19 @@ fun CloneUidScreen(
                             label = { Text("Block 0 剩余字节数据") },
                             placeholder = { Text("080400475955D141103607") },
                             singleLine = true,
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = { showBlock0RestInfoDialog = true },
+                                    modifier = Modifier.testTag("btn_info_block0_rest")
+                                ) {
+                                    Text(
+                                        text = "ⓘ",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .testTag("input_block0_rest")
@@ -217,6 +233,19 @@ fun CloneUidScreen(
                             label = { Text("写入密钥 (6 字节 Hex)") },
                             placeholder = { Text("FFFFFFFFFFFF") },
                             singleLine = true,
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = { showWriteKeyInfoDialog = true },
+                                    modifier = Modifier.testTag("btn_info_write_key")
+                                ) {
+                                    Text(
+                                        text = "ⓘ",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .testTag("input_write_key")
@@ -276,8 +305,20 @@ fun CloneUidScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = stringResource(R.string.action_calc_sak_atqa),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
                             )
+                            IconButton(
+                                onClick = { showSakAtqaInfoDialog = true },
+                                modifier = Modifier.testTag("btn_info_sak_atqa")
+                            ) {
+                                Text(
+                                    text = "ⓘ",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
@@ -375,6 +416,45 @@ fun CloneUidScreen(
             text = { Text(stringResource(R.string.dialog_gen2_tags_info)) },
             confirmButton = {
                 TextButton(onClick = { showInfoDialog = false }) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            }
+        )
+    }
+
+    if (showBlock0RestInfoDialog) {
+        AlertDialog(
+            onDismissRequest = { showBlock0RestInfoDialog = false },
+            title = { Text(stringResource(R.string.dialog_rest_of_block_0_title)) },
+            text = { Text(stringResource(R.string.dialog_rest_of_block_0)) },
+            confirmButton = {
+                TextButton(onClick = { showBlock0RestInfoDialog = false }) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            }
+        )
+    }
+
+    if (showWriteKeyInfoDialog) {
+        AlertDialog(
+            onDismissRequest = { showWriteKeyInfoDialog = false },
+            title = { Text(stringResource(R.string.dialog_key_for_block_0_title)) },
+            text = { Text(stringResource(R.string.dialog_key_for_block_0)) },
+            confirmButton = {
+                TextButton(onClick = { showWriteKeyInfoDialog = false }) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            }
+        )
+    }
+
+    if (showSakAtqaInfoDialog) {
+        AlertDialog(
+            onDismissRequest = { showSakAtqaInfoDialog = false },
+            title = { Text(stringResource(R.string.dialog_auto_calc_sak_atqa_title)) },
+            text = { Text(stringResource(R.string.dialog_auto_calc_sak_atqa)) },
+            confirmButton = {
+                TextButton(onClick = { showSakAtqaInfoDialog = false }) {
                     Text(stringResource(R.string.action_ok))
                 }
             }

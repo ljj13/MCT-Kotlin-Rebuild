@@ -86,9 +86,13 @@ class CloneUidToolComposeTest {
 
         // Advanced options inputs visible when showOptions = true
         composeTestRule.onNodeWithTag("input_block0_rest").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("btn_info_block0_rest").assertIsDisplayed()
         composeTestRule.onNodeWithTag("input_write_key").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("btn_info_write_key").assertIsDisplayed()
         composeTestRule.onNodeWithTag("rb_key_a").assertIsDisplayed()
         composeTestRule.onNodeWithTag("rb_key_b").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("cb_sak_atqa").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("btn_info_sak_atqa").assertIsDisplayed()
 
         // Block 0 complete preview is visible
         composeTestRule.onNodeWithTag("text_block0_complete").assertIsDisplayed()

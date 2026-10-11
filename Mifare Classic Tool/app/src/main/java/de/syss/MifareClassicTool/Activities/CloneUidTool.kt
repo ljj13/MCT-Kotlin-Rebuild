@@ -72,16 +72,23 @@ class CloneUidTool : BasicActivity() {
             initialLogs.add(getString(R.string.text_use_uid_of_scanned_tag) + " ($uid)")
         }
 
+        val showOptionsExtra = intent.getBooleanExtra("extra_show_options", false)
+        val autoCalcExtra = intent.getBooleanExtra("extra_auto_calc", false)
+
         mUiState.value = CloneUidUiState(
             uidInput = initialUid,
             block0RestInput = mBlock0Rest,
             writeKeyInput = mBlock0Key,
             useKeyB = false,
             autoCalcSakAtqa = false,
-            showOptions = false,
+            showOptions = showOptionsExtra,
             block0Complete = null,
             statusLogs = initialLogs
         )
+
+        if (autoCalcExtra) {
+            onCalculateBlock0(null)
+        }
 
         setContent {
             MctTheme {
@@ -210,6 +217,7 @@ class CloneUidTool : BasicActivity() {
                 mBlock0Complete = mBlock0Complete.substring(0, sakStart) +
                         sakAndAtqa +
                         mBlock0Complete.substring(sakStart + sakAndAtqa.length)
+                mUiState.value = mUiState.value.copy(block0Complete = mBlock0Complete)
             }
         }
         appendToLog(getString(R.string.text_data_to_write) + " " + mBlock0Complete)
@@ -244,48 +252,6 @@ class CloneUidTool : BasicActivity() {
         appendToLog(getString(R.string.text_rescan_tag_to_check))
         mStatus = Status.CLONED
         reader.close()
-    }
-
-    private fun calcSakAtqa(uidLen: Int, tagSize: Int): String? {
-        if ((uidLen != 4 && uidLen != 7) || (
-                    tagSize != MifareClassic.SIZE_MINI &&
-                            tagSize != MifareClassic.SIZE_1K &&
-                            tagSize != MifareClassic.SIZE_2K &&
-                            tagSize != MifareClassic.SIZE_4K)
-        ) {
-            return null
-        }
-
-        var atqa: String? = null
-        if (uidLen == 4 && (tagSize == MifareClassic.SIZE_1K ||
-                    tagSize == MifareClassic.SIZE_2K ||
-                    tagSize == MifareClassic.SIZE_MINI)
-        ) {
-            atqa = "0400"
-        } else if (uidLen == 4 && tagSize == MifareClassic.SIZE_4K) {
-            atqa = "0200"
-        } else if (uidLen == 7 && (tagSize == MifareClassic.SIZE_1K ||
-                    tagSize == MifareClassic.SIZE_2K ||
-                    tagSize == MifareClassic.SIZE_MINI)
-        ) {
-            atqa = "4400"
-        } else if (uidLen == 7 && tagSize == MifareClassic.SIZE_4K) {
-            atqa = "4200"
-        }
-
-        var sak: String? = null
-        if (tagSize == MifareClassic.SIZE_MINI) {
-            sak = "09"
-        } else if (tagSize == MifareClassic.SIZE_1K || tagSize == MifareClassic.SIZE_2K) {
-            sak = "08"
-        } else if (tagSize == MifareClassic.SIZE_4K) {
-            sak = "18"
-        }
-
-        if (sak == null || atqa == null) {
-            return null
-        }
-        return sak + atqa
     }
 
     private fun showBlock0Warning() {
@@ -346,5 +312,83 @@ class CloneUidTool : BasicActivity() {
             .setIcon(android.R.drawable.ic_dialog_info)
             .setPositiveButton(R.string.action_ok) { _, _ -> }
             .show()
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun onShowBlock0RestInfo(view: View? = null) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.dialog_rest_of_block_0_title)
+            .setMessage(R.string.dialog_rest_of_block_0)
+            .setIcon(android.R.drawable.ic_dialog_info)
+            .setPositiveButton(R.string.action_ok) { _, _ -> }
+            .show()
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun onShowWriteKeyInfo(view: View? = null) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.dialog_key_for_block_0_title)
+            .setMessage(R.string.dialog_key_for_block_0)
+            .setIcon(android.R.drawable.ic_dialog_info)
+            .setPositiveButton(R.string.action_ok) { _, _ -> }
+            .show()
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun onShowSakAtqaInfo(view: View? = null) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.dialog_auto_calc_sak_atqa_title)
+            .setMessage(R.string.dialog_auto_calc_sak_atqa)
+            .setIcon(android.R.drawable.ic_dialog_info)
+            .setPositiveButton(R.string.action_ok) { _, _ -> }
+            .show()
+    }
+
+    companion object {
+        /**
+         * Calculate a SAK and ATQA value according to NXP's specifications.
+         */
+        @JvmStatic
+        fun calcSakAtqa(uidLen: Int, tagSize: Int): String? {
+            if ((uidLen != 4 && uidLen != 7) || (
+                        tagSize != MifareClassic.SIZE_MINI &&
+                                tagSize != MifareClassic.SIZE_1K &&
+                                tagSize != MifareClassic.SIZE_2K &&
+                                tagSize != MifareClassic.SIZE_4K)
+            ) {
+                return null
+            }
+
+            var atqa: String? = null
+            if (uidLen == 4 && (tagSize == MifareClassic.SIZE_1K ||
+                        tagSize == MifareClassic.SIZE_2K ||
+                        tagSize == MifareClassic.SIZE_MINI)
+            ) {
+                atqa = "0400"
+            } else if (uidLen == 4 && tagSize == MifareClassic.SIZE_4K) {
+                atqa = "0200"
+            } else if (uidLen == 7 && (tagSize == MifareClassic.SIZE_1K ||
+                        tagSize == MifareClassic.SIZE_2K ||
+                        tagSize == MifareClassic.SIZE_MINI)
+            ) {
+                atqa = "4400"
+            } else if (uidLen == 7 && tagSize == MifareClassic.SIZE_4K) {
+                atqa = "4200"
+            }
+
+            var sak: String? = null
+            if (tagSize == MifareClassic.SIZE_MINI) {
+                sak = "09"
+            } else if (tagSize == MifareClassic.SIZE_1K || tagSize == MifareClassic.SIZE_2K) {
+                sak = "08"
+            } else if (tagSize == MifareClassic.SIZE_4K) {
+                sak = "18"
+            }
+
+            if (sak == null || atqa == null) {
+                return null
+            }
+            return sak + atqa
+        }
     }
 }
