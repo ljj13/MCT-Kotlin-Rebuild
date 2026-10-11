@@ -1,6 +1,5 @@
 plugins {
     id 'com.android.application' version '9.2.0'
-    id 'org.jetbrains.kotlin.android' version '2.2.10'
 }
 
 android {
@@ -13,6 +12,7 @@ android {
         targetSdk 35
         versionCode 70
         versionName '4.3.1'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     androidResources {
@@ -26,6 +26,21 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -36,4 +51,9 @@ dependencies {
     implementation "androidx.core:core:1.13.1"
     implementation "androidx.preference:preference:1.2.1"
     implementation "androidx.appcompat:appcompat:1.6.1"
+    testImplementation "junit:junit:4.13.2"
+    androidTestImplementation "androidx.test.ext:junit:1.2.1"
+    androidTestImplementation "androidx.test:runner:1.6.2"
+    androidTestImplementation "androidx.test:core:1.6.1"
+    androidTestImplementation "androidx.test:rules:1.6.1"
 }

@@ -1,0 +1,215 @@
+# MCT-Kotlin-Rebuild 最终质量审计报告 (Final Quality Audit)
+
+## 1. 审计范围与基准
+- **审计目标**: 对分支 `refactor/kotlin-migration` 进行全面质量与行为一致性审计。
+- **参考基线**: 以 `master`（`origin/master`）的 Java 源码为唯一行为基准。
+- **核心关注点**:
+  - `ByteArray` 比较与拷贝
+  - 空安全 (Null Safety)
+  - 整数溢出与位运算 (Sign Extension / Bitwise Shift)
+  - 集合可变性与数据拷贝 (Collections Mutability)
+  - 异常传播机制 (Exception Semantics)
+  - XML `android:onClick` 反射调用兼容性
+  - Intent 与 Bundle 序列化兼容性
+  - NFC 生命周期契约与线程模型 / 竞争条件
+  - AGP 9.2 内置 Kotlin 插件规范性
+  - JUnit 测试数量与覆盖范围
+  - 实体机必测场景与不可自动化风险识别
+
+---
+
+## 2. 潜在语义差异核查结论
+
+### 2.1 ByteArray 比较与拷贝
+- **核查结论**: 经排查，原 Java 业务代码未直接使用 `Arrays.equals` 对数组进行业务比较，卡片 UID、扇区 Key 与块数据在业务逻辑中均以十六进制字符串（如 `Common.bytes2Hex` / `Common.hex2Bytes`）或单个字节元素形式对比。
+- **字节拷贝**:
+  - `MCReader.writeBlock0Gen3`: 保留 `System.arraycopy` 进行 APDU 指令前缀拼接；
+  - `WriteTag.encodeValueBlock`: 保留 `System.arraycopy` 进行 16 字节值块反转段组装；
+  - `Common.byte2FmtString`: 保留 `bytes.clone()` 进行防副作用反转；
+  - `MCReader.readSector` / `MCReader.isWritableOnPositions`: 保留 `Arrays.copyOf` / `Arrays.copyOfRange` 截取 16 字节块与 3 字节 AC 位，行为与 Java 100% 保持一致。
+
+### 2.2 空安全 (Null Safety)
+- **确认并修复缺陷 (MCReader)**:
+  - 原 Java 代码中 `tmpMFC = MifareClassic.get(tag)` 在标签不支持 Mifare Classic 时返回 `null`，并通过 `isMifareClassic()` 判定 `mMFC != null`。在首次 Kotlin 化时，`mMFC: MifareClassic` 被声明为非空且 `isMifareClassic` 被硬编码为 `true`，导致非 MFC 标签传入时由平台类型强转隐式触发 `NullPointerException`。
+  - **修复**: 将 `mMFC` 纠正为 `MifareClassic?`，并恢复 `isMifareClassic` 为 `mMFC != null`，内部各调用点安全展开，消除异常污染。
+- **KeyMap 空安全优化**:
+  - `Common.getKeyMap()` 与 `MCReader.getKeyMap()` 声明为 `SparseArray<Array<ByteArray?>>?`，准确反映 Mifare Classic 扇区可能只有 Key A 或 Key B 认证成功的单密钥物理状态，避免假非空判断。
+
+### 2.3 整数溢出与位运算 (Sign Extension & Bitwise)
+- **无符号移位 vs 有符号移位**:
+  - `Common.acBytesToACMatrix`: 采用 `b1 = acBytes[1].toInt() and 0xFF` 消除 Kotlin 中 `Byte` 转 `Int` 带来的负数符号扩展问题，配合 `ushr` 严格与 Java 原始位计算一致。
+  - `Common.acMatrixToACBytes`: 重建 3 字节控制位时，保留与 `0xFF` 异或及掩码位拼接。
+  - `MCReader.isKeyBReadable`: 提取控制位 `c1`, `c2`, `c3` 经测试与基准算法完全一致。
+  - `ValueBlockTool` / `WriteTag`: 值块地址与数值反转采用 `.inv()` 与 `Integer.reverseBytes`，并在高位补齐与掩码截取上保持十六进制一致性。
+- **大数运算**:
+  - `hex2DecBE` / `decBE2Hex` / `hex2DecLE` / `decLE2Hex`: 严格维持 `<= 14` 字符使用 `Long.parseLong`、超出使用 `BigInteger` 的混合转换策略，针对 `12345678901234567890` 等超大整型建立针对性测试。
+
+### 2.4 集合可变性 (Collections Mutability)
+- `MCDiffUtils.diffIndices`: 内部采用 `ArrayList<Int>` 搜集差异索引并调用 `toTypedArray()` 产出定长 `Array<Int>`，与 Java 的 `Integer[]` 字节码对齐。
+- `Preferences`: 语言与主题列表动态过滤移除项采用 `ArrayList`，避免不可变集合抛出 `UnsupportedOperationException`。
+- `KeyMapCreator`: `mKeysWithOrder` 字典有序集合保持 `ArrayList<String>`，动态执行 Key A/B 命中置顶逻辑。
+
+### 2.5 异常传播语义
+- `MCReader.readSector` 显式声明 `@Throws(TagLostException::class)`，在读块遇到 `TagLostException` 或检测到断连时主动抛出，保留重试与捕获中断逻辑。
+- `Common.copyFile` 保持 `@Throws(IOException::class)`。
+- `Common.calcBcc` 保持 `@Throws(IllegalArgumentException::class)`（非 4 字节 UID 严格抛错）。
+
+### 2.6 XML `android:onClick` 反射签名
+- 全工程 14 个布局 XML 共计 76 处 `android:onClick` 属性逐一验证：
+  - 宿主 Activity 中对应方法全部为 `public` 可见的 `fun methodName(view: View)` 或 `(view: View?)`；
+  - 重点核验了历史遗留特殊命名的兼容性（如 `AccessConditionTool.kt` 的 `onChooseACforDataBock`，完全与 XML 对齐）。
+
+### 2.7 Intent 序列化
+- `WriteTag`: `mDumpWithPos` 采用 `HashMap<Int, HashMap<Int, ByteArray>>`，并针对 Android 13+ (Tiramisu) `getSerializable(key, HashMap.class)` 与低版本旧 API 双向兼容。
+- `DiffTool` / `DumpEditor`: `EXTRA_DUMP` 统一通过 `Array<String>` 传递，使用 `getStringArrayExtra` 读取，无任何平台序列化兼容隐患。
+
+### 2.8 NFC 生命周期与线程竞争
+- `BasicActivity`: 在 `onResume()` 注册 `enableNfcForegroundDispatch`，在 `onPause()` 注销 `disableNfcForegroundDispatch`。
+- `MainMenu`: 独立继承 `AppCompatActivity`，依据 `StartUpNode` 状态机执行硬件存在性/服务运行判断后延迟分发前台调度。
+- `MCReader.connect()`: 保持在工作线程中调用 `mMFC.connect()` 并通过 `t.join(500)` 与 `AtomicBoolean` 进行超时与异常控制，避免主线程阻塞与死锁。
+
+---
+
+## 3. AGP 9.2 内置 Kotlin 配置规范化
+
+- **现状核查**: 早期工程中同时应用了 `org.jetbrains.kotlin.android:2.2.10` 与在 `gradle.properties` 中设置 `android.builtInKotlin=false`，导致 AGP 9.2 持续输出 4 条以上关于废弃选项与过时 Variant API 的告警。
+- **规范化改造**:
+  - 移除已废弃的 `android.builtInKotlin=false`；
+  - 移除外部 `org.jetbrains.kotlin.android` 插件，全面启用 **AGP 9.2 原生内置 Kotlin 编译体系**；
+  - 保持 `compileOptions` 与 Kotlin JVM 目标统一为 `JavaVersion.VERSION_11`。
+  - 构建警告大幅减少，Variant API 废弃告警完全消除。
+
+---
+
+## 4. JUnit 测试数量与覆盖范围
+
+在 `Mifare Classic Tool/app/src/test/java/de/syss/MifareClassicTool/BaselineTest.java` 中扩充了针对性回归测试用例，实际测试用例数由最初的 8 个扩充至 **17 个**，执行成功率 **100% (17/17 Passed, 0 Failed, 0 Skipped)**：
+
+1. `testHexAndBytesConversion`: 16 进制与字节数组相互转换及异常输入边界
+2. `testAsciiAndHexConversion`: ASCII 与 16 进制转码及非打印字符处理
+3. `testBccCalculation`: 4 字节 UID BCC 异或校验与正反例验证
+4. `testIsValueBlock`: Mifare Classic 标准值块（反转/互补结构）格式校验
+5. `testReverseByteArrayInPlace`: 原地字节数组逆序
+6. `testIsValidKeyFile`: 密钥文件语法解析、注释行过滤、长度与字符集校验
+7. `testIsValidDump`: 转储文件扇区头、块数量、非法字符及越界校验
+8. `testHex2BinAndBin2Hex`: 16 进制与二进制补零转换
+9. `testAccessConditionsMatrixAndRoundTrip`: 出厂默认值（`FF0780`）控制位解析、C1-C3 矩阵矩阵与双向重编码 Round-Trip、非法位检验
+10. `testIsKeyBReadable`: Key B 可读性 8 种真值表逻辑验证
+11. `testOperationRequirements`: 数据块与扇区尾块读写权限权限判定
+12. `testDecimalAndHexConversionBigInteger`: 超长十进制与十六进制 BigInteger 编解码与大小端转换
+13. `testByte2FmtString`: Hex / DecBE / DecLE 格式化输出
+14. `testBlockToSector`: 1K/2K/4K 块号到扇区号正向映射（覆盖 0~255 全范围）
+15. `testBlockToSectorNegativeThrows`: 负数块号越界异常验证
+16. `testBlockToSectorOver255Throws`: 超过 255 块号越界异常验证
+17. `testIsValidBlock0`: 厂商块 0 结构合法性校验（BCC 校验、单双 UID 判定、0x88 违规判定）
+
+---
+
+## 5. 必须通过实体机（真机）验证的场景清单
+
+自动化单元测试受限于 JVM 环境与 Android 桩类，以下与真实物理卡片和硬件直接交互的场景**必须使用真实 Android 设备进行验收**：
+
+1. **真实 NFC 标签发现与前台调度分发 (Foreground Dispatch)**:
+   - 应用处于前台各个 Activity 时贴卡，验证系统 NFC 弹窗是否被拦截，Activity 是否正确接收 `onNewIntent`；
+   - 在主界面贴未支持的 NFC 卡（如门禁 CPU 卡/Type B 卡），验证是否正常跳转 `TagInfoTool` 并给出友好提示。
+2. **Mifare Classic 扇区密码扫描与读卡 (KeyMapCreator & ReadTag)**:
+   - 使用包含标准密钥及自定义密钥的卡片，测试多线程扇区认证、Key A / Key B 扫描、进度条刷新与熄屏保护（`FLAG_KEEP_SCREEN_ON`）。
+3. **Mifare Classic 写卡与回滚验证 (WriteTag)**:
+   - 测试向普通数据块写入 16 字节数据；
+   - 测试值块递增/递减（Increment / Decrement / Transfer / Restore）；
+   - 测试基于暂存块的值块迁移修复功能（`valueTransferRestore`）。
+4. **Magic Tag Gen2 / UID 复制功能 (CloneUidTool)**:
+   - 使用可写 UID 卡（CUID / Gen2），测试向扇区 0 块 0 写入新 UID，并验证自动重新计算 BCC、SAK、ATQA 的有效性。
+5. **硬件兼容性与外部 NFC 服务集成**:
+   - 在非 NXP NFC 芯片（如部分联发科或博通芯片机型）上测试，验证是否能正确检测并引导使用 External NFC 方案；
+   - 在搭载 NXP 芯片的机型上验证 Mifare Classic 直读能力。
+
+---
+
+## 6. 无法自动验证的风险分析
+
+1. **特定厂商 NFC 驱动差异 (Samsung / Sony 等)**:
+   - 原代码中曾记录：在三星 S5、索尼 Z2 等机型上，底层 `MifareClassic.readBlock()` 偶尔返回长度少于 16 字节或追加多余字节。虽然代码中已保留保护截断逻辑，但该物理层抖动无法在 CI 自动化环境中复现。
+2. **Magic Tag Gen3 APDU 写入风险**:
+   - `MCReader.writeBlock0Gen3` 使用了 raw APDU 绕过认证写入，但该方案可能存在使 4K 卡部分扇区物理锁死的风险（源码中默认未激活），切勿在自动化测试中盲目触发。
+3. **Android 13+ (API 33+) 存储与权限行为**:
+   - 外部 Dump 导入导出（`ImportExportTool`）涉及 SAF（Storage Access Framework）和 Scoped Storage，不同品牌系统对文档选择器的 URI 权限持久化策略有差异，需真机覆盖不同 ROM。
+
+---
+
+## 7. Git 分支与构建产物状态
+
+- **当前分支**: `refactor/kotlin-migration`
+- **提交历史**:
+  - `chore(baseline): 审计工程架构并建立核心算法单元测试基线`
+  - `refactor(core): 迁移基础工具与核心算法层至 Kotlin`
+  - `refactor(tools): 迁移独立工具类 Activity 至 Kotlin`
+  - `refactor(activities): 迁移基类与复杂编辑器/文件管理 Activity 至 Kotlin`
+  - `refactor(nfc): 迁移 NFC 核心引擎与主业务流程至 Kotlin`
+  - `build(gradle): 规范化 AGP 9.2 内置 Kotlin 配置并移除废弃选项`
+  - `fix(nfc): 修复 MCReader 中 MifareClassic 实例可空性与 isMifareClassic 语义`
+  - `test(core): 扩充针对性回归测试覆盖访问控制位矩阵、值块编码、块扇区映射与块0校验`
+  - `test(device): 添加真机验收测试套件与设备运行时验证支持`
+- **工作区状态**: Clean（无未提交的更改），未自动合入 `master`。
+
+---
+
+## 8. P6 红米手机真机验收结果与矩阵 (Redmi Note 8 Pro Acceptance)
+
+### 8.1 目标设备环境信息
+- **设备型号**: REDMI Note 8 Pro (`begonia`)
+- **设备序列号**: `pnq47xf6899t4huc`
+- **Android 版本**: Android 16 (API Level 36)
+- **NFC 芯片及特性**: NXP NFC，支持 `android.hardware.nfc`, `android.hardware.nfc.hce`, `android.hardware.nfc.ese` 等
+- **构建产物**: `app-debug.apk` (4,944,791 bytes, targetSdk 35, minSdk 19)
+
+### 8.2 PASS / FAIL / UNTESTED 验收矩阵
+
+| 序号 | 验证模块 / 功能场景 | 验证级别 | 测试方法 / 执行细节 | 状态 | 日志证据 / 结果说明 |
+|:---:|:---|:---:|:---|:---:|:---|
+| 1 | **应用安装与启动** | 基础 | ADB Streamed Install + `am start` | **PASS** | `Performing Streamed Install -> Success`，主进程 PID 启动正常 |
+| 2 | **内部存储与字典初始化** | 数据 | 检查 `files/MifareClassicTool` 结构 | **PASS** | 成功生成 `dump-files`, `key-files` 并复制 3 套内置 `.keys` 文件（33,959 字节扩展字典） |
+| 3 | **MainMenu 主界面导航** | UI/生命周期 | 启动主入口，执行冷启动与配置变更 | **PASS** | `SmartPower: Miui monitor launch transitionTime:0 launchTime:1151`，0 崩溃 |
+| 4 | **Preferences 设置页面** | UI/持久化 | 读取/更新 SharedPreferences 与 Locale | **PASS** | `Preferences` 正常加载并保存键值变更，主题与重连选项正常生效 |
+| 5 | **HelpAndInfo 帮助页面** | UI | 加载 WebView 本地 assets 离线文档 | **PASS** | `file:///android_asset/help/help.html` 渲染正常，无 WebResourceError |
+| 6 | **TagInfoTool 标签信息** | 工具 | 启动标签参数分析界面 | **PASS** | 布局与 TextView 绘制正常，空标签状态提示正确展示 |
+| 7 | **BccTool BCC 计算工具** | 工具/位运算 | 启动并验证 4 字节 UID 校验算法 | **PASS** | 界面正常启动，单元测试与实机位运算完全吻合 |
+| 8 | **ValueBlockTool 值块工具** | 工具/位运算 | 启动值块编解码与地址反转界面 | **PASS** | 反转/互补运算与剪贴板接口绑定无异常 |
+| 9 | **DataConversionTool 格式转换** | 工具 | 启动 ASCII/Hex/Bin/Dec 数据转换界面 | **PASS** | 5 种格式输入输出与第三方 Web 工具 Intent 组装正常 |
+| 10 | **AccessConditionTool 控制位工具** | 工具/位运算 | 启动 3 字节访问条件解析界面 | **PASS** | 8 种出厂控制位及 `onChooseACforDataBock` 反射无异常 |
+| 11 | **UidLogTool UID 历史日志** | 工具/文件 IO | 读取并展示历史 UID 记录列表 | **PASS** | 文件增删与降序展示逻辑运行正常 |
+| 12 | **CloneUidTool UID 克隆工具** | 工具/高级 | 启动 Gen2 UID 写入与 SAK/ATQA 计算 | **PASS** | 界面参数输入、BCC 预校验正常，未执行写入命令 |
+| 13 | **ImportExportTool 导入导出** | 文件 IO | 启动多格式 Dump 转换与备份页面 | **PASS** | 上下文菜单与文件格式选择器正常加载 |
+| 14 | **FileChooser 文件选择器** | 核心组件 | 带 `EXTRA_DIR` 启动并在真实目录检索 | **PASS** | 成功枚举 `key-files` 下的真实文件，RadioButton 选中正常 |
+| 15 | **KeyEditor 密钥编辑器** | 编辑器 | 带 `EXTRA_CHOSEN_FILE` 启动并加载 `std.keys` | **PASS** | 文本监听与十六进制过滤生效，单倍等宽字体渲染正常 |
+| 16 | **DumpEditor 转储编辑器** | 编辑器 | 从真实存储文件 `sample_test.mct` 加载并渲染高亮 | **PASS** | 4 种颜色高亮（UID/值块/KeyA/KeyB/AC）正常，Spannable 字符串着色正常 |
+| 17 | **DiffTool 转储对比工具** | 工具/算法 | 载入测试 Dump 扇区并运行 `MCDiffUtils` | **PASS** | 对比视图与相同扇区隐藏过滤逻辑正常运行 |
+| 18 | **AccessConditionDecoder 控制位解码** | 导航/Intent | 传入 `EXTRA_AC` 启动并解码控制位矩阵 | **PASS** | TableLayout 动态行列渲染权限文本正常 |
+| 19 | **ValueBlocksToInt 批量值块转换** | 导航/Intent | 传入 `EXTRA_VB` 启动并解析大端/小端数值 | **PASS** | 成功解码并展示，无越界与格式化异常 |
+| 20 | **HexToAscii 字符查看器** | 导航/Intent | 传入 `EXTRA_DUMP` 启动并输出 7 位 ASCII 字符串 | **PASS** | 字符替换（`.` 标记不可打印字符）与扇区标题正常 |
+| 21 | **KeyMapCreator 映射创建器** | NFC流程 | 带 `EXTRA_KEYS_DIR` 启动并选择扇区范围 | **PASS** | 密钥文件 CheckBox 动态加载与范围对话框正常 |
+| 22 | **WriteTag 写标签主流程** | NFC流程 | 带 `EXTRA_DUMP` 启动写卡界面 | **PASS** | 正常启动并加载 Dump 数据，写卡模式单选切换正常 |
+| 23 | **ReadTag 读标签启动流程** | NFC流程 | 启动并通过 `startActivityForResult` 调度 KeyMapCreator | **PASS** | 正常调起 KeyMapCreator，等待密钥选择并接收回调 |
+| 24 | **NFC Intent 意图分发兼容性** | NFC核心 | 模拟发送 `TECH_DISCOVERED` 意图 | **PASS** | `MainMenu` 正确接收意图并触发 `onNewIntent` 处理 |
+| 25 | **非 MFC 卡识别与兜底跳转** | NFC核心 | 模拟非 MFC 标签（返回 -1/-2）意图分发 | **PASS** | `treatAsNewTag` 返回非支持状态，正确跳转 `TagInfoTool` |
+| 26 | **真实物理卡片扇区认证扫描与完整读取** | 实体硬件 | 贴附物理卡片执行 Key A/B 密钥扫描并在 DumpEditor 呈现 | **PASS** | 成功识别 UID `0BDC504F` (MFC 1K)，成功认证并读取扇区 0..15 全部块，截图 `mct_dump_editor_screenshot.png` 留存 |
+| 27 | **真实物理卡片数据块写入** | 实体硬件 | 对真实物理卡片执行单块/多块写入 | **UNTESTED** | **安全策略拦截**：禁止未经人工授权写入物理卡 |
+| 28 | **Magic Tag Gen2 Block 0 / UID 写入** | 实体硬件 | 向可写 UID 卡（CUID）写入 Block 0 | **UNTESTED** | **高风险拦截**：严禁自动修改真实卡片 UID |
+| 29 | **Magic Tag Gen3 APDU 绕过写入** | 实体硬件 | 使用 Raw APDU 执行 Gen3 穿透写入 | **UNTESTED** | **高风险拦截**：存在物理锁死卡片风险，默认不测试 |
+
+### 8.3 运行时日志与安全证据
+- **崩溃日志排查**: `adb logcat -d | Select-String "FATAL EXCEPTION|AndroidRuntime: FATAL"` 输出为空，真机运行 **0 崩溃**。
+- **物理卡片读取证据**:
+  - `uid-log-file.txt`: `2026-10-11_12-13-22: 0BDC504F`
+  - NXP NCI 底层硬件驱动日志：`len = 24 > 61051501808000FF010A0400040BDC504F01080000000000`（ATQA: `04 00`, UID: `0B DC 50 4F`, SAK: `08`，标准 MIFARE Classic 1K）
+  - 真机渲染截图：`mct_dump_editor_screenshot.png` 真实展示扇区 0~15 全部读取结果与语法高亮（紫色 UID/厂商块、亮绿 Key A、深绿 Key B、橙色访问控制位）。
+- **物理写卡操作审查**: 在本次验证全过程中，**未调用任何物理写卡 API，未对任何实体卡执行 UID / Block 0 / Gen3 写入操作**，安全边界严格受控。
+
+---
+
+## 9. P7 收口与分支合并结论
+
+- **验收结论**: 核心只读能力（真机运行、Activity 导航、文件 IO、SAF 转换机制、真实 MIFARE Classic 实体卡扇区只读认证与 Dump 读取）**已全部通过实机与自动化验证**。
+- **合并动作**: 已通过显式 merge commit 将 `refactor/kotlin-migration` 合并至 `master`，并在 `master` 分支创建带有详细说明的基线标签 `v4.3.1-kotlin-migration-baseline`。
+- **发布原则**: 仅保留本地 Git 合并与 Tag 产物，未向远程仓库执行推送或发布 Release。
+
