@@ -17,31 +17,30 @@
 
 package de.syss.MifareClassicTool.Activities
 
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
-import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.EditText
-import android.widget.RadioGroup
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.widget.AppCompatRadioButton
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.mutableStateOf
 import de.syss.MifareClassicTool.Common
 import de.syss.MifareClassicTool.R
+import de.syss.MifareClassicTool.ui.filechooser.FileChooserItem
+import de.syss.MifareClassicTool.ui.filechooser.FileChooserScreen
+import de.syss.MifareClassicTool.ui.filechooser.FileChooserUiState
+import de.syss.MifareClassicTool.ui.theme.MctTheme
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.Arrays
+import java.util.Date
+import java.util.Locale
 
 /**
  * A simple generic file chooser that lets the user choose a file from
  * a given directory.
+ * Retains BasicActivity NFC foreground dispatch and Intent contract (EXTRA_CHOSEN_FILE, EXTRA_CHOSEN_FILENAME).
  * @author Gerhard Klostermeier
  */
 class FileChooser : BasicActivity() {
@@ -58,49 +57,22 @@ class FileChooser : BasicActivity() {
         private val LOG_TAG: String = FileChooser::class.java.simpleName
     }
 
-    private lateinit var mGroupOfFiles: RadioGroup
-    private lateinit var mChooserButton: Button
-    private lateinit var mChooserText: TextView
-    private var mDeleteFile: MenuItem? = null
     private var mDir: File? = null
-    private var mIsDirEmpty: Boolean = false
     private var mIsAllowNewFile: Boolean = false
+    private val mUiState = mutableStateOf(
+        FileChooserUiState(
+            title = "",
+            chooserText = "",
+            buttonText = "",
+            allowNewFile = false
+        )
+    )
 
-    /**
-     * Initialize class variables.
-     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_file_chooser)
-        mGroupOfFiles = findViewById(R.id.radioGroupFileChooser)
-    }
+        supportActionBar?.hide()
 
-    /**
-     * Initialize the file chooser with the data from the calling Intent.
-     */
-    override fun onStart() {
-        super.onStart()
-
-        mChooserText = findViewById(R.id.textViewFileChooser)
-        mChooserButton = findViewById(R.id.buttonFileChooserChoose)
         val currentIntent = intent
-
-        // Set title.
-        if (currentIntent.hasExtra(EXTRA_TITLE)) {
-            title = currentIntent.getStringExtra(EXTRA_TITLE)
-        }
-        // Set chooser text.
-        if (currentIntent.hasExtra(EXTRA_CHOOSER_TEXT)) {
-            mChooserText.text = currentIntent.getStringExtra(EXTRA_CHOOSER_TEXT)
-        }
-        // Set button text.
-        if (currentIntent.hasExtra(EXTRA_BUTTON_TEXT)) {
-            mChooserButton.text = currentIntent.getStringExtra(EXTRA_BUTTON_TEXT)
-        }
-        // Check file creation.
-        if (currentIntent.hasExtra(EXTRA_ALLOW_NEW_FILE)) {
-            mIsAllowNewFile = currentIntent.getBooleanExtra(EXTRA_ALLOW_NEW_FILE, false)
-        }
 
         // Check path and initialize file list.
         if (currentIntent.hasExtra(EXTRA_DIR)) {
@@ -113,108 +85,87 @@ class FileChooser : BasicActivity() {
                     return
                 }
                 mDir = path
-                mIsDirEmpty = updateFileIndex(path)
             } else {
-                // Path does not exist.
                 Log.e(LOG_TAG, "Directory for FileChooser does not exist.")
                 setResult(1)
                 finish()
+                return
             }
         } else {
             Log.d(LOG_TAG, "Directory for FileChooser was not in intent.")
             setResult(2)
             finish()
+            return
+        }
+
+        if (currentIntent.hasExtra(EXTRA_ALLOW_NEW_FILE)) {
+            mIsAllowNewFile = currentIntent.getBooleanExtra(EXTRA_ALLOW_NEW_FILE, false)
+        }
+
+        refreshFiles()
+
+        val prefill = if (mDir?.name == Common.KEYS_DIR) ".keys" else ""
+
+        setContent {
+            MctTheme {
+                FileChooserScreen(
+                    state = mUiState.value,
+                    onSelectFile = { fileName ->
+                        mUiState.value = mUiState.value.copy(selectedFileName = fileName)
+                    },
+                    onChooseClick = { chooseSelectedFile() },
+                    onCancel = { finish() },
+                    onCreateNewFile = { newName -> createNewFile(newName) },
+                    onDeleteSelectedFile = { deleteSelectedFile() },
+                    onImportExportClick = { onImportExportFiles() },
+                    prefillExtension = prefill
+                )
+            }
         }
     }
 
-    /**
-     * Add the menu to the Activity.
-     */
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.file_chooser_functions, menu)
-        mDeleteFile = menu.findItem(R.id.menuFileChooserDeleteFile)
-        val newFile = menu.findItem(R.id.menuFileChooserNewFile)
+    private fun refreshFiles() {
+        val path = mDir ?: return
+        val currentIntent = intent
 
-        // Enable/disable the delete menu item if there is a least one file.
-        mDeleteFile?.isEnabled = !mIsDirEmpty
-
-        // Enable/disable the new file menu item according to mIsAllowNewFile.
-        newFile?.isEnabled = mIsAllowNewFile
-        newFile?.isVisible = mIsAllowNewFile
-
-        return true
-    }
-
-    /**
-     * Handle selected function form the menu.
-     */
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.menuFileChooserNewFile -> {
-                onNewFile()
-                true
-            }
-            R.id.menuFileChooserDeleteFile -> {
-                onDeleteFile()
-                true
-            }
-            R.id.menuFileChooserImportExportFiles -> {
-                onImportExportFiles()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+        val screenTitle = if (currentIntent.hasExtra(EXTRA_TITLE)) {
+            currentIntent.getStringExtra(EXTRA_TITLE) ?: getString(R.string.title_activity_file_chooser)
+        } else {
+            getString(R.string.title_activity_file_chooser)
         }
-    }
 
-    /**
-     * Finish the Activity with an Intent containing [EXTRA_CHOSEN_FILE] and [EXTRA_CHOSEN_FILENAME].
-     */
-    @Suppress("UNUSED_PARAMETER")
-    fun onFileChosen(view: View) {
-        val selected = findViewById<AppCompatRadioButton>(mGroupOfFiles.checkedRadioButtonId) ?: return
-        val currentDir = mDir ?: return
-        val returnIntent = Intent()
-        val file = File(currentDir.path, selected.text.toString())
-        returnIntent.putExtra(EXTRA_CHOSEN_FILE, file.path)
-        returnIntent.putExtra(EXTRA_CHOSEN_FILENAME, file.name)
-        setResult(Activity.RESULT_OK, returnIntent)
-        finish()
-    }
+        val buttonText = if (currentIntent.hasExtra(EXTRA_BUTTON_TEXT)) {
+            currentIntent.getStringExtra(EXTRA_BUTTON_TEXT) ?: getString(R.string.action_choose_file)
+        } else {
+            getString(R.string.action_choose_file)
+        }
 
-    /**
-     * Update the file list and the components that depend on it.
-     */
-    @SuppressLint("SetTextI18n")
-    private fun updateFileIndex(path: File?): Boolean {
+        val files = path.listFiles()
+        val itemList = mutableListOf<FileChooserItem>()
         var isEmpty = true
-        var files: Array<File>? = null
-        var chooserText = ""
 
-        if (path != null) {
-            files = path.listFiles()
-        }
-        mGroupOfFiles.removeAllViews()
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
 
-        // Refresh file list.
         if (files != null && files.isNotEmpty()) {
             Arrays.sort(files)
             for (f in files) {
-                if (f.isFile) { // Do not list directories.
-                    val r = AppCompatRadioButton(this)
-                    r.text = f.name
-                    mGroupOfFiles.addView(r)
+                if (f.isFile) {
+                    val sizeText = if (f.length() < 1024) "${f.length()} B" else "${f.length() / 1024} KB"
+                    val dateText = dateFormat.format(Date(f.lastModified()))
+                    itemList.add(
+                        FileChooserItem(
+                            file = f,
+                            name = f.name,
+                            sizeText = sizeText,
+                            dateText = dateText
+                        )
+                    )
                 }
             }
-            if (mGroupOfFiles.childCount > 0) {
-                isEmpty = false
-                (mGroupOfFiles.getChildAt(0) as AppCompatRadioButton).isChecked = true
-            }
-        } else {
-            // No files in directory.
-            isEmpty = true
+            isEmpty = itemList.isEmpty()
         }
 
-        // Update chooser text.
+        var chooserText = ""
         if ((!Common.isFirstInstall() && isEmpty) ||
             (!Common.isFirstInstall() && files != null && files.size == 3 &&
                     files[0].name == Common.STD_KEYS_EXTENDED &&
@@ -223,94 +174,74 @@ class FileChooser : BasicActivity() {
         ) {
             chooserText += getString(R.string.text_missing_files_update) + "\n\n"
         }
-        val currentIntent = intent
-        if (currentIntent != null && currentIntent.hasExtra(EXTRA_CHOOSER_TEXT)) {
+        if (currentIntent.hasExtra(EXTRA_CHOOSER_TEXT)) {
             chooserText += currentIntent.getStringExtra(EXTRA_CHOOSER_TEXT)
         } else {
             chooserText += getString(R.string.text_chooser_info_text)
         }
-        if (isEmpty) {
-            chooserText += "\n\n   --- " + getString(R.string.text_no_files_in_chooser) + " ---"
+
+        val currentSelected = mUiState.value.selectedFileName
+        val newSelected = if (itemList.any { it.name == currentSelected }) {
+            currentSelected
+        } else {
+            itemList.firstOrNull()?.name
         }
-        mChooserText.text = chooserText
 
-        mChooserButton.isEnabled = !isEmpty
-        mDeleteFile?.isEnabled = !isEmpty
-
-        return isEmpty
-    }
-
-    /**
-     * Ask the user for a file name, create this file and choose it.
-     */
-    private fun onNewFile() {
-        val cont: Context = this
-        val currentDir = mDir ?: return
-        var prefill = ""
-        if (currentDir.name == Common.KEYS_DIR) {
-            prefill = ".keys"
-        }
-        // Init layout.
-        val dialogLayout = layoutInflater.inflate(
-            R.layout.dialog_save_file,
-            findViewById(android.R.id.content), false
+        mUiState.value = FileChooserUiState(
+            title = screenTitle,
+            chooserText = chooserText,
+            buttonText = buttonText,
+            allowNewFile = mIsAllowNewFile,
+            files = itemList,
+            selectedFileName = newSelected
         )
-        val message = dialogLayout.findViewById<TextView>(R.id.textViewDialogSaveFileMessage)
-        val input = dialogLayout.findViewById<EditText>(R.id.editTextDialogSaveFileName)
-        message.setText(R.string.dialog_new_file)
-        input.setText(prefill)
-        input.requestFocus()
-        input.setSelection(0)
-
-        // Show keyboard.
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        input.postDelayed({
-            input.requestFocus()
-            imm.showSoftInput(input, 0)
-        }, 100)
-
-        // Ask user for filename.
-        AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_new_file_title)
-            .setIcon(android.R.drawable.ic_menu_add)
-            .setView(dialogLayout)
-            .setPositiveButton(R.string.action_ok) { _, _ ->
-                val inputText = input.text?.toString()
-                if (!inputText.isNullOrEmpty() && !inputText.contains("/")) {
-                    val file = File(currentDir.path, inputText)
-                    if (file.exists()) {
-                        Toast.makeText(cont, R.string.info_file_already_exists, Toast.LENGTH_LONG).show()
-                        return@setPositiveButton
-                    }
-                    val returnIntent = Intent()
-                    returnIntent.putExtra(EXTRA_CHOSEN_FILE, file.path)
-                    setResult(Activity.RESULT_OK, returnIntent)
-                    finish()
-                } else {
-                    // Invalid file name.
-                    Toast.makeText(cont, R.string.info_invalid_file_name, Toast.LENGTH_LONG).show()
-                }
-            }
-            .setNegativeButton(R.string.action_cancel) { _, _ -> }
-            .show()
     }
 
-    /**
-     * Delete the selected file and update the file list.
-     */
-    private fun onDeleteFile() {
-        val selected = findViewById<AppCompatRadioButton>(mGroupOfFiles.checkedRadioButtonId) ?: return
+    private fun chooseSelectedFile() {
+        val selectedName = mUiState.value.selectedFileName ?: return
         val currentDir = mDir ?: return
-        val file = File(currentDir.path, selected.text.toString())
-        file.delete()
-        mIsDirEmpty = updateFileIndex(currentDir)
+        val file = File(currentDir.path, selectedName)
+        val returnIntent = Intent().apply {
+            putExtra(EXTRA_CHOSEN_FILE, file.path)
+            putExtra(EXTRA_CHOSEN_FILENAME, file.name)
+        }
+        setResult(Activity.RESULT_OK, returnIntent)
+        finish()
     }
 
-    /**
-     * Open the [ImportExportTool].
-     */
+    private fun createNewFile(fileName: String) {
+        val currentDir = mDir ?: return
+        if (fileName.contains("/")) {
+            Toast.makeText(this, R.string.info_invalid_file_name, Toast.LENGTH_LONG).show()
+            return
+        }
+        val file = File(currentDir.path, fileName)
+        if (file.exists()) {
+            Toast.makeText(this, R.string.info_file_already_exists, Toast.LENGTH_LONG).show()
+            return
+        }
+        val returnIntent = Intent().apply {
+            putExtra(EXTRA_CHOSEN_FILE, file.path)
+            putExtra(EXTRA_CHOSEN_FILENAME, file.name)
+        }
+        setResult(Activity.RESULT_OK, returnIntent)
+        finish()
+    }
+
+    private fun deleteSelectedFile() {
+        val selectedName = mUiState.value.selectedFileName ?: return
+        val currentDir = mDir ?: return
+        val file = File(currentDir.path, selectedName)
+        file.delete()
+        refreshFiles()
+    }
+
     private fun onImportExportFiles() {
         val returnIntent = Intent(this, ImportExportTool::class.java)
         startActivity(returnIntent)
     }
+
+    // Legacy XML reflection stub
+    @Suppress("UNUSED_PARAMETER")
+    fun onFileChosen(view: View) = chooseSelectedFile()
 }

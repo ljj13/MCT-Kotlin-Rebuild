@@ -164,11 +164,13 @@ fun MctActionButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     iconPainter: Painter? = null,
     testTag: String = ""
 ) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp)
