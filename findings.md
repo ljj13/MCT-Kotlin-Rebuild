@@ -539,6 +539,61 @@
 3. `master` 仍是 `50593d9`，标签 `v4.3.1-kotlin-migration-baseline` 未移动；
 4. 没有推送远程，也没有发布 Release。
 
+## 16. P15-A 读取流程界面
+
+本阶段只替换 `KeyMapCreator` 和 `ReadTag` 的界面。密钥扫描顺序、扇区认证、工作线程、Handler、超时与重试、断开恢复、结果码和转储交接都留在原 Activity。没有修改 `MCReader`、`WriteTag` 或生产 `DumpEditor`，也没有改成单 Activity。
+
+### 16.1 P14 仪器测试阻塞
+
+P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf6899t4huc` 上启动了 2 个用例，6 分钟没有完成报告，进程停在 `de.syss.MifareClassicTool`。该次已被主动停止。结论是 **UNTESTED / FAIL**，本阶段没有重跑这套用例。
+
+### 16.2 功能等价
+
+| 行为 | 结果 |
+| :--- | :--- |
+| 密钥目录缺失 | 仍返回 2 / 4 / 1，并结束页面 |
+| 扇区范围 | 仍保存 `default_mapping_range_from/to`；空范围表示全部；非法范围仍提示 `info_invalid_range` |
+| 上次密钥文件 | 仍按 `/` 拼接写入 `last_used_key_files` |
+| 扫描循环 | 仍是 `while (mProgressStatus < mLastSector)`，由 `buildNextKeyMapPart()` 推进，`-1` 或取消标志中断 |
+| 取消 | 仍把 `mIsCreatingKeyMap=false` 并调用 `cancelCreateKeyMap()` |
+| 离页 | `AutoReconnect` 为假时清掉创建标志和已排队的界面回调；为真时保持原重连行为 |
+| 成功 | 仍 `setResult(RESULT_OK)` 后结束 |
+| 读取 | 仍先打开 `KeyMapCreator`，按钮文案为“开始映射并读取标签”；非 OK 结果结束页面，结果 4 仍弹出 `info_strange_error` |
+| 转储 | 仍按原范围输出 `+Sector:` 或 `*No keys found or dead sector`，非空结果交给生产 `DumpEditor` |
+| 失败 | 空结果和标签移开仍分别提示原来的字符串，然后 `finish()` |
+| 读取取消 | 只丢弃后续界面更新并结束页面。读卡线程仍自己关闭连接，界面线程不并发调用 `close()` |
+
+`extra_skip_key_map` 只用于单独查看读取等待页，正常入口不会带上它。
+
+### 16.3 真机只读验收
+
+设备 `pnq47xf6899t4huc`。没有点击开始映射，也没有写卡。
+
+1. 直接打开密钥页：显示全部扇区、`std.keys`、进度条、映射和取消按钮。
+2. 打开范围对话框：从、到、保存为默认、读全部扇区、取消、OK 都在。
+3. 从读取页进入：按钮变为“开始映射并读取标签”。点选 `std.keys` 后复选框为 checked，焦点仍是 `KeyMapCreator`，没有开始扫描。
+4. 读取等待页显示“读标签中...（不要移开标签）”、横条进度和取消。
+
+截图在 `Mifare Classic Tool/docs/p15/`。
+
+### 16.4 测试与构建
+
+| 项目 | 结果 |
+| :--- | :--- |
+| JVM 单元测试 | `BaselineTest` **18/18 通过，0 失败，0 错误**，耗时 0.105 s，时间 `2026-10-12T07:40:13.523Z` |
+| Debug APK | 12,900,080 字节，已安装到 `pnq47xf6899t4huc` |
+| Release APK | `app-release-unsigned.apk` 9,023,377 字节，`assembleRelease` 成功，未签名、未发布 |
+| P15 仪器测试 | `KeyMapCreatorComposeTest` 单用例已启动。90 秒时限内没有完成断言，返回 `Process crashed`。同期崩溃在 `vendor.nxp.hardware.nfc@1.1-service` / `com.android.nfc`，不是测试断言失败。已停止，**不重跑**。结论 **UNTESTED / FAIL** |
+| 物理写卡 | 0 次 |
+
+### 16.5 残留风险
+
+1. 没有贴卡完成一次真实映射和读取，因此进度回调、取消中断和转储交接只做了代码核对，没有真机闭环。
+2. 仪器测试被设备 NFC 服务崩溃打断，不能用来证明 Compose 交互。
+3. 读取失败提示仍会立刻 `finish()`，失败页只是短暂显示，这和原行为一致。
+4. `master` 仍是 `50593d9`，标签 `v4.3.1-kotlin-migration-baseline` 未移动，没有推送远程。
+
+
 
 
 
