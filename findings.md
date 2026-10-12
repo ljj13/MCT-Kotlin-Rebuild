@@ -467,5 +467,75 @@
 1. **核心编辑器绝对隔离**: `DumpEditor`、`WriteTag` 以及底层硬件通信引擎 `MCReader` 100% 保持原有视图与底层实现；
 2. **Git 分支与基线隔离**: `master` 分支锁定在提交 `50593d9`，基线标签 `v4.3.1-kotlin-migration-baseline` 绝对冻结；未向任何远程仓库推送。
 
+---
+
+## 15. P14 CloneUid 等价修复、KeyEditor 混合迁移与 DumpEditor 独立原型
+
+### 15.1 CloneUidTool 功能等价审计
+
+对照原版状态机与写卡入口，修复并复核了以下链路：
+
+1. UID 扫描、Block 0 生成、原版 Gen2 写卡入口、NFC 回调和结果校验都仍在生产 Activity 中，没有被 Compose 外壳截断；
+2. `calcSakAtqa(uidLen, tagSize)` 保持原版分支：4 字节 UID 的 1K/2K/Mini 为 `080400`，4K 为 `180200`，Mini 另有 `090400`；7 字节 UID 的 1K 为 `084400`、4K 为 `184200`；不支持的组合返回 null；
+3. SAK 拼接起点保持 `uidLen == 4 ? uidLen * 2 + 2 : uidLen * 2`，BCC 仍走 `Common.calcBcc`；
+4. 实测样例 `0BDC504F` 生成 Block 0 `0BDC504FC8080400475955D141103607`；
+5. 测试入口只允许 `onCalculateBlock0`。`writeManufacturerBlock()` 没有任何自动化调用，本次没有对物理卡执行写卡。
+
+### 15.2 KeyEditor 混合架构
+
+`KeyEditor` 已迁移为 Compose Material 3 外壳加 `AndroidView(AppCompatEditText)`：
+
+- 保留 `FileChooser.EXTRA_CHOSEN_FILE`、`IActivityThatReactsToSave`、`Common.checkFileExistenceAndSave`、分享和导出契约；
+- 保留等宽字体、大写、多行、关闭建议、文本选择、光标、剪贴板和保存行为；
+- 仍禁止覆盖 `std.keys`、`STD_KEYS_EXTENDED`、`STD_HOTEL_KEYS`；
+- 真机截图确认 6 行 / 5 个密钥、保存对话框和退出对话框均可显示。
+
+### 15.3 DumpEditor 独立原型实测
+
+原型是独立的 `DumpEditorPrototype`，生产 `DumpEditor.kt` 未被替换。两套方案使用同一份生成数据：1K 为 16 扇区 / 64 块 / 80 行，4K 为 40 扇区 / 256 块 / 296 行。
+
+| 项目 | 方案 A：原生 View | 方案 B：Compose 分块 | 结论 |
+| :--- | :--- | :--- | :--- |
+| 首屏着色 | UID 紫、值块黄、Key A 绿、AC 橙、Key B 深绿 | 同样四类着色，B15 尾块着色正确 | 显示等价 |
+| 首帧 / 着色 | 1K：1 ms / 0 ms；4K：1 ms / 0 ms | 4K：1 ms / 1 ms | 首帧都可接受 |
+| 未编辑保存校验 | 1K PASS（80 行）；4K PASS（296 行） | 4K PASS（296 行） | 基准哈希一致 |
+| 滚动 | 可滚到扇区 39，16 块完整 | 可滚到扇区 38，16 块 B0–B15 完整 | 数据可达 |
+| 布局 | 4K 滚到底时编辑区盖住顶栏、模式卡和校验状态 | 顶栏保持可见，但 256 个输入框使滑动容易停住 | 都未达到生产替换标准 |
+| 冷启动内存 | Java Heap 17,044 KB，TOTAL PSS 105,312 KB | Java Heap 15,152 KB，TOTAL PSS 99,004 KB | 内存接近，不是决定项 |
+| 编辑状态 | 原生 `TextWatcher` 回写独立工作副本，不重建 View 树 | 草稿留在字段内，失焦后才回写 | 避免了按键重组，但仍未覆盖生产菜单 |
+
+生产 `DumpEditor` 另有 15 个菜单动作，包括保存、ASCII、访问条件、值块整数、厂商日期、转储对比、写卡、保存密钥、分享、复制全部扇区、导出，以及值块、访问条件和 BCC 三个子工具。原型没有这些 Intent 契约，也没有接入真实文件读写。
+
+### 15.4 替换决定
+
+**不替换生产 `DumpEditor`。**
+
+原因不是首帧或内存。原型已经证明着色和未编辑哈希可以对齐，但还没有证明它可以替代生产编辑器：
+
+1. 原生方案在 4K 长文本滚动时会盖住顶栏和校验信息；
+2. Compose 分块方案的 16 块扇区卡片过高，真机滑动多次停在扇区 35/38，最后一张扇区 39 没有稳定进入可视区域；
+3. 生产界面的保存、导出、分享、写卡和 10 余个子工具上下文都还没有在原型中等价实现；
+4. 写卡路径必须继续留在现有 `DumpEditor` / `WriteTag` / `MCReader` 实现中。原型没有、也不会自动调用写卡。
+
+因此生产编辑器继续保持原有 View 实现。原型仅作为后续混合方案的独立实验入口。
+
+### 15.5 测试、构建与设备限制
+
+| 项目 | 结果 |
+| :--- | :--- |
+| JVM 单元测试 | `BaselineTest` **18/18 通过，0 失败，0 错误**，耗时 0.091 s |
+| Debug APK | 13,011,445 字节（12.40 MB），已安装到 `pnq47xf6899t4huc` |
+| Release APK | `app-release-unsigned.apk` 9,002,993 字节（8.59 MB），`assembleRelease` 成功 |
+| Compose 仪器测试 | 本次未执行。`OP_BACKGROUND_START_ACTIVITY`（10020/10021）仍是 ignore；先前同设备出现 `INSTRUMENTATION_ABORTED: System has crashed`，不再重试 |
+| 物理写卡 | 0 次 |
+
+### 15.6 边界
+
+1. `MCReader`、`ReadTag`、`WriteTag` 和 NFC 线程模型没有修改；
+2. 没有引入单 Activity 架构；
+3. `master` 仍是 `50593d9`，标签 `v4.3.1-kotlin-migration-baseline` 未移动；
+4. 没有推送远程，也没有发布 Release。
+
+
 
 
