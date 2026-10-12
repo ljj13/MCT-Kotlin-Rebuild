@@ -37,10 +37,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -98,6 +96,8 @@ fun DumpEditorPrototypeScreen(
     onSampleChange: (DumpSampleType) -> Unit,
     onBlockEdited: (sectorIndex: Int, blockIndex: Int, newHex: String) -> Unit,
     onNativeSectorChanged: (sectorIndex: Int, lines: List<String>, latencyMs: Long) -> Unit,
+    onNativeExportReady: ((() -> List<String>?) -> Unit)? = null,
+    onComposeExportReady: ((() -> List<String>?) -> Unit)? = null,
     onRunFidelityCheck: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -240,12 +240,14 @@ fun DumpEditorPrototypeScreen(
                 if (mode == EditorMode.NATIVE_VIEW) {
                     NativeViewEditorContainer(
                         sectors = sectors,
-                        onSectorTextChanged = onNativeSectorChanged
+                        onSectorTextChanged = onNativeSectorChanged,
+                        onExportReady = onNativeExportReady
                     )
                 } else {
                     ComposeBlocksEditorContainer(
                         sectors = sectors,
-                        onBlockEdited = onBlockEdited
+                        onBlockEdited = onBlockEdited,
+                        onExportReady = onComposeExportReady
                     )
                 }
             }
@@ -256,7 +258,8 @@ fun DumpEditorPrototypeScreen(
 @Composable
 fun NativeViewEditorContainer(
     sectors: List<SectorData>,
-    onSectorTextChanged: (sectorIndex: Int, lines: List<String>, latencyMs: Long) -> Unit
+    onSectorTextChanged: (sectorIndex: Int, lines: List<String>, latencyMs: Long) -> Unit,
+    onExportReady: ((() -> List<String>?) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val generation = remember(sectors) { sectors.hashCode() }
@@ -272,9 +275,11 @@ fun NativeViewEditorContainer(
             horizontal.addView(layout)
             scroll.addView(horizontal)
             scroll.tag = generation
+            onExportReady?.invoke { exportNativeLines(scroll) }
             scroll
         },
         update = { scroll ->
+            onExportReady?.invoke { exportNativeLines(scroll) }
             if (scroll.tag == generation) {
                 return@AndroidView
             }
@@ -288,6 +293,26 @@ fun NativeViewEditorContainer(
             .fillMaxSize()
             .testTag("native_view_editor")
     )
+}
+
+private fun exportNativeLines(scroll: ScrollView): List<String>? {
+    val horizontal = scroll.getChildAt(0) as? HorizontalScrollView ?: return null
+    val layout = horizontal.getChildAt(0) as? LinearLayout ?: return null
+    val lines = ArrayList<String>()
+    var sector = 0
+    for (i in 0 until layout.childCount) {
+        val child = layout.getChildAt(i)
+        if (child is AppCompatEditText) {
+            val blockLines = child.text?.toString().orEmpty().split('\n').map { it.trim() }
+            if (blockLines.isEmpty() || blockLines.any { it.length != 32 }) {
+                return null
+            }
+            lines.add("+Sector: $sector")
+            lines.addAll(blockLines)
+            sector++
+        }
+    }
+    return lines
 }
 
 private fun populateNativeSectors(
@@ -370,8 +395,20 @@ private fun populateNativeSectors(
 @Composable
 fun ComposeBlocksEditorContainer(
     sectors: List<SectorData>,
-    onBlockEdited: (sectorIndex: Int, blockIndex: Int, newHex: String) -> Unit
+    onBlockEdited: (sectorIndex: Int, blockIndex: Int, newHex: String) -> Unit,
+    onExportReady: ((() -> List<String>?) -> Unit)? = null
 ) {
+    val drafts = remember { mutableStateMapOf<String, String>() }
+    onExportReady?.invoke {
+        val lines = ArrayList<String>()
+        for (sector in sectors) {
+            lines.add("+Sector: ${sector.sectorNumber}")
+            sector.blocks.forEachIndexed { index, block ->
+                lines.add(drafts["${sector.sectorNumber}:$index"] ?: block)
+            }
+        }
+        lines
+    }
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -405,11 +442,10 @@ fun ComposeBlocksEditorContainer(
                     val blockCount = sector.blocks.size
                     for (bIndex in 0 until blockCount) {
                         val blockHex = sector.blocks[bIndex]
+                        val draftKey = "${sector.sectorNumber}:$bIndex"
                         val isTrailer = bIndex == blockCount - 1
                         val isUidBlock = sector.sectorNumber == 0 && bIndex == 0
-                        var draft by remember(sector.sectorNumber, bIndex, blockHex) {
-                            mutableStateOf(blockHex)
-                        }
+                        val draft = drafts[draftKey] ?: blockHex
                         val isVb = Common.isValueBlock(draft)
                         val annotated = remember(draft, isTrailer, isUidBlock, isVb) {
                             buildAnnotatedBlock(draft, isTrailer, isUidBlock, isVb)
@@ -444,7 +480,7 @@ fun ComposeBlocksEditorContainer(
                                 BasicTextField(
                                     value = draft,
                                     onValueChange = { raw ->
-                                        draft = raw.uppercase()
+                                        drafts[draftKey] = raw.uppercase()
                                             .filter { it in '0'..'9' || it in 'A'..'F' }
                                             .take(32)
                                     },
@@ -462,8 +498,9 @@ fun ComposeBlocksEditorContainer(
                                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                                     modifier = Modifier
                                         .onFocusChanged { focus ->
-                                            if (!focus.isFocused && draft != blockHex) {
-                                                onBlockEdited(sIndex, bIndex, draft)
+                                            val current = drafts[draftKey] ?: blockHex
+                                            if (!focus.isFocused && current != blockHex) {
+                                                onBlockEdited(sIndex, bIndex, current)
                                             }
                                         }
                                         .testTag("compose_block_${sector.sectorNumber}_$bIndex")

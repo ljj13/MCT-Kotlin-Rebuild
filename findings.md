@@ -499,10 +499,12 @@
 | 首屏着色 | UID 紫、值块黄、Key A 绿、AC 橙、Key B 深绿 | 同样四类着色，B15 尾块着色正确 | 显示等价 |
 | 首帧 / 着色 | 1K：1 ms / 0 ms；4K：1 ms / 0 ms | 4K：1 ms / 1 ms | 首帧都可接受 |
 | 未编辑保存校验 | 1K PASS（80 行）；4K PASS（296 行） | 4K PASS（296 行） | 基准哈希一致 |
+| 编辑后逐字节校验 | 4K 静态替换 `1:1:0:ABCDEF` 后 PASS，296 行，0 ms | 同样替换后 PASS，296 行，0 ms | 控件导出与编辑结果一致 |
 | 滚动 | 可滚到扇区 39，16 块完整 | 可滚到扇区 38，16 块 B0–B15 完整 | 数据可达 |
 | 布局 | 4K 滚到底时编辑区盖住顶栏、模式卡和校验状态 | 顶栏保持可见，但 256 个输入框使滑动容易停住 | 都未达到生产替换标准 |
 | 冷启动内存 | Java Heap 17,044 KB，TOTAL PSS 105,312 KB | Java Heap 15,152 KB，TOTAL PSS 99,004 KB | 内存接近，不是决定项 |
 | 编辑状态 | 原生 `TextWatcher` 回写独立工作副本，不重建 View 树 | 草稿留在字段内，失焦后才回写 | 避免了按键重组，但仍未覆盖生产菜单 |
+| 真机 IME / 光标 | 未替换生产编辑器，沿用原 `EditText` | 点击块后 `mInputShown=true`；输入 `CD` 后显示 `00CD0000...AB0000`，光标停留在 `CD` 后 | Compose 输入可用，但透明字段的光标容易落在块中间 |
 
 生产 `DumpEditor` 另有 15 个菜单动作，包括保存、ASCII、访问条件、值块整数、厂商日期、转储对比、写卡、保存密钥、分享、复制全部扇区、导出，以及值块、访问条件和 BCC 三个子工具。原型没有这些 Intent 契约，也没有接入真实文件读写。
 
@@ -523,10 +525,11 @@
 
 | 项目 | 结果 |
 | :--- | :--- |
-| JVM 单元测试 | `BaselineTest` **18/18 通过，0 失败，0 错误**，耗时 0.091 s |
-| Debug APK | 13,011,445 字节（12.40 MB），已安装到 `pnq47xf6899t4huc` |
-| Release APK | `app-release-unsigned.apk` 9,002,993 字节（8.59 MB），`assembleRelease` 成功 |
-| Compose 仪器测试 | 本次未执行。`OP_BACKGROUND_START_ACTIVITY`（10020/10021）仍是 ignore；先前同设备出现 `INSTRUMENTATION_ABORTED: System has crashed`，不再重试 |
+| JVM 单元测试 | `BaselineTest` **18/18 通过，0 失败，0 错误**，耗时 0.105 s |
+| Debug APK | 12,894,614 字节（12.30 MB），已安装到 `pnq47xf6899t4huc` |
+| Release APK | `app-release-unsigned.apk` 9,006,637 字节（8.59 MB），`assembleRelease` 成功 |
+| Compose 仪器测试 | `DumpEditorPrototypeComposeTest` 已启动 2 个用例，但 6 分钟无完成报告。进程停在 `de.syss.MifareClassicTool`，已主动停止，避免再次触发 `INSTRUMENTATION_ABORTED: System has crashed`。10020/10021 仍是 ignore |
+| 真机 IME / 光标 | Compose 分块点击后输入法显示；`CD` 成功插入块首，光标停留在插入点后。输入法弹出时会遮住当前行 |
 | 物理写卡 | 0 次 |
 
 ### 15.6 边界

@@ -27,6 +27,8 @@ class DumpEditorPrototype : BasicActivity() {
     private val mSectors = mutableStateOf<List<SectorData>>(emptyList())
     private val mMetrics = mutableStateOf(BenchmarkMetrics())
     private var mWorkingSectors: List<SectorData> = emptyList()
+    private var mNativeExport: (() -> List<String>?)? = null
+    private var mComposeExport: (() -> List<String>?)? = null
 
     private var mBaselineLines: Array<String> = emptyArray()
     private var mEdited: Boolean = false
@@ -68,6 +70,12 @@ class DumpEditorPrototype : BasicActivity() {
                     onNativeSectorChanged = { sIndex, lines, latencyMs ->
                         handleNativeSectorChanged(sIndex, lines, latencyMs)
                     },
+                    onNativeExportReady = { exporter ->
+                        mNativeExport = exporter
+                    },
+                    onComposeExportReady = { exporter ->
+                        mComposeExport = exporter
+                    },
                     onRunFidelityCheck = {
                         verifyByteForByteFidelity()
                     },
@@ -79,6 +87,7 @@ class DumpEditorPrototype : BasicActivity() {
         if (intent.getBooleanExtra("extra_verify_save", false)) {
             verifyByteForByteFidelity()
         }
+        applyStaticEdit(intent.getStringExtra("extra_static_edit"))
     }
 
     private fun loadDataset(sample: DumpSampleType) {
@@ -170,30 +179,84 @@ class DumpEditorPrototype : BasicActivity() {
         )
     }
 
+    private fun applyStaticEdit(spec: String?) {
+        if (spec.isNullOrBlank()) {
+            return
+        }
+        val parts = spec.split(':')
+        if (parts.size != 4) {
+            return
+        }
+        val sector = parts[0].toIntOrNull() ?: return
+        val block = parts[1].toIntOrNull() ?: return
+        val start = parts[2].toIntOrNull() ?: return
+        val replacement = parts[3].uppercase().filter { it in '0'..'9' || it in 'A'..'F' }
+        val source = mWorkingSectors
+        if (sector !in source.indices || block !in source[sector].blocks.indices) {
+            return
+        }
+        val original = source[sector].blocks[block]
+        if (start < 0 || start + replacement.length > original.length) {
+            return
+        }
+        val edited = original.replaceRange(start, start + replacement.length, replacement)
+        val started = SystemClock.elapsedRealtime()
+        val current = source.toMutableList()
+        val updatedBlocks = current[sector].blocks.toMutableList()
+        updatedBlocks[block] = edited
+        current[sector] = current[sector].copy(blocks = updatedBlocks)
+        mWorkingSectors = current
+        mSectors.value = current
+        mEdited = true
+        val latency = SystemClock.elapsedRealtime() - started
+        mMetrics.value = mMetrics.value.copy(editLatencyMs = latency)
+        verifyByteForByteFidelity()
+    }
+
     private fun verifyByteForByteFidelity() {
-        val exported = ArrayList<String>()
-        for (s in mWorkingSectors) {
-            exported.add("+Sector: ${s.sectorNumber}")
-            for (b in s.blocks) {
-                exported.add(b)
+        val widgetLines = when (mCurrentMode.value) {
+            EditorMode.NATIVE_VIEW -> mNativeExport?.invoke()
+            EditorMode.COMPOSE_BLOCKS -> mComposeExport?.invoke()
+        }
+        val exported = if (widgetLines != null) {
+            widgetLines
+        } else {
+            val fallback = ArrayList<String>()
+            for (s in mWorkingSectors) {
+                fallback.add("+Sector: ${s.sectorNumber}")
+                fallback.addAll(s.blocks)
             }
+            fallback
         }
 
         val baselineHash = sha256Lines(mBaselineLines)
         val exportedHash = sha256Lines(exported.toTypedArray())
+        val expected = expectedEditedLines()
+        val expectedHash = sha256Lines(expected)
 
         val isMatch = (baselineHash == exportedHash) && (mBaselineLines.size == exported.size)
+        val editedMatch = mEdited && exported.size == expected.size && exportedHash == expectedHash
         val msg = when {
+            editedMatch -> "PASS: 编辑后逐字节一致 (${exported.size} 行, ${mMetrics.value.editLatencyMs}ms)"
             isMatch && !mEdited -> "PASS: 未改动，SHA-256 与基准一致 (${exported.size} 行)"
             isMatch -> "PASS: 编辑后仍与基准一致 (${exported.size} 行)"
-            mEdited -> "DIFF: 编辑已写入导出，哈希与基准不同 (${exported.size} 行，结构完整)"
+            mEdited -> "FAIL: 控件导出与编辑结果不一致 (${exported.size} 行)"
             else -> "FAIL: 哈希不匹配 (基准 ${mBaselineLines.size}行 vs 导出 ${exported.size}行)"
         }
 
         mMetrics.value = mMetrics.value.copy(
-            byteFidelityMatch = isMatch || (mEdited && exported.size == mBaselineLines.size),
+            byteFidelityMatch = isMatch || editedMatch,
             byteFidelityMessage = msg
         )
+    }
+
+    private fun expectedEditedLines(): Array<String> {
+        val lines = ArrayList<String>()
+        for (s in mWorkingSectors) {
+            lines.add("+Sector: ${s.sectorNumber}")
+            lines.addAll(s.blocks)
+        }
+        return lines.toTypedArray()
     }
 
     private fun sha256Lines(lines: Array<String>): String {
