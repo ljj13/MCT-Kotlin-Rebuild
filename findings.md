@@ -705,3 +705,11 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 - 三次尝试均先 `force-stop`，设备保持 `alive`、NFC 未崩溃；按「不反复重试」停止。
 - 详情见 `docs/p15/redmi/DEVICE_ACCEPTANCE_ROUND1.md`。
 
+## 21. 红米 WriteTag 真机验收最终结果
+
+- 用户开启 MIUI「USB 调试（安全设置）」后 `input` 注入恢复，手动导航 MainMenu → WriteTag 成功。
+- **手动 UI 验收通过**：M3 外壳（顶栏「写标签」+ 返回按钮）、安全提示、六种原生模式选择器、默认写块展开、深浅色、旋转、滚动、返回导航，均留存截图/UI dump（`docs/p15/redmi/wt-*.png/xml`）。
+- **4 个仪器测试仍无法运行**：MIUI `ActivityStarterImpl` 拒绝 instrumentation 启动任何 Activity（`Permission Denied Activity ... result code=102`，`tuid:1000`），既拒非 exported `WriteTag` 也拒已 exported `ComponentActivity`；与「USB 调试（安全设置）」无关联，属 MIUI 对 instrumentation 的 Activity 启动限制。
+- IME 合成点击未确认输入法弹出（原生 EditText 未改动，行为与基线一致）；无障碍已由 uiautomator 树佐证（未做 TalkBack 逐焦点走查）。
+- 全程零实体写卡/UID/Block0/SAK/ATQA/Gen2/Gen3；NFC `mState=on` 未崩溃。详见 `docs/p15/redmi/DEVICE_ACCEPTANCE_FINAL.md`。
+

@@ -53,3 +53,4 @@
 | 2026-10-14 | P15-B.1 真机 | 红米 shell 无响应，设备验收 DEFERRED | 延期 | 4 次 adb 命令挂起；未安装/截图/跑测试，不标 PASS |
 | 2026-10-14 | P16 前置 | 全局 UI / 顶栏 / 测试数 / 构建警告 / 未跟踪文件审计 | 完成 | `docs/p15/P16_PREQUALITY.md`；JVM 18/18，仪器 56 方法 0 执行 |
 | 2026-10-14 | P15-B.1 真机 | 红米恢复：APK 装好、MainMenu 正常；WriteTag 验收受环境阻断 | 阻断 | `input` 注入被拒 + 仪器测试 API36 挂起；`docs/p15/redmi/DEVICE_ACCEPTANCE_ROUND1.md` |
+| 2026-10-14 | P15-B.1 真机 | 用户开启 MIUI 安全设置后完成 WriteTag 手动 UI 验收 | 完成 | M3 外壳+六模式+深浅色/旋转/滚动/返回均截图佐证；仪器测试仍被 MIUI 拦截（`DEVICE_ACCEPTANCE_FINAL.md`） |
