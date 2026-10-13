@@ -67,7 +67,9 @@ class KeyMapCreator : BasicActivity() {
     private val mHandler = Handler(Looper.getMainLooper())
     private val mUiState = mutableStateOf(KeyMapCreatorUiState())
     private var mProgressStatus: Int = 0
-    private var mIsCreatingKeyMap: Boolean = false
+    @Volatile private var mIsCreatingKeyMap: Boolean = false
+    private var mDestroyed = false
+    private var mWorkerBusy = false
     private var mKeyDirPath: File? = null
     private var mFirstSector: Int = 0
     private var mLastSector: Int = 0
@@ -162,8 +164,18 @@ class KeyMapCreator : BasicActivity() {
         )
         if (!autoReconnect) {
             mIsCreatingKeyMap = false
-            mHandler.removeCallbacksAndMessages(null)
+            // Keep the completion callback: it releases the busy gate and restores
+            // controls after the worker closes its connection. Progress callbacks
+            // are already guarded by the cancellation flag.
         }
+    }
+
+    override fun onDestroy() {
+        mDestroyed = true
+        mIsCreatingKeyMap = false
+        currentReader?.cancelCreateKeyMap()
+        mHandler.removeCallbacksAndMessages(null)
+        super.onDestroy()
     }
 
     override fun onStart() {
@@ -219,7 +231,7 @@ class KeyMapCreator : BasicActivity() {
     }
 
     private fun selectKeyFiles(allOrNone: Boolean) {
-        if (mIsCreatingKeyMap) {
+        if (mWorkerBusy) {
             return
         }
         mUiState.value = mUiState.value.copy(
@@ -228,7 +240,7 @@ class KeyMapCreator : BasicActivity() {
     }
 
     private fun toggleKeyFile(name: String, checked: Boolean) {
-        if (mIsCreatingKeyMap) {
+        if (mWorkerBusy) {
             return
         }
         mUiState.value = mUiState.value.copy(
@@ -249,7 +261,7 @@ class KeyMapCreator : BasicActivity() {
     }
 
     private fun onCreateKeyMap() {
-        if (mIsCreatingKeyMap) {
+        if (mWorkerBusy) {
             return
         }
         val saveLastUsedKeyFiles = Common.getPreferences().getBoolean(
@@ -325,6 +337,7 @@ class KeyMapCreator : BasicActivity() {
                 mProgressStatus = -1
                 val progressMax = (mLastSector - mFirstSector) + 1
                 mIsCreatingKeyMap = true
+                mWorkerBusy = true
                 mUiState.value = mUiState.value.copy(
                     scanning = true,
                     createEnabled = false,
@@ -344,23 +357,28 @@ class KeyMapCreator : BasicActivity() {
 
     private fun createKeyMap(reader: MCReader, context: Context) {
         Thread {
-            while (mProgressStatus < mLastSector) {
-                mProgressStatus = reader.buildNextKeyMapPart()
-                if (mProgressStatus == -1 || !mIsCreatingKeyMap) {
-                    break
-                }
-                mHandler.post {
-                    if (!isFinishing) {
-                        mUiState.value = mUiState.value.copy(
-                            progress = (mProgressStatus - mFirstSector) + 1
-                        )
+            try {
+                while (mProgressStatus < mLastSector) {
+                    mProgressStatus = reader.buildNextKeyMapPart()
+                    if (mProgressStatus == -1 || !mIsCreatingKeyMap) {
+                        break
+                    }
+                    val completedSector = mProgressStatus
+                    mHandler.post {
+                        if (!isFinishing && !mDestroyed && mIsCreatingKeyMap) {
+                            mUiState.value = mUiState.value.copy(
+                                progress = (completedSector - mFirstSector) + 1
+                            )
+                        }
                     }
                 }
+            } finally {
+                reader.close()
             }
-
             mHandler.post {
-                if (isFinishing) {
-                    reader.close()
+                mWorkerBusy = false
+                currentReader = null
+                if (isFinishing || mDestroyed) {
                     mIsCreatingKeyMap = false
                     return@post
                 }
@@ -371,7 +389,6 @@ class KeyMapCreator : BasicActivity() {
                     createEnabled = true,
                     cancelEnabled = true
                 )
-                reader.close()
                 if (mIsCreatingKeyMap && mProgressStatus != -1) {
                     keyMapCreated(reader)
                 } else if (mIsCreatingKeyMap && mProgressStatus == -1) {

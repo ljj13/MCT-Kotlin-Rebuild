@@ -28,7 +28,6 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.mutableStateOf
 import de.syss.MifareClassicTool.Common
-import de.syss.MifareClassicTool.MCReader
 import de.syss.MifareClassicTool.R
 import de.syss.MifareClassicTool.ui.readtag.ReadTagPhase
 import de.syss.MifareClassicTool.ui.readtag.ReadTagScreen
@@ -75,7 +74,13 @@ class ReadTag : AppCompatActivity() {
             }
         }
 
-        if (savedInstanceState == null && !intent.getBooleanExtra("extra_skip_key_map", false)) {
+        // An in-flight reader belongs to the old instance. Never start a second
+        // read on recreation or leave the replacement stuck waiting for a result.
+        if (savedInstanceState?.getBoolean("read_started", false) == true) {
+            cancelAndFinish()
+            return
+        }
+        if (savedInstanceState == null) {
             val intent = Intent(this, KeyMapCreator::class.java)
             intent.putExtra(KeyMapCreator.EXTRA_KEYS_DIR, Common.getFile(Common.KEYS_DIR).absolutePath)
             intent.putExtra(KeyMapCreator.EXTRA_BUTTON_TEXT, getString(R.string.action_create_key_map_and_read))
@@ -104,6 +109,11 @@ class ReadTag : AppCompatActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("read_started", mReadStarted)
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onDestroy() {
         mFinished = true
         mHandler.removeCallbacksAndMessages(null)
@@ -125,8 +135,12 @@ class ReadTag : AppCompatActivity() {
             canCancel = true
         )
         val worker = Thread {
-            mRawDump = reader.readAsMuchAsPossible(Common.getKeyMap())
-            reader.close()
+            try {
+                mRawDump = reader.readAsMuchAsPossible(Common.getKeyMap())
+            } finally {
+                // Cleanup must not depend on a callback surviving Activity destruction.
+                reader.close()
+            }
             mHandler.post {
                 if (!isFinishing && !mFinished) {
                     createTagDump(mRawDump)
