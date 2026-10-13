@@ -36,6 +36,15 @@
 - `adb shell input` 注入（tap/keyevent）持续被拒（`INJECT_EVENTS`），无法手动导航。
 - 测试后已 `force-stop` 两包并关闭 stayon；设备 `alive`、NFC `mState=on`，未崩溃。
 
+### Round 2 根因定位（logcat）
+
+- 捕获纯 Compose `WriteTagShellComposeTest` 挂起时的 logcat，关键行：
+  - `ActivityStarterImpl: MIUILOG- Permission Denied Activity : Intent { ... cmp=de.syss.MifareClassicTool/androidx.activity.ComponentActivity } pkg : de.syss.MifareClassicTool uid : 10264 tuid : 10140`
+  - `ActivityTaskManager: START u0 { ... cmp=de.syss.MifareClassicTool/androidx.activity.ComponentActivity } ... result code=102`
+- 已确认合并后的 Debug 清单**正确声明** `androidx.activity.ComponentActivity android:exported="true"`（来自 `ui-test-manifest`），但 MIUI `ActivityStarterImpl` 仍以「Permission Denied」拒绝（`result code=102` = START_PERMISSION_DENIED）。
+- **统一根因**：MIUI 的「USB 调试（安全设置）」未开启，导致 (1) `adb shell input` 注入被拒（`INJECT_EVENTS`）与 (2) 仪器测试启动 Activity 被 MIUI `ActivityStarterImpl` 拒绝，两者同源。非 App 缺陷、非 androidx.test/API 36 缺陷。
+- 需用户开启红米「开发者选项 → USB 调试（安全设置）」（部分 MIUI 版本需登录小米账号）。
+
 ## 遗留风险
 
 - WriteTag M3 外壳 + 六模式表单在本机无法通过自动化触达，真机验收仍为 UNTESTED。
