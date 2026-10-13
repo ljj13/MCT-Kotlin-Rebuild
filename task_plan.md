@@ -14,6 +14,16 @@
 - 待办：核实 OPPO 系统/NFC/MIFARE 支持、安装当前分支 APK、隔离运行密钥页和 P14 原型用例并保存日志、用户贴卡完成 16 扇区/64 块只读闭环、与 P7 转储对照。
 - P15-A 尚未达到最终验收条件；旧报告中的“完成”不代表真实 NFC 闭环通过。未开始 P15-B。禁止写卡、UID/Block 0 修改及 Gen3 命令。
 
+## P15-B 第一期：安全混合 UI（当前阶段）
+- **P15-B.0 契约冻结 [complete]**：`docs/p15/WRITE_TAG_CONTRACT.md` 记录六模式、控件→事件映射、Intent/RequestCode、确认对话框、写卡线程模型、允许/禁止边界，并对照 `50593d9` 基线确认无业务差异。
+- **P15-B.1 混合外壳 [complete]**：`activity_write_tag.xml` 根节点改为纵向 `LinearLayout` + 顶部 `ComposeView`，原 `ScrollView` 表单保留；`WriteTag.kt` 增 `supportActionBar?.hide()` 与 `WriteTagShell` 挂载；新增 `ui/writetag/WriteTagShell.kt`（`MctTopAppBar` + 纯展示安全提示）与 `write_tag_safety_notice` 文案。六模式与写卡业务零改动。
+- **P15-B.2 非写卡测试 [complete，编译通过未运行]**：新增 `WriteTagShellComposeTest`（1）与 `WriteTagComposeTest`（3）；`assembleDebugAndroidTest` 通过；因红米未连接未执行，一律 UNTESTED。JVM 18/18。
+- **P15-B.3 真机验收 [deferred]**：红米 `pnq47xf6899t4huc` 未连接，仅华为 MatePad 在线（非目标且不操作）。无截图/日志/真机证据。
+- **P15-B.4 布局/性能 [static only]**：静态确认无重复顶栏（ActionBar 已隐藏）、无双重 Insets（非 edge-to-edge）、ScrollView/ComposeView 无冲突。APK：Debug 13,888,776 B、Release 9,028,033 B（未签名）。性能/内存/旋转/IME 需真机，未测。
+- **P15-B.5 修复 [无]**：未发现需修复项。
+- **P15-B.6 收口 [报告已提交，真机项未达成]**：完整 A–H 报告见 `docs/p15/P15B_REPORT.md`。
+- 提交：`4514f86`、`20c5f74`、`056e5f6`。禁止实体写卡/UID/Block0/SAK/ATQA/Gen2/Gen3，`MCReader`/生产 `DumpEditor`/`master`/Tag 不变，不推送不发布。
+
 ## 阶段规划
 
 ### 阶段 0：P0 源码与架构审计、构建基线建立 [complete]

@@ -46,3 +46,7 @@
 | 2026-10-11 | P13 页面迁移 | 完整迁移 DiffTool 至 Compose M3，实现字节级高亮与扇区折叠 | 完成 | 1K/4K 性能测试通过，截取 `diff_tool_compose_screenshot.png` |
 | 2026-10-11 | P13 页面迁移 | 迁移 CloneUidTool 界面与参数校验，保留 BCC 计算与魔术卡选择 | 完成 | 零实体写卡安全防线通过，截取 `clone_uid_compose_screenshot.png` |
 | 2026-10-11 | P13 架构评估 | 开展 KeyEditor 与 DumpEditor 只读架构审计，提出混合架构原型设计 | 完成 | 形成详细评估报告与演进建议，Release APK 8.53 MB |
+| 2026-10-14 | P15-B.0 | 冻结 WriteTag 六模式完整交互契约并对照基线 | 完成 | 提交 `4514f86`，产物 `docs/p15/WRITE_TAG_CONTRACT.md` |
+| 2026-10-14 | P15-B.1 | 引入 M3 混合外壳并保留原生写卡表单 | 完成 | 提交 `20c5f74`，新增 `WriteTagShell.kt`，六模式/写卡业务零改动 |
+| 2026-10-14 | P15-B.2 | 补充无实体写入的界面与契约回归测试 | 完成（编译） | 提交 `056e5f6`，新增 4 仪器测试；JVM 18/18；红米未连接未运行 |
+| 2026-10-14 | P15-B.4/6 | Debug/Release 构建与阶段报告 | 完成 | Debug 13,888,776 B、Release 9,028,033 B；`docs/p15/P15B_REPORT.md` |

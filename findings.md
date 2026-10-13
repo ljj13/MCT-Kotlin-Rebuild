@@ -675,3 +675,13 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
   5. **首期冻结写入中对话框**：现有 AlertDialog 未设置 setCancelable(false)，不能凭 UI 现代化把它改成不可取消，也不能把关闭对话框当成停止物理写入。模式切换、输入与危险确认的 M3 替换均仅为后续候选，不在首期执行。
 - **实施原则**：保持 `WriteTag` 继承 `BasicActivity`，Activity 自身全权保留 NFC 前台分发和 IO 线程；状态仅单向暴露给 Compose。
 
+## 18. P15-B 第一期安全混合 UI 实施记录
+
+- **采用方案**：保持 `setContentView` + 原生 XML 表单不变，仅在根布局顶部新增独立 `ComposeView` 承载 M3 外壳（`MctTopAppBar` + 纯展示安全提示）。未使用 `setContent`+`AndroidView` 全量替换，规避 `findViewById` 初始化时序风险。
+- **关键兼容处理**：`supportActionBar?.hide()` 消除原生 ActionBar，避免重复顶栏；主题非 edge-to-edge（API35+ 显式 opt-out），ComposeView 顶部状态栏 inset 为 0，无双重 Insets；`ScrollView` 保留滚动，`ComposeView` 为 `wrap_content` 固定于顶，二者无滚动冲突。
+- **未改动**：六模式 RadioButton/布局、全部控件 ID 与 `android:onClick`、Intent/RequestCode、确认对话框、`writeBlock/writeDump/writeValueBlock/runValueTransferRestore/createFactoryFormattedDump`、重试次数、密钥顺序、线程与进度对话框语义、`MCReader`、生产 `DumpEditor`。
+- **测试**：JVM 18/18；新增 4 个仪器测试（外壳 1 + 六模式/切换 3）编译通过但**未执行**（红米未连接，华为不在本轮目标且不操作）。真机验收 UNTESTED。
+- **APK**：Debug 13,888,776 B；Release 9,028,033 B（未签名）。构建均成功。
+- 提交：`4514f86`、`20c5f74`、`056e5f6`。`master=50593d9`、Tag `v4.3.1-kotlin-migration-baseline` 未变，未推送/发布。
+- 完整 A–H 报告见 `docs/p15/P15B_REPORT.md`；六模式契约见 `docs/p15/WRITE_TAG_CONTRACT.md`。
+
