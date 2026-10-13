@@ -104,11 +104,6 @@
             android:label="@string/title_activity_dump_editor" >
         </activity>
         <activity
-            android:name=".Activities.DumpEditorPrototype"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:label="DumpEditor Prototype" >
-        </activity>
-        <activity
             android:name=".Activities.FileChooser"
             android:icon="@drawable/open"
             android:label="@string/title_activity_file_chooser"
