@@ -68,7 +68,7 @@ class DumpEditorPrototypeComposeTest {
         composeTestRule.onNodeWithTag("chip_mode_view").assertIsDisplayed()
         composeTestRule.onNodeWithTag("chip_sample_1k").assertIsDisplayed()
         composeTestRule.onNodeWithTag("native_view_editor").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("text_fidelity_status").assertTextContains("PASS")
+        composeTestRule.onNodeWithTag("text_fidelity_status").assertTextContains("PASS: SHA-256 完全匹配 (80 行)")
 
         composeTestRule.onNodeWithTag("btn_verify_fidelity").performClick()
         assertTrue(fidelityRun)
@@ -114,6 +114,6 @@ class DumpEditorPrototypeComposeTest {
 
         composeTestRule.onNodeWithTag("compose_blocks_editor").assertIsDisplayed()
         composeTestRule.onNodeWithTag("card_sector_0").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("text_fidelity_status").assertTextContains("296 行")
+        composeTestRule.onNodeWithTag("text_fidelity_status").assertTextContains("PASS: SHA-256 完全匹配 (296 行)")
     }
 }

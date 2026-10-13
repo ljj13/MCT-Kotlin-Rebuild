@@ -41,7 +41,7 @@ class ReadTagComposeTest {
         }
 
         composeTestRule.onNodeWithTag("read_tag_message")
-            .assertTextContains("Tag removed")
+            .assertTextContains("Error: Tag removed while reading")
         composeTestRule.onNodeWithTag("btn_read_tag_cancel").assertIsDisplayed().performClick()
         assertEquals(1, cancels)
     }

@@ -1,6 +1,9 @@
 package de.syss.MifareClassicTool
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -56,7 +59,10 @@ class KeyMapCreatorComposeTest {
 
         composeTestRule.onNodeWithTag("text_sector_range").assertTextContains("0 - 15")
         composeTestRule.onNodeWithTag("key_file_std.keys").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("key_file_std.keys").performClick()
+        composeTestRule.onNode(
+            isToggleable() and hasAnyAncestor(hasTestTag("key_file_std.keys")),
+            useUnmergedTree = true
+        ).performClick()
         composeTestRule.onNodeWithTag("btn_create_key_map").assertIsDisplayed()
         assertEquals("std.keys" to true, selected)
         assertEquals(0, createClicks)
