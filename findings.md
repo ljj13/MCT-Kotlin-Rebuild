@@ -713,3 +713,12 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 - IME 合成点击未确认输入法弹出（原生 EditText 未改动，行为与基线一致）；无障碍已由 uiautomator 树佐证（未做 TalkBack 逐焦点走查）。
 - 全程零实体写卡/UID/Block0/SAK/ATQA/Gen2/Gen3；NFC `mState=on` 未崩溃。详见 `docs/p15/redmi/DEVICE_ACCEPTANCE_FINAL.md`。
 
+## 22. P16 全应用现代化质量审计结论
+
+- 页面矩阵：17 完整 Compose + 2 Compose+AndroidView（KeyEditor/HelpAndInfo）+ 1 ComposeView+XML（WriteTag）+ 1 原生（DumpEditor）+ 1 原型（DumpEditorPrototype）= 22 Activity。
+- 功能入口/Intent 契约等价：FileChooser/DumpEditor/DiffTool/KeyMapCreator/WriteTag/ImportExportTool/Preferences 等 EXTRA 契约与 RequestCode 均未变。
+- NFC 生命周期：`BasicActivity` onResume/onPause 前台分发成对；MainMenu 广播注册/注销成对；写卡进度 Dialog 关闭≠取消（基线冻结）。
+- 测试归档：JVM 18/18 PASS；仪器 56 方法（33 Compose + 23 DeviceAcceptance）红米 MIUI 全 BLOCKED；NFC 只读 PASS；异常生命周期 UNTESTED；TalkBack SKIPPED。
+- 构建：Debug 13,888,776 B / Release 9,028,033 B / androidTest 编译通过；R8 未启用（minify=false/shrink=false）；DumpEditorPrototype 在主 Manifest（建议移 debug）。
+- 最终结论 **PARTIAL**。详见 `docs/p15/P16_FINAL_REPORT.md`。
+

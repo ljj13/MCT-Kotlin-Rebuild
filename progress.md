@@ -54,3 +54,4 @@
 | 2026-10-14 | P16 前置 | 全局 UI / 顶栏 / 测试数 / 构建警告 / 未跟踪文件审计 | 完成 | `docs/p15/P16_PREQUALITY.md`；JVM 18/18，仪器 56 方法 0 执行 |
 | 2026-10-14 | P15-B.1 真机 | 红米恢复：APK 装好、MainMenu 正常；WriteTag 验收受环境阻断 | 阻断 | `input` 注入被拒 + 仪器测试 API36 挂起；`docs/p15/redmi/DEVICE_ACCEPTANCE_ROUND1.md` |
 | 2026-10-14 | P15-B.1 真机 | 用户开启 MIUI 安全设置后完成 WriteTag 手动 UI 验收 | 完成 | M3 外壳+六模式+深浅色/旋转/滚动/返回均截图佐证；仪器测试仍被 MIUI 拦截（`DEVICE_ACCEPTANCE_FINAL.md`） |
+| 2026-10-14 | P16 收口 | 全应用现代化质量审计 + 功能等价 + 测试归档 + 构建审计 | 完成 | 结论 PARTIAL；产出 `P16_FINAL_REPORT.md`；.gitignore 卫生修复 |
