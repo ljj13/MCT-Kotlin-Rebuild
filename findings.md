@@ -722,3 +722,10 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 - 构建：Debug 13,888,776 B / Release 9,028,033 B / androidTest 编译通过；R8 未启用（minify=false/shrink=false）；DumpEditorPrototype 在主 Manifest（建议移 debug）。
 - 最终结论 **PARTIAL**。详见 `docs/p15/P16_FINAL_REPORT.md`。
 
+## 23. P16.1 Release 构建加固结论
+
+- 实验组件隔离：`DumpEditorPrototype` 从主 Manifest 移至 `src/debug/AndroidManifest.xml`；实测 Release 合并 Manifest 不含原型、Debug 含原型（组件不可启动，但 minify 关闭时字节码仍进 Release dex）。
+- R8 专项：实测优化 Release 9,027,981 → 2,797,319 B（−69.0%）；onClick/Activity/核心类保留，但**证明 `shrinkResources` 移除 `getIdentifier` 动态字符串（`ac_sector_trailer_4`/`ac_data_block_no_keyb_0`），会破坏 AccessConditionDecoder** → R8 **DEFERRED**（minify 回退 false，proguard-rules.pro 休眠并记录 keep.xml 需求）。
+- JVM 18/18 PASS（强制重跑）；assembleDebug/Release + R8 优化构建均成功；APK 未签名未发布。
+- 结论 **PARTIAL**。详见 `docs/p15/P16_1_RELEASE_HARDENING_REPORT.md`。
+
