@@ -28,6 +28,14 @@
 
 > 上述三次仪器测试尝试均先 `am force-stop` 测试与应用，且设备保持 `alive`、NFC `mState=on`，未造成设备崩溃；按「不反复重试」停止继续尝试。
 
+### Round 1 补充（复测仍阻断）
+
+- 发现屏幕处于休眠（`mWakefulness=Asleep`/`mScreenOn=false`），已通过 `input keyevent KEYCODE_WAKEUP` 唤醒并 `svc power stayon true` 保持常亮（`mScreenOn=true`）。
+- 屏幕唤醒后**重跑 4 个 WriteTag 仪器测试仍挂起**（>150s 无输出，`mCurrentFocus` 回到桌面，`dumpsys activity` 仅见 `PACKAGE_RESTARTED/UNSTOPPED`）。
+- 结论：仪器测试挂起与屏幕休眠、NFC、Compose、用例类型均无关，确认为 androidx.test/`ActivityScenario` 在 API 36 上的基础设施级问题。
+- `adb shell input` 注入（tap/keyevent）持续被拒（`INJECT_EVENTS`），无法手动导航。
+- 测试后已 `force-stop` 两包并关闭 stayon；设备 `alive`、NFC `mState=on`，未崩溃。
+
 ## 遗留风险
 
 - WriteTag M3 外壳 + 六模式表单在本机无法通过自动化触达，真机验收仍为 UNTESTED。
