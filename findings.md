@@ -685,3 +685,13 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 - 提交：`4514f86`、`20c5f74`、`056e5f6`。`master=50593d9`、Tag `v4.3.1-kotlin-migration-baseline` 未变，未推送/发布。
 - 完整 A–H 报告见 `docs/p15/P15B_REPORT.md`；六模式契约见 `docs/p15/WRITE_TAG_CONTRACT.md`。
 
+## 19. P15-B.1 红米真机验收 + P16 前置质量检查
+
+- **设备 DEFERRED**：红米 `pnq47xf6899t4huc` 在 `adb devices` 列为 `device`，但 `adb install`/`pm path`/`echo`/`shell true` 全部挂起（≥4 次），疑似此前 NFC HAL 崩溃导致系统级无响应。按“不反复重试/不重启/不改内核”停止设备操作，未安装、未截图、未跑仪器测试。
+- **4 项 WriteTag 仪器测试**：编译通过、未运行（DEFERRED）；静态确认不触发实体写卡、无标签 IO，唯一 NFC 接触为 `enableNfcForegroundDispatch`（null 适配器 no-op）。
+- **全局 UI 审计**：22 个 Activity 中 20 个全 Compose、1 个混合（WriteTag）、1 个原生（生产 DumpEditor，P14 冻结）；21/22 `supportActionBar?.hide()`，无重复顶栏；全部 Compose 页统一 `MctTheme`+`MctComponents`。
+- **测试执行数**：JVM 18/18；仪器共 56 方法（33 Compose + 23 设备验收）均 0 执行。
+- **构建警告/废弃项**：`gradle.properties` 7 组 AGP 9.2 废弃选项与 edge-to-edge opt-out（仅记录，不清理）。
+- **未跟踪文件**：构建缓存/JVM 崩溃日志/测试截图日志，均保留，不 `git clean`。
+- 详细报告与 P16 任务清单见 `docs/p15/P16_PREQUALITY.md`。本轮无实体写卡/UID/Block0/SAK/ATQA/Gen2/Gen3 操作。
+

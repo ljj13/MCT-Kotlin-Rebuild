@@ -24,6 +24,13 @@
 - **P15-B.6 收口 [报告已提交，真机项未达成]**：完整 A–H 报告见 `docs/p15/P15B_REPORT.md`。
 - 提交：`4514f86`、`20c5f74`、`056e5f6`。禁止实体写卡/UID/Block0/SAK/ATQA/Gen2/Gen3，`MCReader`/生产 `DumpEditor`/`master`/Tag 不变，不推送不发布。
 
+## P16 前置质量检查（红米 DEFERRED，离线审计完成）
+- 红米 `pnq47xf6899t4huc` 列为 `device` 但 shell 无响应（≥4 次命令挂起，疑似 NFC HAL 崩溃后遗症）；设备验收 DEFERRED，未安装/截图/跑测试。
+- 4 项 WriteTag 仪器测试已编译、未运行；静态确认不触发写卡。
+- 全局 UI：22 Activity = 20 Compose + 1 混合(WriteTag) + 1 原生(生产 DumpEditor)；21/22 隐藏 ActionBar，无重复顶栏。
+- 测试执行数：JVM 18/18；仪器 56 方法 0 执行。
+- 构建警告/废弃项/未跟踪文件已记录。详见 `docs/p15/P16_PREQUALITY.md`。
+
 ## 阶段规划
 
 ### 阶段 0：P0 源码与架构审计、构建基线建立 [complete]
