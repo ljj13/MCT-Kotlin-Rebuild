@@ -620,11 +620,12 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 
 ### 17.2 虚拟测试替身与模拟能力评估
 - **现有测试基础设施审查**：
-  - 工程目前依赖 AndroidX Compose Test 配合内存假数据驱动 UI，底层硬件 `Common.checkForTagAndCreateReader` 直接调用 Android NFC 框架 (`Tag.get()`) 与平台专有驱动。
+  - 工程目前依赖 AndroidX Compose Test 配合内存假数据驱动 UI，底层硬件 `Common.checkForTagAndCreateReader` 直接调用 Android NFC 框架 （通过 Common 当前 Tag 创建具体 MCReader；不是 Tag.get() API） 与平台专有驱动。
   - 工程内**不存在**用于模拟 Mifare Classic 物理链路的 Mock/Fake 硬件替身层（无虚拟 Tag 注入驱动，无 Robolectric Shadow NFC，无虚拟 Reader 管道）。
 - **可行性与风险评估**：
   - 试图在生产代码中侵入式插入 Mock 分支会破坏原汁原味的 NFC 协议层和驱动时序，引入额外的分支污染。
-  - **决策**：严格保持 **Deferred** 状态。绝不为了“刷指标”去侵入生产底层通信层构造伪测试，诚实记录为未覆盖风险。
+  - **决策**：现有替身不足，保持 **Deferred**。未来若单独批准，可通过可注入 Reader 接口与可控 executor/Handler 测试双验证 close-once、取消后迟到回调、busy gate 和重建；这只能验证应用协调层，不能证明平台 NFC/驱动安全。本轮不添加接口、依赖或测试。
+  - **风险台账**：R1 扫描中生命周期缺证（Deferred）；R2 writeDump worker 直接关闭对话框/finish 且没有可见任务持有与回滚（源码风险，未实测）；R3 表单控件被写操作直接读取，输入迁移可能改变解析/默认值（首期保留原生）；R4 危险确认与写权限筛选强耦合（首期冻结）；R5 HashMap 遍历及各路径不同密钥顺序不可在 UI 改造中重排。以上只记录，不修复生产代码。
 
 ### 17.3 WriteTag 只读源码审计（状态机、Intent 交互与 UI 耦合）
 - **核心模式与状态机**：
@@ -633,7 +634,8 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
     2. `linearLayoutWriteTagDump`（转储写入，支持带位置的差异写入与静态控制位替换）
     3. `linearLayoutWriteTagCloneUid`（直接跳转 `CloneUidTool`）
     4. `linearLayoutWriteTagFactoryFormat`（出厂格式化，构造 1K/4K 默认空块与控制位扇区列表）
-    5. `relativeLayoutWriteTagValueBlock` / `TransferRestore`（值块增减与暂存-目标块间的 Transfer/Restore）
+    5. `relativeLayoutWriteTagValueBlock`（值块增减）
+    6. `relativeLayoutWriteTagTransferRestore`（暂存-目标块 Transfer/Restore）
 - **Intent 交互与契约**：
   - **输入**：`EXTRA_DUMP`（从 `DumpEditor` 传入转储字符串数组，选中 Write Dump 模式，仅明确禁用 Write Block 和 Factory Format 两个单选按钮）。
   - **内部派发**：
@@ -667,7 +669,7 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
   5. 严禁改动 `MCReader`、`MCReader.writeBlock0Gen3` 及任何 Gen3 相关代码。
 - **允许替换与现代化区域**：
   1. **首期仅外壳**：建议 Compose M3 顶栏/说明卡 + AndroidView 托管原 XML 表单，保留原控件 ID、输入过滤和事件处理。完整 WriteTagScreen 表单替换属于后续另行批准阶段，不是首期最小方案。
-  2. **模式切换器**：使用 M3 `PrimaryTabRow` 或 `SingleChoiceSegmentedButtonRow` 优雅替代杂乱的 5 组 `RadioButton`。
+  2. **模式切换器**：使用 M3 `PrimaryTabRow` 或 `SingleChoiceSegmentedButtonRow` 优雅替代六个模式的 `RadioButton`（仅后续候选）。
   3. **输入组件**：使用统一的 M3 `OutlinedTextField`，保持单块输入、值块输入与 Transfer/Restore 的格式过滤。
   4. **对话框现代化**：将原生的扇区尾块警告、块 0 警告、写入前校验列表转为 M3 `AlertDialog`。
   5. **首期冻结写入中对话框**：现有 AlertDialog 未设置 setCancelable(false)，不能凭 UI 现代化把它改成不可取消，也不能把关闭对话框当成停止物理写入。模式切换、输入与危险确认的 M3 替换均仅为后续候选，不在首期执行。
