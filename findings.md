@@ -695,3 +695,13 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 - **未跟踪文件**：构建缓存/JVM 崩溃日志/测试截图日志，均保留，不 `git clean`。
 - 详细报告与 P16 任务清单见 `docs/p15/P16_PREQUALITY.md`。本轮无实体写卡/UID/Block0/SAK/ATQA/Gen2/Gen3 操作。
 
+## 20. 红米恢复后真机验收 Round 1 —— 环境阻断
+
+- 红米 `pnq47xf6899t4huc`（Android 16 / API 36）shell 恢复响应，Debug/androidTest APK 均安装 `Success`，NFC `mState=on` 全程未崩溃。
+- MainMenu（Compose）渲染正常（截图 `docs/p15/redmi/menu.png` + UI dump `menu2.xml`：NFC 已就绪、读/写/编辑/工具/帮助卡片、版本 4.3.1）。
+- **WriteTag 自动化验收被两环境问题阻断**：
+  1. `adb shell input` 注入被拒（MIUI 未开「USB 调试（安全设置）」→ `INJECT_EVENTS`），无法点击「写标签」进入 WriteTag。
+  2. 全部 `am instrument` 在 API 36 挂起：4 个 WriteTag 测试、纯 Compose `WriteTagShellComposeTest`、非 Compose 的 `DeviceAcceptanceTest#test02_LaunchMainMenu` 均挂起无输出。结论为 androidx.test/ActivityScenario 基础设施在 API 36 整体挂起，非 NFC/Compose/用例引起。
+- 三次尝试均先 `force-stop`，设备保持 `alive`、NFC 未崩溃；按「不反复重试」停止。
+- 详情见 `docs/p15/redmi/DEVICE_ACCEPTANCE_ROUND1.md`。
+

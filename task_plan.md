@@ -31,6 +31,11 @@
 - 测试执行数：JVM 18/18；仪器 56 方法 0 执行。
 - 构建警告/废弃项/未跟踪文件已记录。详见 `docs/p15/P16_PREQUALITY.md`。
 
+## P15-B.1 红米真机验收（Round 1 环境阻断）
+- 红米 shell 恢复、APK 安装成功、NFC 正常、MainMenu Compose 渲染正常。
+- WriteTag 验收被阻断：`input` 注入被拒（MIUI 安全设置未开）+ 仪器测试在 API 36 挂起（ActivityScenario 基础设施）。
+- 需用户开启「USB 调试（安全设置）」或就 API 36 仪器挂起给出处置。见 `docs/p15/redmi/DEVICE_ACCEPTANCE_ROUND1.md`。
+
 ## 阶段规划
 
 ### 阶段 0：P0 源码与架构审计、构建基线建立 [complete]
