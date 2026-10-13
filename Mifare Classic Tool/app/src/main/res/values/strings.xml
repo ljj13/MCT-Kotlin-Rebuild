@@ -220,6 +220,7 @@
     <!-- Actions (Buttons, Checkboxs, etc. -->
     <string name="action_read_tag">Read Tag</string>
     <string name="action_write_tag">Write Tag</string>
+    <string name="write_tag_safety_notice">Writing may overwrite existing data. Use a dedicated test tag and back up first.</string>
     <string name="action_edit_tag_dump">Edit/Analyze Dump File</string>
     <string name="action_edit_key_dump">Edit/Add Key File</string>
     <string name="action_tools">Tools</string>

@@ -19,12 +19,23 @@
 -->
 
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/scrollViewWriteTag"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="Activities.WriteTag" >
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/composeViewWriteTagShell"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <ScrollView
+        android:id="@+id/scrollViewWriteTag"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" >
 
     <LinearLayout
         android:id="@+id/linearLayoutWriteTag"
@@ -748,4 +759,6 @@
 
     </LinearLayout>
 
-</ScrollView>
+    </ScrollView>
+
+</LinearLayout>
