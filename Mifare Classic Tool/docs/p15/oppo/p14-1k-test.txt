@@ -1,0 +1,68 @@
+INSTRUMENTATION_STATUS: class=de.syss.MifareClassicTool.DumpEditorPrototypeComposeTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+de.syss.MifareClassicTool.DumpEditorPrototypeComposeTest:
+INSTRUMENTATION_STATUS: test=testDumpEditorPrototype1kNativeView
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=de.syss.MifareClassicTool.DumpEditorPrototypeComposeTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Failed to assert the following: (Text + EditableText contains 'PASS' (ignoreCase: false))
+Semantics of the node:
+Node #52 at (l=77.0, t=1050.0, r=905.0, b=1106.0)px, Tag: 'text_fidelity_status'
+Text = '[PASS: SHA-256 完全匹配 (80 行)]'
+Actions = [SetTextSubstitution, ShowTextSubstitution, ClearTextSubstitution, GetTextLayoutResult]
+Has 3 siblings
+Selector used: (TestTag = 'text_fidelity_status')
+
+	at androidx.compose.ui.test.AssertionsKt.assert(Assertions.kt:265)
+	at androidx.compose.ui.test.AssertionsKt.assert$default(Assertions.kt:255)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains(Assertions.kt:209)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains$default(Assertions.kt:204)
+	at de.syss.MifareClassicTool.DumpEditorPrototypeComposeTest.testDumpEditorPrototype1kNativeView(DumpEditorPrototypeComposeTest.kt:71)
+
+INSTRUMENTATION_STATUS: stream=
+Error in testDumpEditorPrototype1kNativeView(de.syss.MifareClassicTool.DumpEditorPrototypeComposeTest):
+java.lang.AssertionError: Failed to assert the following: (Text + EditableText contains 'PASS' (ignoreCase: false))
+Semantics of the node:
+Node #52 at (l=77.0, t=1050.0, r=905.0, b=1106.0)px, Tag: 'text_fidelity_status'
+Text = '[PASS: SHA-256 完全匹配 (80 行)]'
+Actions = [SetTextSubstitution, ShowTextSubstitution, ClearTextSubstitution, GetTextLayoutResult]
+Has 3 siblings
+Selector used: (TestTag = 'text_fidelity_status')
+
+	at androidx.compose.ui.test.AssertionsKt.assert(Assertions.kt:265)
+	at androidx.compose.ui.test.AssertionsKt.assert$default(Assertions.kt:255)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains(Assertions.kt:209)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains$default(Assertions.kt:204)
+	at de.syss.MifareClassicTool.DumpEditorPrototypeComposeTest.testDumpEditorPrototype1kNativeView(DumpEditorPrototypeComposeTest.kt:71)
+
+INSTRUMENTATION_STATUS: test=testDumpEditorPrototype1kNativeView
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 1.06
+There was 1 failure:
+1) testDumpEditorPrototype1kNativeView(de.syss.MifareClassicTool.DumpEditorPrototypeComposeTest)
+java.lang.AssertionError: Failed to assert the following: (Text + EditableText contains 'PASS' (ignoreCase: false))
+Semantics of the node:
+Node #52 at (l=77.0, t=1050.0, r=905.0, b=1106.0)px, Tag: 'text_fidelity_status'
+Text = '[PASS: SHA-256 完全匹配 (80 行)]'
+Actions = [SetTextSubstitution, ShowTextSubstitution, ClearTextSubstitution, GetTextLayoutResult]
+Has 3 siblings
+Selector used: (TestTag = 'text_fidelity_status')
+
+	at androidx.compose.ui.test.AssertionsKt.assert(Assertions.kt:265)
+	at androidx.compose.ui.test.AssertionsKt.assert$default(Assertions.kt:255)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains(Assertions.kt:209)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains$default(Assertions.kt:204)
+	at de.syss.MifareClassicTool.DumpEditorPrototypeComposeTest.testDumpEditorPrototype1kNativeView(DumpEditorPrototypeComposeTest.kt:71)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

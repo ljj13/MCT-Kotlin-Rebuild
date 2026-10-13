@@ -1,5 +1,13 @@
 # 迁移进度日志 (progress.md)
 
+## OPPO P15-A 续验（未收口）
+- OPPO X8OVSG49IR7X7L4D / PLB110 / Android 16：已安装当前 Debug；真实 std.keys 映射读取 16 扇区、64 块进入生产 DumpEditor。
+- 独立冻结 P7 50593d9 重读同一卡，两份完整转储 SHA-256 一致；生命周期第一版修正包复读也一致。最后新增 pause busy gate 修正已构建/安装，但尚未再次读卡复验。
+- 隔离 UI：KeyMapCreator、ReadTag、P14 Native 1K / Compose 4K 修正测试选择器/完整文本断言后 PASS，初次 FAIL 保留；仅为 UI 样本断言，不代表 NFC worker 生命周期通过。
+- 18 项 JVM 算法测试通过。空闲取消、空闲离页返回通过；扫描中取消尝试实际 tagNotPresent，未覆盖。后续用户回复“好了”但手机已锁屏，近端日志未找到对应 MCReader/取消证据，仍 UNTESTED。
+- 待验证扫描中取消/离页、断连、重建及重复贴卡。无写卡、UID/Block 0 修改或 Gen3 操作；不进入 P15-B。
+
+
 | 时间 | 阶段 | 操作 | 状态 | 产物 / 说明 |
 |------|------|------|------|-------------|
 | 2026-10-10 | 准备 | 克隆仓库与创建工作分支 `refactor/kotlin-migration` | 完成 | 确保不直接向 master 分支合并 |

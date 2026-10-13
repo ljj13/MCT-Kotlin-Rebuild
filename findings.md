@@ -586,14 +586,17 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 | P15 仪器测试 | `KeyMapCreatorComposeTest` 单用例已启动。90 秒时限内没有完成断言，返回 `Process crashed`。同期崩溃在 `vendor.nxp.hardware.nfc@1.1-service` / `com.android.nfc`，不是测试断言失败。已停止，**不重跑**。结论 **UNTESTED / FAIL** |
 | 物理写卡 | 0 次 |
 
-### 16.5 残留风险
+### 16.5 残留风险（红米阶段历史记录，OPPO 更新见 16.6）
 
 1. 没有贴卡完成一次真实映射和读取，因此进度回调、取消中断和转储交接只做了代码核对，没有真机闭环。
 2. 仪器测试被设备 NFC 服务崩溃打断，不能用来证明 Compose 交互。
 3. 读取失败提示仍会立刻 `finish()`，失败页只是短暂显示，这和原行为一致。
 4. `master` 仍是 `50593d9`，标签 `v4.3.1-kotlin-migration-baseline` 未移动，没有推送远程。
 
-
-
-
-
+### 16.6 OPPO 续验与限定结论
+- 目标设备 X8OVSG49IR7X7L4D，OPPO PLB110（Find X8s+），Android 16/API 36，PLB110_16.0.10.500(CN01)。NFC 服务开启，实际对测试卡认证和读取成功。红米内核问题不再排查。
+- 隔离仪器每次一个用例、90 秒超时，保留真实初次 FAIL；修正 Checkbox 选择目标和完整文本断言后，KeyMapCreator（82.263s）、ReadTag（1.045s）、P14 Native 1K（1.083s）与 Compose 4K（1.214s）均报告 OK (1 test)。不运行全套仪器。P14 使用预置样本与指标，不能代表实际保真/性能或生产替换资格。
+- 冻结 P7 标签提交 50593d9 在独立 detached worktree 构建，同一卡重新只读采样；当前 UI 流程及最新生命周期修正包均完成 std.keys → 映射 → 16 扇区/64 块 → 生产 DumpEditor。完整文件 SHA-256 同为 ACFAFDF3D7AA970BBF4C6D05F8675E546CB171AB19A9269716A5D39D863802D5，正常闭环及基线比较 PASS。
+- 确认问题修复限于两 Activity 的 worker finally 清理、销毁回调防护、busy gate、防止重建重复读取、捕获进度值及移除截图 Intent 参数；未修改 MCReader/WriteTag/生产 DumpEditor。Debug 构建和 JVM 18/18 通过。
+- 空闲取消和离页返回 PASS。扫描中取消因未捕获扫描状态且用户明确要求跳过，SKIPPED/UNTESTED；扫描中离页、断连、重建仍 UNTESTED。不能声称 P15-A 全项通过或无泄漏。建议暂不启动 P15-B，实现前需单独批准并披露这些剩余风险。
+- 证据和逐项状态见 Mifare Classic Tool/docs/p15/oppo/acceptance-status.md。零写卡/UID/Block 0 修改/Gen3 操作，不推送、不发布。
