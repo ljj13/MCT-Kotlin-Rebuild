@@ -600,3 +600,76 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 - 确认问题修复限于两 Activity 的 worker finally 清理、销毁回调防护、busy gate、防止重建重复读取、捕获进度值及移除截图 Intent 参数；未修改 MCReader/WriteTag/生产 DumpEditor。Debug 构建和 JVM 18/18 通过。
 - 空闲取消和离页返回 PASS。扫描中取消因未捕获扫描状态且用户明确要求跳过，SKIPPED/UNTESTED；扫描中离页、断连、重建仍 UNTESTED。不能声称 P15-A 全项通过或无泄漏。建议暂不启动 P15-B，实现前需单独批准并披露这些剩余风险。
 - 证据和逐项状态见 Mifare Classic Tool/docs/p15/oppo/acceptance-status.md。零写卡/UID/Block 0 修改/Gen3 操作，不推送、不发布。
+
+## 17. P15-A 最终状态判定与 P15-B 只读预审报告
+
+### 17.1 P15-A 最终状态判定：PARTIAL / DEFERRED
+根据严格工程事实与验收门槛，P15-A 不能整体标记为 PASS，正式归档为 **PARTIAL / DEFERRED**：
+
+| 维度 / 测试项 | 状态 | 证明材料与说明 |
+| :--- | :--- | :--- |
+| **真实实体卡只读闭环** | **PASS** | OPPO Find X8s+ (`X8OVSG49IR7X7L4D`) 识别标准 MFC 1K (`0BDC504F`)，16 扇区 64 块认证读取并渲染到生产 DumpEditor。 |
+| **转储哈希基线一致性** | **PASS** | 独立构建冻结 P7 基线 (`50593d9`) 与 Compose 现代化流程两份转储 SHA-256 均为 `ACFAFDF3D7AA970BBF4C6D05F8675E546CB171AB19A9269716A5D39D863802D5`。 |
+| **纯逻辑与算法回归** | **PASS** | `BaselineTest` 18 项用例全绿（0 errors, 0 failures, 0 skipped）。 |
+| **隔离 UI 交互测试** | **PASS** | `KeyMapCreatorComposeTest`、`ReadTagComposeTest`、P14 原型 1K/4K 用例经修正选择器和完整断言文本后均执行通过；保留初次真实 FAIL 报告。 |
+| **空闲生命周期操作** | **PASS** | 未扫描时点击取消安全返回主界面；未扫描时切后台（Home）返回原任务恢复状态正常。 |
+| **扫描中取消 (In-flight Cancel)** | **SKIPPED / UNTESTED** | 扫描耗时极短且实体连接时差导致未抓获扫描中状态，用户明确指示跳过；不推断通过。 |
+| **扫描中离页 / 切后台** | **DEFERRED / UNTESTED** | 缺乏在硬件持续通信过程中精准注入生命周期事件并验证底层 Socket/连接复位的无风险手段。 |
+| **物理读写中断 / 掉卡** | **DEFERRED / UNTESTED** | 静态移卡测试已验证未崩溃，但在高频 IO 通信关键截断点的异常恢复与未决状态机处理暂未穷尽验证。 |
+| **Activity 进程/配置重建** | **DEFERRED / UNTESTED** | 虽代码层已补齐 `savedInstanceState` 重建终止保护与工作线程防护，但真机带硬件标签跨重建未实测。 |
+
+### 17.2 虚拟测试替身与模拟能力评估
+- **现有测试基础设施审查**：
+  - 工程目前依赖 AndroidX Compose Test 配合内存假数据驱动 UI，底层硬件 `Common.checkForTagAndCreateReader` 直接调用 Android NFC 框架 (`Tag.get()`) 与平台专有驱动。
+  - 工程内**不存在**用于模拟 Mifare Classic 物理链路的 Mock/Fake 硬件替身层（无虚拟 Tag 注入驱动，无 Robolectric Shadow NFC，无虚拟 Reader 管道）。
+- **可行性与风险评估**：
+  - 试图在生产代码中侵入式插入 Mock 分支会破坏原汁原味的 NFC 协议层和驱动时序，引入额外的分支污染。
+  - **决策**：严格保持 **Deferred** 状态。绝不为了“刷指标”去侵入生产底层通信层构造伪测试，诚实记录为未覆盖风险。
+
+### 17.3 WriteTag 只读源码审计（状态机、Intent 交互与 UI 耦合）
+- **核心模式与状态机**：
+  - `WriteTag` 承载六种模式（值块增减与 Transfer/Restore 是两个独立模式）：
+    1. `write_block`（单块写入，支持尾块警告弹窗与块 0 写入前置警告）
+    2. `linearLayoutWriteTagDump`（转储写入，支持带位置的差异写入与静态控制位替换）
+    3. `linearLayoutWriteTagCloneUid`（直接跳转 `CloneUidTool`）
+    4. `linearLayoutWriteTagFactoryFormat`（出厂格式化，构造 1K/4K 默认空块与控制位扇区列表）
+    5. `relativeLayoutWriteTagValueBlock` / `TransferRestore`（值块增减与暂存-目标块间的 Transfer/Restore）
+- **Intent 交互与契约**：
+  - **输入**：`EXTRA_DUMP`（从 `DumpEditor` 传入转储字符串数组，选中 Write Dump 模式，仅明确禁用 Write Block 和 Factory Format 两个单选按钮）。
+  - **内部派发**：
+    - `FileChooser` (`FC_WRITE_DUMP = 1`) 选择文件路径。
+    - `KeyMapCreator`：
+      - `CKM_WRITE_DUMP = 2`（带 `keys_from_dump.keys` 与扇区范围启动）。
+      - `CKM_WRITE_BLOCK = 3`（指定扇区范围启动）。
+      - `CKM_FACTORY_FORMAT = 4`（全卡出厂格式化）。
+      - `CKM_WRITE_NEW_VALUE = 5`（值块密钥生成）。
+      - `CKM_VALUE_TRANSFER_RESTORE = 6`（双扇区跨越范围生成）。
+  - **输出**：写卡成功直接 `finish()` 并 Toast 提示；不向调用方回传破坏性修改。
+- **确认弹窗与多阶段阻塞**：
+  - 扇区尾块写入警告（`action_i_know_what_i_am_doing` 按钮二次确认）。
+  - 块 0 厂商块写入警告（提示需要特殊卡 Gen2/CUID，未确认禁止写入）。
+  - 转储前校验对话框（`checkDumpAgainstTag`）：在主线程弹出列表视图对比卡片容量、不可写块和死扇区，仅当问题列表非空时提供“跳过块/取消全部”确认；列表为空时直接调用 writeDump，不存在统一的额外最终确认。
+- **写入进度与异常处理**：
+  - `writeDump` 在物理写入前动态构造包含原生 `ProgressBar` (Indeterminate) 和 `TextView` 的 `AlertDialog`。
+  - 独立工作线程执行循环 `reader.writeBlock(sector, block, ...)`，硬编码单块重试 2 次（`for (i in 0 until 2)`）。
+  - **异常回滚机制**：Mifare Classic 硬件**无事务与回滚机制**。单块写入失败立即中止并 Toast 报错，已写入的前序扇区无法撤销。
+- **UI 与业务的耦合痛点**：
+  - 布局深度嵌套（751 行 XML），大量直接从 `EditText` 获取输入并在主线程做十六进制解析；
+  - 校验对话框直接使用原生 `AlertDialog` 嵌套 `ListView` 和 `SimpleAdapter`；
+  - 进度条与警告框依赖 `Activity` 的 Context 动态创建 View。
+
+### 17.4 P15-B 最小侵入式 Material 3 改造建议方案
+- **严格冻结区（禁止触碰）**：
+  1. 冻结所有物理写入函数与逻辑：`writeBlock()`、`writeDump()`、`writeValueBlock()`、`runValueTransferRestore()`、`createFactoryFormattedDump()`。
+  2. 冻结底层通信重试机制（单块重试 2 次）、各路径密钥顺序：单块 B 后 A（即使 B 成功仍尝试 A）；值块 B 失败 -1 才 A；Transfer/Restore 目标 A 后 B；转储按写权限码选密钥。不得归并为统一降级策略。
+  3. 冻结 `KeyMapCreator` 的 5 种请求码派发意图和 `keys_from_dump.keys` 生成。
+  4. 绝不引入无感的自动化写卡逻辑，绝不绕过任何人工二次确认对话框。
+  5. 严禁改动 `MCReader`、`MCReader.writeBlock0Gen3` 及任何 Gen3 相关代码。
+- **允许替换与现代化区域**：
+  1. **首期仅外壳**：建议 Compose M3 顶栏/说明卡 + AndroidView 托管原 XML 表单，保留原控件 ID、输入过滤和事件处理。完整 WriteTagScreen 表单替换属于后续另行批准阶段，不是首期最小方案。
+  2. **模式切换器**：使用 M3 `PrimaryTabRow` 或 `SingleChoiceSegmentedButtonRow` 优雅替代杂乱的 5 组 `RadioButton`。
+  3. **输入组件**：使用统一的 M3 `OutlinedTextField`，保持单块输入、值块输入与 Transfer/Restore 的格式过滤。
+  4. **对话框现代化**：将原生的扇区尾块警告、块 0 警告、写入前校验列表转为 M3 `AlertDialog`。
+  5. **首期冻结写入中对话框**：现有 AlertDialog 未设置 setCancelable(false)，不能凭 UI 现代化把它改成不可取消，也不能把关闭对话框当成停止物理写入。模式切换、输入与危险确认的 M3 替换均仅为后续候选，不在首期执行。
+- **实施原则**：保持 `WriteTag` 继承 `BasicActivity`，Activity 自身全权保留 NFC 前台分发和 IO 线程；状态仅单向暴露给 Compose。
+
