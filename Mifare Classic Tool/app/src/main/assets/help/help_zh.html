@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!--
+/*
+ * Copyright 2013 Gerhard Klostermeier
+ * Simplified Chinese Translation & UI 2.0 Modernization for MCT Kotlin Rebuild
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0">
+  <title>帮助与信息 - MIFARE Classic Tool</title>
+  <style>
+    :root {
+      --bg: #F6F8FA;
+      --card-bg: #FFFFFF;
+      --text: #1F2328;
+      --text-muted: #656D76;
+      --primary: #0284C7;
+      --primary-light: #E0F2FE;
+      --border: #D0D7DE;
+      --code-bg: #F0F3F6;
+      --warning-bg: #FEF3C7;
+      --warning-text: #92400E;
+      --warning-border: #FCD34D;
+      --hr-color: #E2E8F0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0D1117;
+        --card-bg: #161B22;
+        --text: #F0F6FC;
+        --text-muted: #8B949E;
+        --primary: #38BDF8;
+        --primary-light: #004D71;
+        --border: #30363D;
+        --code-bg: #21262D;
+        --warning-bg: #451A03;
+        --warning-text: #FDE68A;
+        --warning-border: #78350F;
+        --hr-color: #21262D;
+      }
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      margin: 0;
+      padding: 16px;
+      word-wrap: break-word;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .header-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-card img {
+      max-width: 180px;
+      height: auto;
+      margin-bottom: 12px;
+    }
+
+    .header-card h1 {
+      margin: 0 0 6px 0;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .header-card p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .section-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--hr-color);
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    ul, ol {
+      padding-left: 20px;
+      margin: 10px 0;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    code, .hex {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13.5px;
+      background-color: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .callout-warning {
+      background-color: var(--warning-bg);
+      color: var(--warning-text);
+      border: 1px solid var(--warning-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+
+    .toc {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .toc ul {
+      list-style-type: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    .toc li {
+      margin-bottom: 8px;
+    }
+
+    .toc li ul {
+      padding-left: 18px;
+      margin-top: 4px;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      margin: 30px 0 16px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header-card">
+    <img src="mct_logo.png" alt="MCT Logo" />
+    <h1>MIFARE Classic Tool (MCT)</h1>
+    <p>帮助与信息说明文档 · UI 2.0 现代重构版</p>
+  </div>
+
+  <div class="toc">
+    <h2>目录导航</h2>
+    <ul>
+      <li><a href="#general_information">1. 通用信息</a>
+        <ul>
+          <li><a href="#features">1.1 功能特性</a></li>
+          <li><a href="#storage">1.2 数据存储</a></li>
+          <li><a href="#license">1.3 许可证与版权</a></li>
+        </ul>
+      </li>
+      <li><a href="#getting_started">2. 新手入门</a></li>
+      <li><a href="#read_tag">3. 读取标签</a></li>
+      <li><a href="#write_tag">4. 写入标签</a>
+        <ul>
+          <li><a href="#write_block">4.1 写块</a></li>
+          <li><a href="#write_dump">4.2 写转储 (克隆)</a></li>
+          <li><a href="#factory_format">4.3 工厂格式化</a></li>
+          <li><a href="#write_value_block">4.4 增 / 减值块</a></li>
+          <li><a href="#trans_rest_value_block">4.5 转移与恢复值块</a></li>
+        </ul>
+      </li>
+      <li><a href="#edit_dump_file">5. 编辑 / 分析转储文件</a>
+        <ul>
+          <li><a href="#share_dump">5.1 分享转储</a></li>
+          <li><a href="#display_ascii">5.2 显示为 ASCII 数据</a></li>
+          <li><a href="#display_ac">5.3 显示访问控制条件</a></li>
+          <li><a href="#display_vb">5.4 显示值块为整数</a></li>
+          <li><a href="#display_manuf_date">5.5 解析制造日期</a></li>
+          <li><a href="#write_dump_from_editor">5.6 直接写转储</a></li>
+          <li><a href="#compare_dump_from_editor">5.7 比对转储</a></li>
+          <li><a href="#save_keys">5.8 提取并保存密钥</a></li>
+        </ul>
+      </li>
+      <li><a href="#edit_key_file">6. 编辑或添加密钥文件</a></li>
+      <li><a href="#tools">7. 工具箱</a>
+        <ul>
+          <li><a href="#tag_info_tool">7.1 标签信息</a></li>
+          <li><a href="#value_block_tool">7.2 值块编解码器</a></li>
+          <li><a href="#ac_tool">7.3 访问条件编解码器</a></li>
+          <li><a href="#diff_tool">7.4 差异比对工具</a></li>
+          <li><a href="#bcc_tool">7.5 BCC 校验码计算器</a></li>
+          <li><a href="#clone_uid_tool">7.6 UID 克隆工具</a></li>
+          <li><a href="#import_export_tool">7.7 导入 / 导出 / 备份</a></li>
+          <li><a href="#data_conversion_tool">7.8 数据格式转换</a></li>
+          <li><a href="#uid_log_tool">7.9 UID 日志</a></li>
+        </ul>
+      </li>
+      <li><a href="#external_nfc">8. 外部 NFC 读卡器</a></li>
+    </ul>
+  </div>
+
+  <div class="section-card" id="general_information">
+    <h2>1. 通用信息</h2>
+    <p>
+      本工具提供多种与 <b>MIFARE Classic</b> RFID 标签交互的核心功能。它专为对 MIFARE Classic 技术具备基本了解的用户设计。
+      由于所有数据的输入和输出均采用十六进制，您需要对十六进制数制有基本的理解。
+    </p>
+
+    <div class="callout-warning">
+      <b>重要提示：</b>
+      <ul>
+        <li>本应用<b>无法破解或破解</b>任何 MIFARE Classic 密钥。在读取或写入 RFID 标签前，您必须先拥有该标签对应扇区的密钥（参见“新手入门”章节）。</li>
+        <li>本应用<b>不具备也不提供“暴力破解”</b>功能，因为在 NFC 射频协议交互限制下，暴力破解速度极其缓慢，完全不切实际。</li>
+        <li>部分手机因硬件 NFC 控制芯片（例如部分博通 Broadcom 芯片）不支持 MIFARE Classic 专有协议而无法读取 MFC 标签。</li>
+      </ul>
+    </div>
+
+    <h3 id="features">1.1 功能特性</h3>
+    <ul>
+      <li>读取 MIFARE Classic 标签数据</li>
+      <li>保存、编辑和分享读取到的转储（Dump）数据</li>
+      <li>向 MIFARE Classic 标签写入数据（按块写入）</li>
+      <li>克隆 MIFARE Classic 标签（将转储写入另一张已知密钥的标签）</li>
+      <li>基于字典攻击机制的密钥映射管理</li>
+      <li>将标签格式化恢复为出厂默认状态</li>
+      <li>向特殊后门卡（Magic Card Gen2）写入厂商块（块 0 / UID）</li>
+      <li>创建、编辑、保存与分享密钥字典文件（.keys）</li>
+      <li>解码与编码值块（Value Blocks）与访问条件（Access Conditions）</li>
+      <li>展示标签芯片详细参数与硬件架构</li>
+      <li>以语法高亮十六进制或 7-bit US-ASCII 展现转储</li>
+      <li>计算 UID 校验和（BCC）</li>
+      <li>支持导入/导出 Proxmark、libnfc 等多种格式转储与 ZIP 备份</li>
+    </ul>
+
+    <h3 id="storage">1.2 数据存储</h3>
+    <p>
+      MCT 将转储和密钥文件存储在应用内部安全私有目录中。其他应用或电脑 USB 无法直接访问这些私有文件。
+      如需导出使用，可通过界面的“分享”功能或 <b>导入 / 导出工具</b> 备份至公共存储。
+    </p>
+    <p><b>注意：卸载本应用将永久清除内部所有转储和密钥文件，卸载前请务必使用“导出/备份”导出 ZIP！</b></p>
+
+    <h3 id="license">1.3 许可证与版权</h3>
+    <p>
+      本应用最初由 Gerhard Klostermeier 与 SySS GmbH 及 Aalen 大学于 2012/2013 年合作开发。
+      遵循 <b>GNU General Public License v3.0 (GPLv3)</b> 开源协议发布。
+      MIFARE&reg; 为 NXP Semiconductors 的注册商标。
+    </p>
+  </div>
+
+  <div class="section-card" id="getting_started">
+    <h2>2. 新手入门</h2>
+    <p>
+      读取标签首先需要知道该标签各扇区的密钥。得益于 MIFARE Classic 算法历史上的设计缺陷，
+      您可以借助 Proxmark3、Chameleon 或配有特殊软件（mfcuk, mfoc）的电脑读卡器获取完整 A/B 密钥。
+    </p>
+    <p>
+      应用内置了 <code>std.keys</code>、<code>extended-std.keys</code> 和 <code>hotel-std.keys</code> 常见默认字典。
+      您可以新建自己的密钥文件，将每行 12 位十六进制密钥录入其中。
+    </p>
+    <p>
+      <b>字典映射机制优势：</b>
+      您无需预先知道哪个密钥属于哪个扇区。MCT 会自动用字典中的所有密钥依次认证每个扇区，并最大限度读出已知密钥对应的全部数据！
+    </p>
+  </div>
+
+  <div class="section-card" id="read_tag">
+    <h2>3. 读取标签</h2>
+    <p>读取流程分为两步：</p>
+    <ol>
+      <li><b>选择密钥文件与扇区范围</b>：点击主界面的“读标签”，勾选包含该卡密钥的字典文件，并可选择仅读取部分扇区范围。</li>
+      <li><b>贴卡读取</b>：启动映射后将卡片贴在手机 NFC 天线区域。MCT 认证成功后会自动完整读取扇区数据并展示在转储编辑器中。</li>
+    </ol>
+  </div>
+
+  <div class="section-card" id="write_tag">
+    <h2>4. 写入标签</h2>
+    <div class="callout-warning">
+      <b>安全警告：</b>向某些特定控制块（例如扇区尾块中的 Access Conditions）写入错误数据可能会导致扇区永久不可逆锁定！请在完全清楚操作含义的前提下谨慎写入。
+    </div>
+
+    <h3 id="write_block">4.1 写块</h3>
+    <p>指定扇区编号和块编号（例如 1K 标签的扇区 0–15，块 0–3），输入 16 字节（32 位）十六进制数据，并选择具备写权限的密钥文件进行单块写入。</p>
+
+    <h3 id="write_dump">4.2 写转储 (克隆)</h3>
+    <p>
+      将先前保存的完整转储镜像克隆写入另一张目标卡片中。应用会在写入前自动做一致性校验，若检测到“块只读”或“写密钥未知”，将提前给出提示。
+    </p>
+    <p>
+      <b>厂商块写入（UID 克隆）：</b>普通原装卡片的块 0 是只读硬编码的。只有支持直接写命令的特殊“魔术卡（Magic Card Gen2 / CUID）”才能被写入块 0 以克隆 UID。
+    </p>
+
+    <h3 id="factory_format">4.3 工厂格式化</h3>
+    <p>尝试将标签所有扇区恢复为出厂交付状态（数据块清零 <code>0x00</code>，扇区尾块重置为默认密钥 <code>FFFFFFFFFFFF</code> 与访问条件 <code>FF078000</code>）。</p>
+
+    <h3 id="write_value_block">4.4 增 / 减值块</h3>
+    <p>支持对符合电子钱包格式的值块（Value Block）执行自增、自减并提交传输。</p>
+
+    <h3 id="trans_rest_value_block">4.5 转移与恢复值块</h3>
+    <p>利用 MIFARE Classic 的 Transfer 与 Restore 指令，配合暂存块绕过仅允许扣款（Decrement-only）的权限限制。</p>
+  </div>
+
+  <div class="section-card" id="edit_dump_file">
+    <h2>5. 编辑 / 分析转储文件</h2>
+    <p>转储编辑器是具有语法高亮与分析功能的专业十六进制编辑器：</p>
+    <ul>
+      <li><b>分享转储</b>：导出为标准 MCT 转储文本发送至其他应用或邮箱。</li>
+      <li><b>显示为 ASCII</b>：将数据块转换展示为 7-bit US-ASCII 可见文本。</li>
+      <li><b>解析访问控制条件</b>：将扇区尾块的 3 字节访问位表格化解析为可读权限矩阵（读/写/增/减权限）。</li>
+      <li><b>值块解码</b>：将符合规范的值块直接换算为 32 位有符号整数。</li>
+      <li><b>制造日期解析</b>：解析块 0 厂商块后 2 字节包含的 BCD 生产年份与周次。</li>
+      <li><b>差异比对与提取密钥</b>：直接从编辑器跳入比对工具或快速提取有效密钥生成新字典。</li>
+    </ul>
+  </div>
+
+  <div class="section-card" id="edit_key_file">
+    <h2>6. 编辑或添加密钥文件</h2>
+    <p>密钥文件是纯文本文件，每行包含一个 6 字节（12 个十六进制字符）密钥。以 <code>#</code> 开头的行将被视为注释忽略。编辑器支持快速去除重复密钥。</p>
+  </div>
+
+  <div class="section-card" id="tools">
+    <h2>7. 工具箱</h2>
+    <h3 id="tag_info_tool">7.1 标签信息</h3>
+    <p>显示当前贴附卡片的芯片架构信息、UID、ATQA、SAK、ATS 及内存布局。</p>
+
+    <h3 id="value_block_tool">7.2 值块编解码器</h3>
+    <p>在十进制整数、取反备份值、块地址与 16 字节标准值块格式之间进行双向编解码。</p>
+
+    <h3 id="ac_tool">7.3 访问条件编解码器</h3>
+    <p>可视化编辑扇区尾块与各数据块的读写密钥要求，并自动计算出准确的 3 字节 Access Bits。</p>
+
+    <h3 id="diff_tool">7.4 差异比对工具</h3>
+    <p>高亮对比两个转储文件，逐字节清晰标识出数据差异位置。</p>
+
+    <h3 id="bcc_tool">7.5 BCC 校验码计算器</h3>
+    <p>为 4 字节单倍 UID 计算块 0 第 5 字节所需的异或校验字节（BCC）。</p>
+
+    <h3 id="clone_uid_tool">7.6 UID 克隆工具</h3>
+    <p>快速复制卡片 UID，并自动为 Gen2 兼容卡片计算组装合法的块 0 数据。</p>
+
+    <h3 id="import_export_tool">7.7 导入 / 导出 / 备份</h3>
+    <p>支持 <code>.mct</code>、<code>.keys</code>、<code>.bin</code>、<code>.dump</code>、<code>.eml</code>、<code>.json</code> 文件的相互转换及整包 ZIP 备份。</p>
+
+    <h3 id="data_conversion_tool">7.8 数据格式转换</h3>
+    <p>提供 ASCII、十六进制与二进制之间的快速互转。</p>
+
+    <h3 id="uid_log_tool">7.9 UID 日志</h3>
+    <p>记录历史读取标签的 UID、时间戳，支持一键复制与快速分享。</p>
+  </div>
+
+  <div class="section-card" id="external_nfc">
+    <h2>8. 外部 NFC 读卡器</h2>
+    <p>
+      支持通过 OTG USB 配合 External NFC 服务连接外置读卡器（如 ACR 122U、PN532、MFRC522）进行读写。
+    </p>
+  </div>
+
+  <div class="footer">
+    MIFARE Classic Tool · UI 2.0 现代技术工具
+  </div>
+
+</div>
+</body>
+</html>

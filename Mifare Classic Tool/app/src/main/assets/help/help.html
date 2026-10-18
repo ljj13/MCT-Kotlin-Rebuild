@@ -21,10 +21,93 @@
 -->
 
 <head>
-  <title>Help and Info</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0">
+  <title>Help and Info - MIFARE Classic Tool</title>
+  <style>
+    :root {
+      --bg: #F6F8FA;
+      --card-bg: #FFFFFF;
+      --text: #1F2328;
+      --text-muted: #656D76;
+      --primary: #0284C7;
+      --border: #D0D7DE;
+      --code-bg: #F0F3F6;
+      --warning-bg: #FEF3C7;
+      --warning-text: #92400E;
+      --warning-border: #FCD34D;
+      --hr-color: #E2E8F0;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0D1117;
+        --card-bg: #161B22;
+        --text: #F0F6FC;
+        --text-muted: #8B949E;
+        --primary: #38BDF8;
+        --border: #30363D;
+        --code-bg: #21262D;
+        --warning-bg: #451A03;
+        --warning-text: #FDE68A;
+        --warning-border: #78350F;
+        --hr-color: #21262D;
+      }
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      margin: 0;
+      padding: 16px;
+      word-wrap: break-word;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: var(--primary);
+      font-size: 24px;
+    }
+    h2 {
+      color: var(--primary);
+      font-size: 18px;
+      border-bottom: 1px solid var(--hr-color);
+      padding-bottom: 6px;
+      margin-top: 24px;
+    }
+    h3 {
+      font-size: 16px;
+      margin-top: 18px;
+    }
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--hr-color);
+      margin: 20px 0;
+    }
+    img {
+      max-width: 200px;
+      height: auto;
+    }
+    code, pre {
+      font-family: monospace;
+      background-color: var(--code-bg);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
-  <font face="sans-serif">
+  <div class="container">
   <div align="center">
     <img src="mct_logo.png" width="250px" alt="logo" />
   </div>
@@ -616,6 +699,6 @@
     page and/or contact its developer.
 
 
-  </font>
+  </div>
 </body>
 </html>
