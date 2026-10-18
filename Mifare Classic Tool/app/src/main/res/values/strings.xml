@@ -749,5 +749,14 @@
     <string name="home_action_import_export_desc">Manage backup &amp; share files</string>
     <string name="home_action_uid_log">UID Log</string>
     <string name="home_action_uid_log_desc">Historical scanned UID records</string>
+    <string name="nfc_status_ready_title">NFC Ready</string>
+    <string name="nfc_status_ready_desc">Tap a MIFARE Classic tag to read dump</string>
+    <string name="nfc_status_disabled_title">NFC Disabled</string>
+    <string name="nfc_status_disabled_desc">Enable NFC in device system settings</string>
+    <string name="nfc_status_editor_title">Editor-Only Mode</string>
+    <string name="nfc_status_editor_desc">NFC is unavailable; offline editing is supported</string>
+    <string name="nfc_status_unsupported_title">MIFARE Classic Unsupported</string>
+    <string name="nfc_status_unsupported_desc">Device NFC hardware lacks MIFARE Classic support</string>
+    <string name="nfc_status_enable_button">Settings</string>
 
 </resources>

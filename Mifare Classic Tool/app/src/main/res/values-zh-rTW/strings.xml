@@ -709,5 +709,14 @@
     <string name="home_action_import_export_desc">傾印與金鑰檔案備份管理</string>
     <string name="home_action_uid_log">UID 記錄</string>
     <string name="home_action_uid_log_desc">歷史已讀取標籤 UID 記錄</string>
+    <string name="nfc_status_ready_title">NFC 已就緒</string>
+    <string name="nfc_status_ready_desc">貼附 MIFARE Classic 標籤即可讀取傾印</string>
+    <string name="nfc_status_disabled_title">NFC 未啟用</string>
+    <string name="nfc_status_disabled_desc">請在系統設定中開啟 NFC 開關</string>
+    <string name="nfc_status_editor_title">僅編輯器模式</string>
+    <string name="nfc_status_editor_desc">NFC 未啟用，支援傾印與金鑰離線編輯</string>
+    <string name="nfc_status_unsupported_title">裝置不支援 MIFARE Classic</string>
+    <string name="nfc_status_unsupported_desc">裝置硬體缺少 MIFARE Classic 控制晶片支援</string>
+    <string name="nfc_status_enable_button">去開啟</string>
 
 </resources>

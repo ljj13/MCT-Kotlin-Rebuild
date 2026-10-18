@@ -1,8 +1,11 @@
 package de.syss.MifareClassicTool.ui.main
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,17 +20,16 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,25 +43,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import de.syss.MifareClassicTool.R
+import de.syss.MifareClassicTool.ui.components.MctSectionHeader
+import de.syss.MifareClassicTool.ui.components.MctStatusCard
 
 enum class NfcHardwareState {
     Ready,
     Disabled,
-    Unsupported,
-    EditorOnly
+    EditorOnly,
+    Unsupported
 }
 
 private data class ToolItem(
@@ -95,6 +101,9 @@ fun MainMenuScreen(
     onImportExportToolClick: () -> Unit
 ) {
     var showToolsDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+
+    val aboutLabel = stringResource(R.string.dialog_about_mct_title)
 
     Scaffold(
         topBar = {
@@ -118,11 +127,11 @@ fun MainMenuScreen(
                         )
                     }
                     IconButton(
-                        onClick = onAboutClick,
+                        onClick = { showAboutDialog = true },
                         modifier = Modifier
                             .testTag("btn_about")
                             .semantics {
-                                contentDescription = "About"
+                                contentDescription = aboutLabel
                             }
                     ) {
                         Text(
@@ -134,8 +143,8 @@ fun MainMenuScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         }
@@ -148,61 +157,91 @@ fun MainMenuScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top
         ) {
-            // 1. NFC Hardware & Mode Banner
-            NfcStatusBanner(
-                nfcState = nfcState,
-                onEnableNfcClick = onEnableNfcClick
+            // 1. Hero NFC Status Card (KernelSU style)
+            val (statusTitle, statusDesc, isReady, isWarning) = when (nfcState) {
+                NfcHardwareState.Ready -> Quadruple(
+                    stringResource(R.string.nfc_status_ready_title),
+                    stringResource(R.string.nfc_status_ready_desc),
+                    true,
+                    false
+                )
+                NfcHardwareState.Disabled -> Quadruple(
+                    stringResource(R.string.nfc_status_disabled_title),
+                    stringResource(R.string.nfc_status_disabled_desc),
+                    false,
+                    true
+                )
+                NfcHardwareState.EditorOnly -> Quadruple(
+                    stringResource(R.string.nfc_status_editor_title),
+                    stringResource(R.string.nfc_status_editor_desc),
+                    false,
+                    false
+                )
+                NfcHardwareState.Unsupported -> Quadruple(
+                    stringResource(R.string.nfc_status_unsupported_title),
+                    stringResource(R.string.nfc_status_unsupported_desc),
+                    false,
+                    false
+                )
+            }
+
+            MctStatusCard(
+                title = statusTitle,
+                subtitle = statusDesc,
+                isReady = isReady,
+                isWarning = isWarning,
+                actionText = if (nfcState == NfcHardwareState.Disabled) stringResource(R.string.nfc_status_enable_button) else null,
+                onActionClick = if (nfcState == NfcHardwareState.Disabled) onEnableNfcClick else null,
+                iconPainter = painterResource(R.drawable.read_tag),
+                modifier = Modifier
+                    .testTag("nfc_status_card")
+                    .semantics {
+                        contentDescription = "$statusTitle, $statusDesc"
+                    }
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // 2. Core NFC Operations (Read & Write)
-            Text(
-                text = stringResource(R.string.text_rf_tech),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(6.dp))
+            // 2. Core NFC Operations (Read & Write with Clear Visual Hierarchy)
+            MctSectionHeader(title = stringResource(R.string.text_rf_tech))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 MainActionCard(
                     title = stringResource(R.string.action_read_tag),
+                    subtitle = stringResource(R.string.home_action_read_tag_desc),
                     icon = painterResource(R.drawable.read_tag),
                     enabled = !isEditorOnly && (nfcState == NfcHardwareState.Ready),
                     modifier = Modifier.weight(1f),
                     testTag = "btn_read_tag",
-                    onClick = onReadTagClick
+                    onClick = onReadTagClick,
+                    accentColor = MaterialTheme.colorScheme.primary
                 )
 
                 MainActionCard(
                     title = stringResource(R.string.action_write_tag),
+                    subtitle = stringResource(R.string.home_action_write_tag_desc),
                     icon = painterResource(R.drawable.write_tag),
                     enabled = !isEditorOnly && (nfcState == NfcHardwareState.Ready),
                     modifier = Modifier.weight(1f),
                     testTag = "btn_write_tag",
-                    onClick = onWriteTagClick
+                    onClick = onWriteTagClick,
+                    accentColor = MaterialTheme.colorScheme.secondary
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 3. Editors (Dump & Keys)
-            Text(
-                text = stringResource(R.string.action_editor_only),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(6.dp))
+            // 3. Editors & Management (Dump & Keys)
+            MctSectionHeader(title = stringResource(R.string.home_group_manage))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 MainActionCard(
                     title = stringResource(R.string.action_edit_tag_dump),
+                    subtitle = null,
                     icon = painterResource(R.drawable.edit_dump),
                     enabled = true,
                     modifier = Modifier.weight(1f),
@@ -212,6 +251,7 @@ fun MainMenuScreen(
 
                 MainActionCard(
                     title = stringResource(R.string.action_edit_key_dump),
+                    subtitle = null,
                     icon = painterResource(R.drawable.edit_keys),
                     enabled = true,
                     modifier = Modifier.weight(1f),
@@ -223,19 +263,14 @@ fun MainMenuScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // 4. Tools & Help
-            Text(
-                text = stringResource(R.string.action_tools),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(6.dp))
+            MctSectionHeader(title = stringResource(R.string.home_group_tools))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 MainActionCard(
                     title = stringResource(R.string.action_tools),
+                    subtitle = null,
                     icon = painterResource(R.drawable.tools),
                     enabled = true,
                     modifier = Modifier.weight(1f),
@@ -245,6 +280,7 @@ fun MainMenuScreen(
 
                 MainActionCard(
                     title = stringResource(R.string.action_help),
+                    subtitle = null,
                     icon = painterResource(R.drawable.help_and_info),
                     enabled = true,
                     modifier = Modifier.weight(1f),
@@ -269,7 +305,12 @@ fun MainMenuScreen(
         }
     }
 
-    // Tools Dialog (Listing all 9 sub-tools with Material 3 styling)
+    // Modern Material 3 About Dialog
+    if (showAboutDialog) {
+        MctAboutDialog(onDismissRequest = { showAboutDialog = false })
+    }
+
+    // Tools Dialog (Listing all 9 sub-tools with KernelSU card styling)
     if (showToolsDialog) {
         val toolsList = listOf(
             ToolItem(R.string.action_show_tag_info, R.drawable.tag_info, !isEditorOnly, "tool_tag_info", onTagInfoClick),
@@ -285,10 +326,13 @@ fun MainMenuScreen(
 
         AlertDialog(
             onDismissRequest = { showToolsDialog = false },
+            shape = RoundedCornerShape(24.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
             title = {
                 Text(
                     text = stringResource(R.string.dialog_tools_menu_title),
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             text = {
@@ -297,7 +341,7 @@ fun MainMenuScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 420.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(toolsList) { item ->
                         val itemTitle = stringResource(item.titleRes)
@@ -316,28 +360,28 @@ fun MainMenuScreen(
                                 .semantics {
                                     contentDescription = itemTitle
                                 },
-                            shape = MaterialTheme.shapes.small,
-                            color = if (item.isEnabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (item.isEnabled) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 if (item.iconRes != null) {
                                     Image(
                                         painter = painterResource(item.iconRes),
                                         contentDescription = null,
-                                        modifier = Modifier.size(28.dp)
+                                        modifier = Modifier.size(26.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Spacer(modifier = Modifier.width(14.dp))
                                 }
                                 Text(
                                     text = stringResource(item.titleRes),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = if (item.isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                    fontWeight = FontWeight.Medium
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                    color = if (item.isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                 )
                             }
                         }
@@ -350,99 +394,32 @@ fun MainMenuScreen(
                     onClick = { showToolsDialog = false },
                     modifier = Modifier.testTag("btn_close_tools")
                 ) {
-                    Text(text = stringResource(R.string.action_cancel))
+                    Text(
+                        text = stringResource(R.string.action_cancel),
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         )
     }
 }
 
-@Composable
-private fun NfcStatusBanner(
-    nfcState: NfcHardwareState,
-    onEnableNfcClick: () -> Unit
-) {
-    val cardColor = when (nfcState) {
-        NfcHardwareState.Ready -> MaterialTheme.colorScheme.primaryContainer
-        NfcHardwareState.Disabled -> MaterialTheme.colorScheme.errorContainer
-        NfcHardwareState.EditorOnly -> MaterialTheme.colorScheme.surfaceVariant
-        NfcHardwareState.Unsupported -> MaterialTheme.colorScheme.surfaceVariant
-    }
-    val contentColor = when (nfcState) {
-        NfcHardwareState.Ready -> MaterialTheme.colorScheme.onPrimaryContainer
-        NfcHardwareState.Disabled -> MaterialTheme.colorScheme.onErrorContainer
-        NfcHardwareState.EditorOnly -> MaterialTheme.colorScheme.onSurfaceVariant
-        NfcHardwareState.Unsupported -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
-
-    val statusTitle = when (nfcState) {
-        NfcHardwareState.Ready -> "NFC 已就绪"
-        NfcHardwareState.Disabled -> "NFC 未启用"
-        NfcHardwareState.EditorOnly -> "仅编辑器模式"
-        NfcHardwareState.Unsupported -> "设备不支持 MIFARE Classic"
-    }
-    val statusDesc = when (nfcState) {
-        NfcHardwareState.Ready -> "贴附 MIFARE Classic 卡片即可读取转储"
-        NfcHardwareState.Disabled -> "请在系统设置中开启 NFC 开关"
-        NfcHardwareState.EditorOnly -> "NFC 功能已关闭，支持转储与密钥离线编辑"
-        NfcHardwareState.Unsupported -> "硬件缺少 MIFARE Classic 控制器支持"
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("nfc_status_card")
-            .semantics {
-                contentDescription = "$statusTitle, $statusDesc"
-            },
-        colors = CardDefaults.cardColors(containerColor = cardColor)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = statusTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = contentColor
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = statusDesc,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = contentColor.copy(alpha = 0.85f)
-                )
-            }
-            if (nfcState == NfcHardwareState.Disabled) {
-                Spacer(modifier = Modifier.width(8.dp))
-                FilledTonalButton(
-                    onClick = onEnableNfcClick,
-                    modifier = Modifier.testTag("btn_enable_nfc")
-                ) {
-                    Text(text = "去开启", style = MaterialTheme.typography.labelMedium)
-                }
-            }
-        }
-    }
-}
+private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
 @Composable
 private fun MainActionCard(
     title: String,
+    subtitle: String?,
     icon: Painter,
     enabled: Boolean,
     modifier: Modifier = Modifier,
     testTag: String = "",
+    accentColor: Color? = null,
     onClick: () -> Unit
 ) {
-    Card(
+    Surface(
         modifier = modifier
-            .height(118.dp)
+            .height(if (subtitle != null) 124.dp else 112.dp)
             .clickable(
                 enabled = enabled,
                 role = Role.Button,
@@ -453,10 +430,13 @@ private fun MainActionCard(
             .semantics {
                 contentDescription = title
             },
-        colors = CardDefaults.cardColors(
-            containerColor = if (enabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (enabled) 2.dp else 0.dp)
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            1.dp,
+            if (enabled && accentColor != null) accentColor.copy(alpha = 0.4f)
+            else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+        )
     ) {
         Column(
             modifier = Modifier
@@ -465,20 +445,44 @@ private fun MainActionCard(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = icon,
-                contentDescription = null,
-                modifier = Modifier.size(36.dp),
-                alpha = if (enabled) 1f else 0.35f
-            )
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (enabled && accentColor != null) accentColor.copy(alpha = 0.12f)
+                        else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(26.dp),
+                    alpha = if (enabled) 1f else 0.35f
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                ),
                 textAlign = TextAlign.Center,
-                color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                maxLines = 1
             )
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                    textAlign = TextAlign.Center,
+                    color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
+                    maxLines = 1
+                )
+            }
         }
     }
 }

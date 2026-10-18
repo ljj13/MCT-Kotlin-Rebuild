@@ -52,6 +52,7 @@ import androidx.core.text.HtmlCompat
 import de.syss.MifareClassicTool.Common
 import de.syss.MifareClassicTool.R
 import de.syss.MifareClassicTool.ui.main.MainMenuScreen
+import de.syss.MifareClassicTool.ui.main.MctAboutDialog
 import de.syss.MifareClassicTool.ui.main.NfcHardwareState
 import de.syss.MifareClassicTool.ui.theme.MctTheme
 import java.io.File
@@ -90,6 +91,7 @@ class MainMenu : AppCompatActivity() {
     // Compose observable state
     private val mIsEditorOnlyState = mutableStateOf(false)
     private val mNfcState = mutableStateOf(NfcHardwareState.Ready)
+    private val mShowAboutDialogState = mutableStateOf(false)
 
     /**
      * Nodes (states) MCT passes through during its startup.
@@ -145,6 +147,10 @@ class MainMenu : AppCompatActivity() {
                     onUidLogToolClick = { startActivity(Intent(this, UidLogTool::class.java)) },
                     onImportExportToolClick = { startActivity(Intent(this, ImportExportTool::class.java)) }
                 )
+
+                if (mShowAboutDialogState.value) {
+                    MctAboutDialog(onDismissRequest = { mShowAboutDialogState.value = false })
+                }
             }
         }
 
@@ -616,18 +622,7 @@ class MainMenu : AppCompatActivity() {
     }
 
     private fun onShowAboutDialog() {
-        val styledText = HtmlCompat.fromHtml(
-            getString(R.string.dialog_about_mct, Common.getVersionCode()),
-            HtmlCompat.FROM_HTML_MODE_LEGACY
-        )
-        val ad = AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_about_mct_title)
-            .setMessage(styledText)
-            .setIcon(R.mipmap.ic_launcher)
-            .setPositiveButton(R.string.action_ok) { _, _ -> }
-            .create()
-        ad.show()
-        (ad.findViewById<TextView>(android.R.id.message))?.movementMethod = LinkMovementMethod.getInstance()
+        mShowAboutDialogState.value = true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
