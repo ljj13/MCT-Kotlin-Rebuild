@@ -17,7 +17,6 @@
 
 package de.syss.MifareClassicTool.Activities
 
-import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.Build
@@ -25,6 +24,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.os.LocaleListCompat
@@ -33,14 +33,12 @@ import de.syss.MifareClassicTool.R
 import de.syss.MifareClassicTool.ui.preferences.PreferencesScreen
 import de.syss.MifareClassicTool.ui.preferences.PreferencesUiState
 import de.syss.MifareClassicTool.ui.theme.MctTheme
-import java.util.ArrayList
 import java.util.Arrays
 
 /**
- * Modernized Material 3 preferences screen.
- * Retains BasicActivity NFC foreground dispatch, SharedPreferences compatibility,
+ * Preferences Activity refactored to Compose Material 3 (UI 2.0 KernelSU style).
+ * 100% backward compatible with MCT's [Preference] keys, SharedPreferences,
  * language configuration, and night mode switching.
- * @author Gerhard Klostermeier
  */
 class Preferences : BasicActivity() {
 
@@ -56,9 +54,7 @@ class Preferences : BasicActivity() {
         CustomAppLanguage("custom_app_language"),
         CustomAppTheme("custom_app_theme");
 
-        override fun toString(): String {
-            return text
-        }
+        override fun toString(): String = text
     }
 
     private lateinit var mPackageManager: PackageManager
@@ -107,8 +103,6 @@ class Preferences : BasicActivity() {
             else -> true
         }
 
-        val langID = pref.getInt(Preference.CustomAppLanguage.toString(), 0)
-
         val themeArray = resources.getStringArray(R.array.action_themes)
         val themeArrayList = ArrayList(Arrays.asList(*themeArray))
         val themeID: Int = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -118,7 +112,34 @@ class Preferences : BasicActivity() {
             pref.getInt(Preference.CustomAppTheme.toString(), 2)
         }
 
-        val langList = resources.getStringArray(R.array.supported_locales).toList()
+        // Language resolution:
+        // Option 0: Follow System ("跟随系统" / "Follow System")
+        // Option 1..N: supported_locales from resources
+        val rawLocales = resources.getStringArray(R.array.supported_locales).toList()
+        val followSystemLabel = getString(R.string.text_language_follow_system)
+        val langList = listOf(followSystemLabel) + rawLocales
+
+        val currentLocales = AppCompatDelegate.getApplicationLocales()
+        val langID: Int = if (currentLocales.isEmpty) {
+            // No custom locale set -> follow system
+            0
+        } else {
+            val tag = currentLocales[0]?.toLanguageTag() ?: ""
+            val matchedIndex = when {
+                tag.startsWith("zh-TW", ignoreCase = true) || tag.startsWith("zh-Hant", ignoreCase = true) -> 6
+                tag.startsWith("zh", ignoreCase = true) -> 5
+                tag.startsWith("ru", ignoreCase = true) -> 4
+                tag.startsWith("pt", ignoreCase = true) -> 3
+                tag.startsWith("it", ignoreCase = true) -> 2
+                tag.startsWith("fr", ignoreCase = true) -> 1
+                tag.startsWith("en", ignoreCase = true) -> 0
+                else -> {
+                    val saved = pref.getInt(Preference.CustomAppLanguage.toString(), -1)
+                    if (saved in 0..6) saved else -1
+                }
+            }
+            if (matchedIndex in 0..6) matchedIndex + 1 else 0
+        }
 
         mUiState.value = PreferencesUiState(
             autoReconnect = autoReconnect,
@@ -183,7 +204,23 @@ class Preferences : BasicActivity() {
         edit.putBoolean(Preference.UseRetryAuthentication.toString(), state.useRetryAuthentication)
         edit.putInt(Preference.CustomSectorCount.toString(), customSectorCount)
         edit.putInt(Preference.RetryAuthenticationCount.toString(), retryAuthenticationCount)
-        edit.putInt(Preference.CustomAppLanguage.toString(), state.customAppLanguage)
+
+        // Save Language with backward compatibility
+        if (state.customAppLanguage == 0) {
+            // Follow system
+            edit.putInt(Preference.CustomAppLanguage.toString(), -1)
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
+        } else {
+            val legacyIndex = state.customAppLanguage - 1
+            edit.putInt(Preference.CustomAppLanguage.toString(), legacyIndex)
+            val lang = state.languageOptions.getOrNull(state.customAppLanguage) ?: ""
+            if (lang.contains("(") && lang.contains(")")) {
+                val langCode = lang.substring(lang.indexOf("(") + 1, lang.indexOf(")"))
+                val appLocale = LocaleListCompat.forLanguageTags(langCode)
+                AppCompatDelegate.setApplicationLocales(appLocale)
+            }
+        }
+
         edit.putInt(Preference.CustomAppTheme.toString(), state.customAppTheme)
         edit.apply()
 
@@ -193,14 +230,6 @@ class Preferences : BasicActivity() {
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         }
         mPackageManager.setComponentEnabledSetting(mComponentName, newState, PackageManager.DONT_KILL_APP)
-
-        // Update language
-        val lang = state.languageOptions.getOrNull(state.customAppLanguage) ?: ""
-        if (lang.contains("(") && lang.contains(")")) {
-            val langCode = lang.substring(lang.indexOf("(") + 1, lang.indexOf(")"))
-            val appLocale = LocaleListCompat.forLanguageTags(langCode)
-            AppCompatDelegate.setApplicationLocales(appLocale)
-        }
 
         // Update theme
         when (state.customAppTheme) {

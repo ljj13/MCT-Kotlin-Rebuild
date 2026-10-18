@@ -714,4 +714,40 @@
         <item>正體中文 (zh-TW)</item>
     </string-array>
 
+    <!-- UI 2.0 Strings -->
+    <string name="text_language_follow_system">Follow System</string>
+    <string name="pref_group_rf_and_auth">RF Communication &amp; Authentication</string>
+    <string name="pref_group_daily_and_keys">General &amp; Key Files</string>
+    <string name="pref_group_display_and_ui">Display &amp; Language</string>
+    <string name="pref_custom_sector_count_label">Sector Count (1-40)</string>
+    <string name="pref_retry_auth_count_label">Retry Count (1-1000)</string>
+    <string name="pref_uid_format_title">UID Display Format</string>
+    <string name="pref_uid_format_dialog_title">Select UID Display Format</string>
+    <string name="pref_theme_dialog_title">Select Theme</string>
+    <string name="pref_language_dialog_title">Select App Language</string>
+    <string name="about_section_app_info">Application Info</string>
+    <string name="about_section_opensource">Open Source Project</string>
+    <string name="about_section_help_support">Help &amp; Support</string>
+    <string name="about_upstream_title">Upstream Project</string>
+    <string name="about_upstream_author">Original MCT by Gerhard Klostermeier</string>
+    <string name="about_fork_title">Kotlin Modernization Fork</string>
+    <string name="about_fork_desc">Modern Kotlin + Jetpack Compose UI 2.0</string>
+    <string name="about_license_title">License</string>
+    <string name="about_license_desc">GNU General Public License v3.0 (GPLv3)</string>
+    <string name="about_github_title">GitHub Repository</string>
+    <string name="about_issues_title">Bug Tracker &amp; Issues</string>
+    <string name="about_changelog_title">Changelog &amp; Releases</string>
+    <string name="about_docs_title">Documentation &amp; Community</string>
+    <string name="about_disclaimer">MIFARE is a registered trademark of NXP Semiconductors.</string>
+    <string name="home_action_read_tag_desc">Read Mifare Classic tag sectors</string>
+    <string name="home_action_write_tag_desc">Write blocks, dump or clone tag</string>
+    <string name="home_group_manage">Dump &amp; Key Management</string>
+    <string name="home_group_tools">Toolbox &amp; Help</string>
+    <string name="home_action_open_tools">Toolbox</string>
+    <string name="home_action_open_tools_desc">NFC utilities, calculators &amp; converters</string>
+    <string name="home_action_import_export">Import / Export</string>
+    <string name="home_action_import_export_desc">Manage backup &amp; share files</string>
+    <string name="home_action_uid_log">UID Log</string>
+    <string name="home_action_uid_log_desc">Historical scanned UID records</string>
+
 </resources>

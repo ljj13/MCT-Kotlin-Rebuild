@@ -1,6 +1,6 @@
 package de.syss.MifareClassicTool.ui.preferences
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,29 +9,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,12 +36,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import de.syss.MifareClassicTool.R
-import de.syss.MifareClassicTool.ui.components.MctSectionCard
+import de.syss.MifareClassicTool.ui.components.MctActionButton
+import de.syss.MifareClassicTool.ui.components.MctSelectionDialog
+import de.syss.MifareClassicTool.ui.components.MctSettingGroup
+import de.syss.MifareClassicTool.ui.components.MctSettingItem
+import de.syss.MifareClassicTool.ui.components.MctSwitchItem
 import de.syss.MifareClassicTool.ui.components.MctTopAppBar
 
 data class PreferencesUiState(
@@ -66,7 +63,6 @@ data class PreferencesUiState(
     val themeOptions: List<String> = emptyList()
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreferencesScreen(
     state: PreferencesUiState,
@@ -77,8 +73,15 @@ fun PreferencesScreen(
     onShowCustomSectorCountInfo: () -> Unit,
     onShowRetryAuthenticationInfo: () -> Unit
 ) {
-    var themeExpanded by remember { mutableStateOf(false) }
-    var languageExpanded by remember { mutableStateOf(false) }
+    var themeDialogOpen by remember { mutableStateOf(false) }
+    var languageDialogOpen by remember { mutableStateOf(false) }
+    var uidFormatDialogOpen by remember { mutableStateOf(false) }
+
+    val uidFormatOptions = listOf(
+        stringResource(R.string.text_hex),
+        stringResource(R.string.text_dec_be),
+        stringResource(R.string.text_dec_le)
+    )
 
     Scaffold(
         topBar = {
@@ -96,361 +99,294 @@ fun PreferencesScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 1. NFC Communication & Security
-            MctSectionCard(
-                title = "读写通信与认证设置",
+            // Group 1: General & Convenience (日常使用与字典便利)
+            MctSettingGroup(
+                title = stringResource(R.string.pref_group_daily_and_keys),
+                modifier = Modifier.testTag("card_convenience_settings")
+            ) {
+                MctSwitchItem(
+                    title = stringResource(R.string.action_autostart_if_tag_detected),
+                    checked = state.autostartIfCardDetected,
+                    onCheckedChange = { onStateChange(state.copy(autostartIfCardDetected = it)) },
+                    testTag = "cb_autostart"
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
+
+                MctSwitchItem(
+                    title = stringResource(R.string.action_save_last_key_files),
+                    checked = state.saveLastUsedKeyFiles,
+                    onCheckedChange = { onStateChange(state.copy(saveLastUsedKeyFiles = it)) },
+                    testTag = "cb_save_last_keys"
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
+
+                MctSwitchItem(
+                    title = stringResource(R.string.action_auto_copy_uid),
+                    checked = state.autoCopyUid,
+                    onCheckedChange = { onStateChange(state.copy(autoCopyUid = it)) },
+                    testTag = "cb_auto_copy_uid"
+                )
+            }
+
+            // Group 2: RF Communication & Authentication (读写通信与认证设置)
+            MctSettingGroup(
+                title = stringResource(R.string.pref_group_rf_and_auth),
                 modifier = Modifier.testTag("card_rf_settings")
             ) {
                 // Auto Reconnect
-                PreferenceCheckboxWithInfo(
-                    text = stringResource(R.string.action_auto_reconnect),
-                    checked = state.autoReconnect,
-                    onCheckedChange = { onStateChange(state.copy(autoReconnect = it)) },
-                    onInfoClick = onShowAutoReconnectInfo,
-                    testTag = "cb_auto_reconnect"
+                MctSettingItem(
+                    title = stringResource(R.string.action_auto_reconnect),
+                    onClick = { onStateChange(state.copy(autoReconnect = !state.autoReconnect)) },
+                    testTag = "cb_auto_reconnect",
+                    trailingContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = onShowAutoReconnectInfo,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Text(
+                                    text = "ⓘ",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            androidx.compose.material3.Switch(
+                                checked = state.autoReconnect,
+                                onCheckedChange = { onStateChange(state.copy(autoReconnect = it)) }
+                            )
+                        }
+                    }
                 )
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
 
                 // Custom Sector Count
-                PreferenceCheckboxWithInfo(
-                    text = stringResource(R.string.action_use_custom_sector_count),
-                    checked = state.useCustomSectorCount,
-                    onCheckedChange = { onStateChange(state.copy(useCustomSectorCount = it)) },
-                    onInfoClick = onShowCustomSectorCountInfo,
-                    testTag = "cb_use_custom_sector_count"
+                MctSettingItem(
+                    title = stringResource(R.string.action_use_custom_sector_count),
+                    onClick = { onStateChange(state.copy(useCustomSectorCount = !state.useCustomSectorCount)) },
+                    testTag = "cb_use_custom_sector_count",
+                    trailingContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = onShowCustomSectorCountInfo,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Text(
+                                    text = "ⓘ",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            androidx.compose.material3.Switch(
+                                checked = state.useCustomSectorCount,
+                                onCheckedChange = { onStateChange(state.copy(useCustomSectorCount = it)) }
+                            )
+                        }
+                    }
                 )
+
                 if (state.useCustomSectorCount) {
                     OutlinedTextField(
                         value = state.customSectorCount,
                         onValueChange = { onStateChange(state.copy(customSectorCount = it)) },
-                        label = { Text("扇区数量 (1-40)") },
+                        label = { Text(stringResource(R.string.pref_custom_sector_count_label)) },
                         placeholder = { Text(stringResource(R.string.hint_custom_sector_count)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
                             .testTag("input_custom_sector_count"),
                         singleLine = true
                     )
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
 
                 // Retry Authentication
-                PreferenceCheckboxWithInfo(
-                    text = stringResource(R.string.action_retry_authentication),
-                    checked = state.useRetryAuthentication,
-                    onCheckedChange = { onStateChange(state.copy(useRetryAuthentication = it)) },
-                    onInfoClick = onShowRetryAuthenticationInfo,
-                    testTag = "cb_use_retry_auth"
+                MctSettingItem(
+                    title = stringResource(R.string.action_retry_authentication),
+                    onClick = { onStateChange(state.copy(useRetryAuthentication = !state.useRetryAuthentication)) },
+                    testTag = "cb_use_retry_auth",
+                    trailingContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = onShowRetryAuthenticationInfo,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Text(
+                                    text = "ⓘ",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            androidx.compose.material3.Switch(
+                                checked = state.useRetryAuthentication,
+                                onCheckedChange = { onStateChange(state.copy(useRetryAuthentication = it)) }
+                            )
+                        }
+                    }
                 )
+
                 if (state.useRetryAuthentication) {
                     OutlinedTextField(
                         value = state.retryAuthenticationCount,
                         onValueChange = { onStateChange(state.copy(retryAuthenticationCount = it)) },
-                        label = { Text("重试次数 (1-1000)") },
+                        label = { Text(stringResource(R.string.pref_retry_auth_count_label)) },
                         placeholder = { Text(stringResource(R.string.hint_custom_retry_authentication_count)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
                             .testTag("input_retry_auth_count"),
                         singleLine = true
                     )
                 }
             }
 
-            // 2. Convenience & Keys
-            MctSectionCard(
-                title = "日常使用与字典便利",
-                modifier = Modifier.testTag("card_convenience_settings")
-            ) {
-                // Autostart if card detected
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onStateChange(state.copy(autostartIfCardDetected = !state.autostartIfCardDetected)) }
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = state.autostartIfCardDetected,
-                        onCheckedChange = null,
-                        modifier = Modifier.testTag("cb_autostart")
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.action_autostart_if_tag_detected),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                // Save Last Used Key Files
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onStateChange(state.copy(saveLastUsedKeyFiles = !state.saveLastUsedKeyFiles)) }
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = state.saveLastUsedKeyFiles,
-                        onCheckedChange = null,
-                        modifier = Modifier.testTag("cb_save_last_keys")
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.action_save_last_key_files),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                // Auto copy UID
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onStateChange(state.copy(autoCopyUid = !state.autoCopyUid)) }
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = state.autoCopyUid,
-                        onCheckedChange = null,
-                        modifier = Modifier.testTag("cb_auto_copy_uid")
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.action_auto_copy_uid),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                // UID Format radio row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 32.dp, top = 4.dp)
-                        .selectableGroup(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    val formats = listOf(
-                        Pair(0, stringResource(R.string.text_hex)),
-                        Pair(1, stringResource(R.string.text_dec_be)),
-                        Pair(2, stringResource(R.string.text_dec_le))
-                    )
-                    formats.forEach { (index, title) ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .selectable(
-                                    selected = (state.uidFormat == index),
-                                    enabled = state.autoCopyUid,
-                                    role = Role.RadioButton,
-                                    onClick = { onStateChange(state.copy(uidFormat = index)) }
-                                )
-                                .testTag("rb_uid_format_$index")
-                        ) {
-                            RadioButton(
-                                selected = (state.uidFormat == index),
-                                enabled = state.autoCopyUid,
-                                onClick = null
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (state.autoCopyUid) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 3. Theme & Language
-            MctSectionCard(
-                title = "外观主题与语言",
+            // Group 3: Display & Language (外观主题与语言)
+            MctSettingGroup(
+                title = stringResource(R.string.pref_group_display_and_ui),
                 modifier = Modifier.testTag("card_ui_settings")
             ) {
-                // Theme
-                Text(
-                    text = stringResource(R.string.text_choose_theme),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
+                // Theme Selection Item
                 val currentThemeText = state.themeOptions.getOrElse(state.customAppTheme) { "Follow System" }
-                androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
-                    androidx.compose.material3.OutlinedCard(
-                        onClick = { themeExpanded = true },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("dropdown_theme")
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 14.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = currentThemeText,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(text = "▼", style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                    if (themeExpanded) {
-                        androidx.compose.material3.DropdownMenu(
-                            expanded = true,
-                            onDismissRequest = { themeExpanded = false }
-                        ) {
-                            state.themeOptions.forEachIndexed { index, option ->
-                                DropdownMenuItem(
-                                    text = { Text(option) },
-                                    onClick = {
-                                        onStateChange(state.copy(customAppTheme = index))
-                                        themeExpanded = false
-                                    },
-                                    modifier = Modifier.testTag("theme_option_$index")
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Language
-                Text(
-                    text = stringResource(R.string.text_choose_language),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
+                MctSettingItem(
+                    title = stringResource(R.string.text_choose_theme),
+                    valueText = currentThemeText,
+                    onClick = { themeDialogOpen = true },
+                    testTag = "dropdown_theme"
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                val currentLangText = state.languageOptions.getOrElse(state.customAppLanguage) { "English" }
-                androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
-                    androidx.compose.material3.OutlinedCard(
-                        onClick = { languageExpanded = true },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("dropdown_language")
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 14.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = currentLangText,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(text = "▼", style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                    if (languageExpanded) {
-                        androidx.compose.material3.DropdownMenu(
-                            expanded = true,
-                            onDismissRequest = { languageExpanded = false }
-                        ) {
-                            state.languageOptions.forEachIndexed { index, option ->
-                                DropdownMenuItem(
-                                    text = { Text(option) },
-                                    onClick = {
-                                        onStateChange(state.copy(customAppLanguage = index))
-                                        languageExpanded = false
-                                    },
-                                    modifier = Modifier.testTag("lang_option_$index")
-                                )
-                            }
-                        }
-                    }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
+
+                // Language Selection Item
+                val currentLangText = state.languageOptions.getOrElse(state.customAppLanguage) {
+                    stringResource(R.string.text_language_follow_system)
                 }
+                MctSettingItem(
+                    title = stringResource(R.string.text_choose_language),
+                    valueText = currentLangText,
+                    onClick = { languageDialogOpen = true },
+                    testTag = "dropdown_language"
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
+
+                // UID Format Selection Item (clean vertical modal dialog, solves horizontal squeezing!)
+                val currentUidFormatText = uidFormatOptions.getOrElse(state.uidFormat) { uidFormatOptions[0] }
+                MctSettingItem(
+                    title = stringResource(R.string.pref_uid_format_title),
+                    valueText = currentUidFormatText,
+                    onClick = { uidFormatDialogOpen = true },
+                    testTag = "setting_uid_format"
+                )
             }
 
-            // 4. Save and Cancel Buttons
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Action Buttons (Cancel & Save)
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
                     onClick = onCancel,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)),
                     modifier = Modifier
                         .weight(1f)
-                        .height(50.dp)
+                        .height(48.dp)
                         .testTag("btn_cancel")
                 ) {
-                    Text(text = stringResource(R.string.action_cancel))
+                    Text(
+                        text = stringResource(R.string.action_cancel),
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                    )
                 }
 
                 Button(
                     onClick = onSave,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
                     modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp)
+                        .weight(1.2f)
+                        .height(48.dp)
                         .testTag("btn_save")
                 ) {
-                    Text(text = stringResource(R.string.action_save))
+                    Text(
+                        text = stringResource(R.string.action_save),
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
-    }
-}
 
-@Composable
-private fun PreferenceCheckboxWithInfo(
-    text: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    onInfoClick: () -> Unit,
-    testTag: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .clickable { onCheckedChange(!checked) },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = checked,
-                onCheckedChange = null,
-                modifier = Modifier.testTag(testTag)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium
+        // Selection Dialogs
+        if (themeDialogOpen) {
+            MctSelectionDialog(
+                title = stringResource(R.string.pref_theme_dialog_title),
+                options = state.themeOptions,
+                selectedIndex = state.customAppTheme,
+                onSelect = { onStateChange(state.copy(customAppTheme = it)) },
+                onDismissRequest = { themeDialogOpen = false }
             )
         }
-        IconButton(
-            onClick = onInfoClick,
-            modifier = Modifier.testTag("${testTag}_info")
-        ) {
-            Text(
-                text = "ⓘ",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
+
+        if (languageDialogOpen) {
+            MctSelectionDialog(
+                title = stringResource(R.string.pref_language_dialog_title),
+                options = state.languageOptions,
+                selectedIndex = state.customAppLanguage,
+                onSelect = { onStateChange(state.copy(customAppLanguage = it)) },
+                onDismissRequest = { languageDialogOpen = false }
+            )
+        }
+
+        if (uidFormatDialogOpen) {
+            MctSelectionDialog(
+                title = stringResource(R.string.pref_uid_format_dialog_title),
+                options = uidFormatOptions,
+                selectedIndex = state.uidFormat,
+                onSelect = { onStateChange(state.copy(uidFormat = it)) },
+                onDismissRequest = { uidFormatDialogOpen = false }
             )
         }
     }
