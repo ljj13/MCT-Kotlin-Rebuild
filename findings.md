@@ -752,3 +752,11 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
   - 零实体写卡、零 UID 修改、MCReader 与写卡状态机零改动；
   - 最终验收结论 **PARTIAL**。详见 `docs/p16/UI2_IMPLEMENTATION_REPORT.md` 与 `docs/p16/UI2_ACCEPTANCE.md`。
 
+## 25. P16.3 MCT UI 2.0 离线质量收口与人工验收准备结论
+
+- **语言映射专项**：抽离 `LanguageHelper` 纯函数并在 `Preferences.kt` 落地；新增 `LanguageHelperTest` 覆盖全部 6 项映射用例（单元测试增至 24 项全绿）；确认跟随系统、中文、英文与旧版用户偏好向下兼容闭环。
+- **UI 静态排查**：MainMenu、Preferences、HelpAndInfo、About 布局约束、文本单行限制、无障碍标签与系统 Insets 审查通过；无 ADB 真机运行，无违规截屏。
+- **Release 隔离与 R8 实测**：实测 Release Merged Manifest 排除 `DumpEditorPrototype`；R8 保持 DEFERRED（未签名 Release APK 9,090,507 字节；Debug APK 13,637,930 字节）。
+- **人工验收交付物**：提供完整 SHA-256 与签名说明（Debug 已签名可装，Release 未签名不可装），详见 `docs/p16/P16_3_FINAL_REPORT.md`。
+
+

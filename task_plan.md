@@ -194,3 +194,10 @@
   - [x] `assembleDebug` 与 `assembleRelease` 构建验证 (BUILD SUCCESSFUL)
   - [x] 产出 `UI2_DESIGN_SPEC.md`, `UI2_AUDIT.md`, `UI2_IMPLEMENTATION_REPORT.md`, `UI2_ACCEPTANCE.md`
   - [x] 分阶段独立中文 Conventional Commits，确认 master 与 Tag 不可变，不推送远程，不发布 Release
+
+### 阶段 18：P16.3 MCT UI 2.0 离线质量收口与人工验收准备 [complete]
+- [x] **语言系统专项核查**：抽离 `LanguageHelper`，编写 `LanguageHelperTest` 6 项用例全部 PASS；跟随系统、中文、英文与旧版兼容性闭环验证
+- [x] **UI 静态代码审查**：MainMenu, Preferences, HelpAndInfo, About 布局约束、文本溢出保护、深浅色、无障碍、系统 Insets 审查
+- [x] **发布构建与清单隔离核验**：实测 Release Merged Manifest 排除 DumpEditorPrototype，核实 R8 保持 DEFERRED
+- [x] **产物体积与哈希度量**：Debug APK (13,637,930 字节，已签名可直接装)，Release APK (9,090,507 字节，未签名)
+- [x] **交付报告**：产出 `docs/p16/P16_3_FINAL_REPORT.md`，master 与基线 Tag 不变，不推送不发布
