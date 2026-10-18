@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.os.LocaleListCompat
 import de.syss.MifareClassicTool.Common
 import de.syss.MifareClassicTool.R
+import de.syss.MifareClassicTool.ui.preferences.LanguageHelper
 import de.syss.MifareClassicTool.ui.preferences.PreferencesScreen
 import de.syss.MifareClassicTool.ui.preferences.PreferencesUiState
 import de.syss.MifareClassicTool.ui.theme.MctTheme
@@ -119,27 +120,9 @@ class Preferences : BasicActivity() {
         val followSystemLabel = getString(R.string.text_language_follow_system)
         val langList = listOf(followSystemLabel) + rawLocales
 
+        val savedPref = pref.getInt(Preference.CustomAppLanguage.toString(), -1)
         val currentLocales = AppCompatDelegate.getApplicationLocales()
-        val langID: Int = if (currentLocales.isEmpty) {
-            // No custom locale set -> follow system
-            0
-        } else {
-            val tag = currentLocales[0]?.toLanguageTag() ?: ""
-            val matchedIndex = when {
-                tag.startsWith("zh-TW", ignoreCase = true) || tag.startsWith("zh-Hant", ignoreCase = true) -> 6
-                tag.startsWith("zh", ignoreCase = true) -> 5
-                tag.startsWith("ru", ignoreCase = true) -> 4
-                tag.startsWith("pt", ignoreCase = true) -> 3
-                tag.startsWith("it", ignoreCase = true) -> 2
-                tag.startsWith("fr", ignoreCase = true) -> 1
-                tag.startsWith("en", ignoreCase = true) -> 0
-                else -> {
-                    val saved = pref.getInt(Preference.CustomAppLanguage.toString(), -1)
-                    if (saved in 0..6) saved else -1
-                }
-            }
-            if (matchedIndex in 0..6) matchedIndex + 1 else 0
-        }
+        val langID = LanguageHelper.resolveCurrentSelectionIndex(currentLocales, savedPref)
 
         mUiState.value = PreferencesUiState(
             autoReconnect = autoReconnect,
@@ -206,19 +189,15 @@ class Preferences : BasicActivity() {
         edit.putInt(Preference.RetryAuthenticationCount.toString(), retryAuthenticationCount)
 
         // Save Language with backward compatibility
-        if (state.customAppLanguage == 0) {
-            // Follow system
-            edit.putInt(Preference.CustomAppLanguage.toString(), -1)
+        val (legacyPrefInt, langCode) = LanguageHelper.calculateSaveState(
+            state.customAppLanguage,
+            state.languageOptions
+        )
+        edit.putInt(Preference.CustomAppLanguage.toString(), legacyPrefInt)
+        if (langCode.isEmpty()) {
             AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
         } else {
-            val legacyIndex = state.customAppLanguage - 1
-            edit.putInt(Preference.CustomAppLanguage.toString(), legacyIndex)
-            val lang = state.languageOptions.getOrNull(state.customAppLanguage) ?: ""
-            if (lang.contains("(") && lang.contains(")")) {
-                val langCode = lang.substring(lang.indexOf("(") + 1, lang.indexOf(")"))
-                val appLocale = LocaleListCompat.forLanguageTags(langCode)
-                AppCompatDelegate.setApplicationLocales(appLocale)
-            }
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(langCode))
         }
 
         edit.putInt(Preference.CustomAppTheme.toString(), state.customAppTheme)
