@@ -168,29 +168,29 @@
 - [x] 开展 KeyEditor 与 DumpEditor 只读架构审计与性能分析，探索 Compose + 原生 View 混合架构原型设计，给出最终落地建议
 - [x] 每项独立提交中文 Conventional Commit，执行构建、测试与真机验收，保持 master 与既有 Tag 不变，不推送远程
 
-### 阶段 17：P16.2 KernelSU 风格 UI 2.0 全应用视觉与交互重构 [in_progress]
-- [ ] **Phase A：设计审计与规范制定**
-  - [ ] 深入分析 KernelSU Manager 现代 Android 设计语言（设计层次、卡片、设置项、状态、深浅色、信息密度）
-  - [ ] 全面审计 MCT 全部生产页面（特别是 Preferences、HelpAndInfo、About、MainMenu），输出问题矩阵
-  - [ ] 产出 `UI2_DESIGN_SPEC.md` 与 `UI2_AUDIT.md`
-- [ ] **Phase B：语言与主题底层重构 (最高优先级缺陷治理)**
-  - [ ] 定位并彻底修复 `custom_app_language` 与 `AppCompatDelegate.getApplicationLocales()` 同步缺陷（支持跟随系统、中文、英文）
-  - [ ] 重构 `MctTheme` 与 `MctComponents`：设计 KernelSU 风格配色、暗色层级与描边、Typography、间距、Shapes
-  - [ ] 建立标准 UI 2.0 组件：`MctTopAppBar`, `MctStatusCard`, `MctSettingGroup`, `MctSettingItem`, `MctSwitchItem`, `MctSelectionItem`, `MctSectionCard`, `MctActionButton`, `MctDangerButton`, `MctConfirmDialog`, `MctSelectionDialog`, `MctMonospaceField`, `MctEmptyState`
-- [ ] **Phase C：核心视觉页面重设计**
-  - [ ] Preferences：分组卡片（日常使用、读写与扫描、显示与语言）、UID 格式改为纵向/独立弹窗、Switch 右对齐、统一保存/取消
-  - [ ] HelpAndInfo：创建高质量简体中文离线帮助文档 `help_zh.html`，更新 `help.html` 采用现代响应式排版与暗色模式 CSS，按系统 Locale 动态加载
-  - [ ] About：全新现代 Compose Material 3 对话框/页面，展示版本、许可证、GitHub/文档链接、原作者致敬与 Kotlin Fork 声明
-  - [ ] MainMenu：KernelSU 状态卡片风格 Hero NFC Card、高优先级读写卡片、整洁管理分组、现代化工具箱入口
-- [ ] **Phase D：全局页面视觉统一与组件推广**
-  - [ ] 统一各个独立工具页面（BccTool, HexToAscii, ValueBlockTool, ValueBlocksToInt, DataConversionTool, AccessConditionTool, AccessConditionDecoder, TagInfoTool, UidLogTool, FileChooser, ImportExportTool, DiffTool, CloneUidTool）
-- [ ] **Phase E：专业页面适配与安全边界保护**
-  - [ ] KeyEditor：保留 AndroidView AppCompatEditText 核心，升级外壳顶栏与底部操作栏
-  - [ ] ReadTag 与 KeyMapCreator：现代状态与卡片，保护 NFC 扫描逻辑
-  - [ ] WriteTag：保留六模式表单与写卡状态机，升级 M3 外壳
-  - [ ] 严格禁止实体写卡、修改写卡状态机、修改 MCReader、修改生产 DumpEditor 逻辑
-- [ ] **Phase F：验收、回归测试与归档**
-  - [ ] `testDebugUnitTest` 单元测试回归
-  - [ ] `assembleDebug` 与 `assembleRelease` 构建验证
-  - [ ] 产出 `UI2_DESIGN_SPEC.md`, `UI2_AUDIT.md`, `UI2_IMPLEMENTATION_REPORT.md`, `UI2_ACCEPTANCE.md`
-  - [ ] 分阶段独立中文 Conventional Commits，确认 master 与 Tag 不可变，不推送远程，不发布 Release
+### 阶段 17：P16.2 KernelSU 风格 UI 2.0 全应用视觉与交互重构 [complete]
+- [x] **Phase A：设计审计与规范制定**
+  - [x] 深入分析 KernelSU Manager 现代 Android 设计语言（设计层次、卡片、设置项、状态、深浅色、信息密度）
+  - [x] 全面审计 MCT 全部生产页面（特别是 Preferences、HelpAndInfo、About、MainMenu），输出问题矩阵
+  - [x] 产出 `UI2_DESIGN_SPEC.md` 与 `UI2_AUDIT.md`
+- [x] **Phase B：语言与主题底层重构 (最高优先级缺陷治理)**
+  - [x] 定位并彻底修复 `custom_app_language` 与 `AppCompatDelegate.getApplicationLocales()` 同步缺陷（支持跟随系统、中文、英文）
+  - [x] 重构 `MctTheme` 与 `MctComponents`：设计 KernelSU 风格配色、暗色层级与描边、Typography、间距、Shapes
+  - [x] 建立标准 UI 2.0 组件：`MctTopAppBar`, `MctStatusCard`, `MctSettingGroup`, `MctSettingItem`, `MctSwitchItem`, `MctSelectionItem`, `MctSectionCard`, `MctActionButton`, `MctDangerButton`, `MctConfirmDialog`, `MctSelectionDialog`, `MctMonospaceField`, `MctEmptyState`
+- [x] **Phase C：核心视觉页面重设计**
+  - [x] Preferences：分组卡片（日常使用、读写与扫描、显示与语言）、UID 格式改为纵向/独立弹窗、Switch 右对齐、统一保存/取消
+  - [x] HelpAndInfo：创建高质量简体中文离线帮助文档 `help_zh.html`，更新 `help.html` 采用现代响应式排版与暗色模式 CSS，按系统 Locale 动态加载
+  - [x] About：全新现代 Compose Material 3 对话框/页面，展示版本、许可证、GitHub/文档链接、原作者致敬与 Kotlin Fork 声明
+  - [x] MainMenu：KernelSU 状态卡片风格 Hero NFC Card、高优先级读写卡片、整洁管理分组、现代化工具箱入口
+- [x] **Phase D：全局页面视觉统一与组件推广**
+  - [x] 统一各个独立工具页面（BccTool, HexToAscii, ValueBlockTool, ValueBlocksToInt, DataConversionTool, AccessConditionTool, AccessConditionDecoder, TagInfoTool, UidLogTool, FileChooser, ImportExportTool, DiffTool, CloneUidTool）
+- [x] **Phase E：专业页面适配与安全边界保护**
+  - [x] KeyEditor：保留 AndroidView AppCompatEditText 核心，升级外壳顶栏与底部操作栏
+  - [x] ReadTag 与 KeyMapCreator：现代状态与卡片，保护 NFC 扫描逻辑
+  - [x] WriteTag：保留六模式表单与写卡状态机，升级 M3 外壳
+  - [x] 严格禁止实体写卡、修改写卡状态机、修改 MCReader、修改生产 DumpEditor 逻辑
+- [x] **Phase F：验收、回归测试与归档**
+  - [x] `testDebugUnitTest` 单元测试回归 (18/18 PASS)
+  - [x] `assembleDebug` 与 `assembleRelease` 构建验证 (BUILD SUCCESSFUL)
+  - [x] 产出 `UI2_DESIGN_SPEC.md`, `UI2_AUDIT.md`, `UI2_IMPLEMENTATION_REPORT.md`, `UI2_ACCEPTANCE.md`
+  - [x] 分阶段独立中文 Conventional Commits，确认 master 与 Tag 不可变，不推送远程，不发布 Release

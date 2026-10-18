@@ -729,3 +729,26 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 - JVM 18/18 PASS（强制重跑）；assembleDebug/Release + R8 优化构建均成功；APK 未签名未发布。
 - 结论 **PARTIAL**。详见 `docs/p15/P16_1_RELEASE_HARDENING_REPORT.md`。
 
+## 24. P16.2 MCT KernelSU 风格 UI 2.0 全应用视觉与交互重构结论
+
+- **设计规范与框架决策**：采纳方案 A（纯 Jetpack Compose Material 3 抽象 KernelSU 风格组件），避免引入 Miuix 造成的版本冲突、minSdk 破坏与库体积暴涨。产出 `docs/p16/UI2_DESIGN_SPEC.md` 与 `docs/p16/UI2_AUDIT.md`。
+- **色彩与层级突破**：消除暗色模式大面积平铺灰；引入深沉底色 `#0D1117`、浮层卡片 `#161B22`、1dp 精致边框 `#30363D` 与科技青强调色 `#38BDF8`；浅色模式采用冷灰白 `#F6F8FA` + 纯白卡片 `#FFFFFF`。
+- **语言与 Locale 脱节彻底根治**：
+  - 定位并修复 `Preferences.kt` 缺失“跟随系统”以及初次安装因默认索引 0 导致中文系统下错误显示 `English (en)` 的缺陷；
+  - 增加“跟随系统 (Follow System)”选项，双向联动 `AppCompatDelegate.getApplicationLocales()`；
+  - 严格保持与历史 SharedPreferences 索引兼容（写入 `0..6`，跟随系统写入 `-1`），绝不重置旧用户设置。
+- **离线帮助文档中文化与暗色自适应 (`HelpAndInfo`)**：
+  - 补齐全量简体中文离线文档 `assets/help/help_zh.html`，保留全部 8 大章节射频技术细节；
+  - 彻底淘汰 90 年代老旧 HTML 标签，为 `help_zh.html` 与 `help.html` 引入 `@media (prefers-color-scheme: dark)` 现代响应式 CSS；
+  - WebView 背景设为透明，彻底杜绝黑色界面切入时的白屏强光刺眼。
+- **核心页面现代化**：
+  - `Preferences`: 划分为日常使用、通信与显示 3 个 `MctSettingGroup`；全面改用 `Switch`；UID 显示格式改为 `MctSelectionDialog` 垂直单选弹窗，彻底解决水平排布折行截断痛点；
+  - `About`: 全新编写 Compose Material 3 对话框 `MctAboutDialog.kt`，卡片化展示许可证、版本号、原作者致敬与开源主页；
+  - `MainMenu`: 引入 Hero `MctStatusCard` 动态展示 NFC 状态，强化读写卡片视觉层级与防误触语义；
+  - `WriteTagShell`、`KeyEditor`、`DiffTool`、`CloneUid`、`TagInfo`、`UidLog`、`FileChooser`、`ImportExport`: 全面推广 UI 2.0 组件与 24dp 圆角弹窗，彻底清理 Kotlin 中 50 余处硬编码中文。
+- **质量与安全**：
+  - JVM 单元测试 18/18 PASS；
+  - Debug APK (`13,637,930` 字节) 与 Release APK (`9,089,931` 字节) 编译构建成功；
+  - 零实体写卡、零 UID 修改、MCReader 与写卡状态机零改动；
+  - 最终验收结论 **PARTIAL**。详见 `docs/p16/UI2_IMPLEMENTATION_REPORT.md` 与 `docs/p16/UI2_ACCEPTANCE.md`。
+
