@@ -532,5 +532,12 @@
     <string name="nfc_status_unsupported_title">设备不支持 MIFARE Classic</string>
     <string name="nfc_status_unsupported_desc">设备硬件缺少 MIFARE Classic 控制器支持</string>
     <string name="nfc_status_enable_button">去开启</string>
+    <string name="dialog_clear_uid_log">确定要清除所有 UID 日志吗？此操作无法撤销。</string>
+    <string name="dialog_delete_file">确定要删除文件 \"%1$s\" 吗？此操作无法撤销。</string>
+    <string name="text_file_name">文件名</string>
+    <string name="text_file_chooser_empty">点击右上角 + 按钮即可创建新文件</string>
+    <string name="text_dump_files">转储文件</string>
+    <string name="text_key_files">密钥文件</string>
+    <string name="text_choose_file_type">选择文件格式</string>
 
 </resources>

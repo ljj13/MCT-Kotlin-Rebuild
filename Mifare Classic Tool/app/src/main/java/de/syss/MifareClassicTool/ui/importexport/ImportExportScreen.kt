@@ -81,7 +81,7 @@ fun ImportExportScreen(
         ) {
             // 1. Dump Files
             MctSectionCard(
-                title = "转储文件 (Dump Files)",
+                title = stringResource(R.string.text_dump_files),
                 modifier = Modifier.testTag("card_dump_operations")
             ) {
                 Row(
@@ -112,7 +112,7 @@ fun ImportExportScreen(
 
             // 2. Key Files
             MctSectionCard(
-                title = "密钥文件 (Key Files)",
+                title = stringResource(R.string.text_key_files),
                 modifier = Modifier.testTag("card_key_operations")
             ) {
                 Row(
@@ -143,7 +143,7 @@ fun ImportExportScreen(
 
             // 3. Backup All
             MctSectionCard(
-                title = "数据备份归档 (Full Backup)",
+                title = stringResource(R.string.action_backup_all),
                 modifier = Modifier.testTag("card_backup_operations")
             ) {
                 OutlinedButton(
@@ -189,7 +189,9 @@ fun ImportExportScreen(
 
         AlertDialog(
             onDismissRequest = { showDumpFormatDialog = false },
-            title = { Text("选择转储文件格式") },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text(stringResource(R.string.text_choose_file_type), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     dumpFormats.forEach { (format, label) ->
@@ -201,8 +203,9 @@ fun ImportExportScreen(
                                     onImportDumpFormatSelected(format)
                                 }
                                 .testTag("format_dump_${format.name}"),
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.surfaceVariant
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                         ) {
                             Text(
                                 text = label,
@@ -232,7 +235,9 @@ fun ImportExportScreen(
 
         AlertDialog(
             onDismissRequest = { showKeysFormatDialog = false },
-            title = { Text("选择密钥文件格式") },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text(stringResource(R.string.text_choose_file_type), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     keyFormats.forEach { (format, label) ->

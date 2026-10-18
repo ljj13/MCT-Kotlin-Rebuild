@@ -213,9 +213,9 @@ fun KeyEditorScreen(
                     .fillMaxWidth()
                     .weight(1f)
                     .testTag("card_key_editor_content"),
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 1.dp
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
             ) {
                 AndroidView(
                     factory = { context ->
@@ -254,7 +254,9 @@ fun KeyEditorScreen(
             onDismissRequest = {
                 onStateChange(state.copy(showSaveDialog = false))
             },
-            title = { Text(stringResource(R.string.dialog_save_keys_title)) },
+            shape = RoundedCornerShape(24.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text(stringResource(R.string.dialog_save_keys_title), fontWeight = FontWeight.Bold) },
             text = {
                 Column {
                     Text(
@@ -269,6 +271,7 @@ fun KeyEditorScreen(
                         },
                         label = { Text("文件名") },
                         singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("input_save_file_name")
@@ -304,7 +307,9 @@ fun KeyEditorScreen(
             onDismissRequest = {
                 onStateChange(state.copy(showExitConfirmDialog = false))
             },
-            title = { Text(stringResource(R.string.dialog_save_before_quitting_title)) },
+            shape = RoundedCornerShape(24.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text(stringResource(R.string.dialog_save_before_quitting_title), fontWeight = FontWeight.Bold) },
             text = { Text(stringResource(R.string.dialog_save_before_quitting)) },
             confirmButton = {
                 TextButton(

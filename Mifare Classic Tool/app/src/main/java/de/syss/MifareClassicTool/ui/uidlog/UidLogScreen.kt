@@ -114,7 +114,7 @@ fun UidLogScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "扫描或靠近 NFC 标签时，芯片 UID 将自动按时间戳记录在此",
+                            text = stringResource(R.string.home_action_uid_log_desc),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                         )
@@ -184,7 +184,7 @@ fun UidLogScreen(
                                     )
                                 }
                                 Text(
-                                    text = "复制",
+                                    text = stringResource(R.string.text_copy),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -199,8 +199,16 @@ fun UidLogScreen(
     if (showClearConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showClearConfirmDialog = false },
-            title = { Text(stringResource(R.string.action_clear_logs)) },
-            text = { Text("确定要清除所有已记录的 UID 日志吗？此操作无法撤销。") },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = {
+                Text(
+                    text = stringResource(R.string.action_clear_logs),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+            },
+            text = { Text(stringResource(R.string.dialog_clear_uid_log)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -209,7 +217,11 @@ fun UidLogScreen(
                     },
                     modifier = Modifier.testTag("btn_confirm_clear")
                 ) {
-                    Text(text = stringResource(R.string.action_ok))
+                    Text(
+                        text = stringResource(R.string.action_ok),
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             dismissButton = {
@@ -217,7 +229,10 @@ fun UidLogScreen(
                     onClick = { showClearConfirmDialog = false },
                     modifier = Modifier.testTag("btn_cancel_clear")
                 ) {
-                    Text(text = stringResource(R.string.action_cancel))
+                    Text(
+                        text = stringResource(R.string.action_cancel),
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         )

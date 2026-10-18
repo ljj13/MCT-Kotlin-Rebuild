@@ -718,5 +718,12 @@
     <string name="nfc_status_unsupported_title">裝置不支援 MIFARE Classic</string>
     <string name="nfc_status_unsupported_desc">裝置硬體缺少 MIFARE Classic 控制晶片支援</string>
     <string name="nfc_status_enable_button">去開啟</string>
+    <string name="dialog_clear_uid_log">確定要清除所有 UID 記錄嗎？此操作無法撤銷。</string>
+    <string name="dialog_delete_file">確定要刪除檔案 \"%1$s\" 嗎？此操作無法撤銷。</string>
+    <string name="text_file_name">檔案名稱</string>
+    <string name="text_file_chooser_empty">點擊右上角 + 按鈕即可建立新檔案</string>
+    <string name="text_dump_files">傾印檔案</string>
+    <string name="text_key_files">金鑰檔案</string>
+    <string name="text_choose_file_type">選擇檔案格式</string>
 
 </resources>

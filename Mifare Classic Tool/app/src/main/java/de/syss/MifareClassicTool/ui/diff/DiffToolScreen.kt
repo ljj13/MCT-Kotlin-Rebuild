@@ -112,7 +112,7 @@ fun DiffToolScreen(
         ) {
             // 1. Dumps Selection and Options Panel
             MctSectionCard(
-                title = "转储文件选择与筛选",
+                title = stringResource(R.string.text_open_dump_title),
                 modifier = Modifier.testTag("card_dump_selection")
             ) {
                 Row(

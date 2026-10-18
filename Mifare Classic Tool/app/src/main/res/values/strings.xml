@@ -758,5 +758,12 @@
     <string name="nfc_status_unsupported_title">MIFARE Classic Unsupported</string>
     <string name="nfc_status_unsupported_desc">Device NFC hardware lacks MIFARE Classic support</string>
     <string name="nfc_status_enable_button">Settings</string>
+    <string name="dialog_clear_uid_log">Are you sure you want to clear all UID logs? This cannot be undone.</string>
+    <string name="dialog_delete_file">Are you sure you want to delete \"%1$s\"? This cannot be undone.</string>
+    <string name="text_file_name">File Name</string>
+    <string name="text_file_chooser_empty">Click the + button to create a new file</string>
+    <string name="text_dump_files">Dump Files</string>
+    <string name="text_key_files">Key Files</string>
+    <string name="text_choose_file_type">Choose File Format</string>
 
 </resources>

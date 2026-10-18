@@ -139,7 +139,7 @@ fun TagInfoScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "请贴附 MIFARE Classic 或 NFC 标签以读取芯片参数",
+                            text = stringResource(R.string.text_wait_read_tag),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                         )

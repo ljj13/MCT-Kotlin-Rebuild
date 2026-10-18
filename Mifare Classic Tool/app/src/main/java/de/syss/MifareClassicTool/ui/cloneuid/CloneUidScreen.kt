@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.syss.MifareClassicTool.R
 import de.syss.MifareClassicTool.ui.components.MctActionButton
+import de.syss.MifareClassicTool.ui.components.MctInfoCard
 import de.syss.MifareClassicTool.ui.components.MctSectionCard
 import de.syss.MifareClassicTool.ui.components.MctTopAppBar
 
@@ -110,21 +111,11 @@ fun CloneUidScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Notice Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("card_clone_notice"),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Text(
-                    text = stringResource(R.string.text_clone_uid_info),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(14.dp)
-                )
-            }
+            MctInfoCard(
+                text = stringResource(R.string.text_clone_uid_info),
+                isWarning = true,
+                modifier = Modifier.testTag("card_clone_notice")
+            )
 
             // 1. Target UID Input
             MctSectionCard(

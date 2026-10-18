@@ -170,7 +170,7 @@ fun FileChooserScreen(
                         if (state.allowNewFile) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "点击右上角 ➕ 按钮即可创建新文件",
+                                text = stringResource(R.string.text_file_chooser_empty),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                             )
@@ -276,14 +276,17 @@ fun FileChooserScreen(
                     OutlinedTextField(
                         value = newFileNameInput,
                         onValueChange = { newFileNameInput = it },
-                        label = { Text("文件名") },
+                        label = { Text(stringResource(R.string.text_file_name)) },
                         singleLine = true,
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("input_new_filename")
                     )
                 }
             },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -313,8 +316,16 @@ fun FileChooserScreen(
     if (showDeleteConfirmDialog && state.selectedFileName != null) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
-            title = { Text(stringResource(R.string.action_delete_file)) },
-            text = { Text("确定要删除文件 \"${state.selectedFileName}\" 吗？此操作无法撤销。") },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = {
+                Text(
+                    text = stringResource(R.string.action_delete_file),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+            },
+            text = { Text(stringResource(R.string.dialog_delete_file, state.selectedFileName)) },
             confirmButton = {
                 TextButton(
                     onClick = {
