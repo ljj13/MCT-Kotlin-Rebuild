@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -314,18 +315,18 @@ fun MainMenuScreen(
         MctAboutDialog(onDismissRequest = { showAboutDialog = false })
     }
 
-    // Tools Dialog (Listing all 9 sub-tools with KernelSU card styling)
+    // Tools Dialog (Listing all 9 sub-tools with unified vector icons and identical indentation)
     if (showToolsDialog) {
         val toolsList = listOf(
-            ToolItem(R.string.action_show_tag_info, R.drawable.tag_info, !isEditorOnly, "tool_tag_info", onTagInfoClick),
-            ToolItem(R.string.action_show_clone_uid, R.drawable.clone_uid, !isEditorOnly, "tool_clone_uid", onCloneUidClick),
+            ToolItem(R.string.action_show_tag_info, R.drawable.ic_tag_info, !isEditorOnly, "tool_tag_info", onTagInfoClick),
+            ToolItem(R.string.action_show_clone_uid, R.drawable.ic_clone_uid, !isEditorOnly, "tool_clone_uid", onCloneUidClick),
             ToolItem(R.string.action_show_diff_tool, R.drawable.ic_dump_edit, true, "tool_diff", onDiffToolClick),
-            ToolItem(R.string.action_show_ac_tool, R.drawable.access_condition_tool, true, "tool_ac", onAccessConditionToolClick),
-            ToolItem(R.string.action_show_vb_tool, R.drawable.value_block_tool, true, "tool_vb", onValueBlockToolClick),
-            ToolItem(R.string.action_show_bcc_tool, R.drawable.ic_toolbox, true, "tool_bcc", onBccToolClick),
-            ToolItem(R.string.action_show_data_conversion_tool, null, true, "tool_data_conversion", onDataConversionToolClick),
-            ToolItem(R.string.action_show_uid_log_tool, null, true, "tool_uid_log", onUidLogToolClick),
-            ToolItem(R.string.action_show_import_export_tool, null, true, "tool_import_export", onImportExportToolClick)
+            ToolItem(R.string.action_show_ac_tool, R.drawable.ic_access_condition, true, "tool_ac", onAccessConditionToolClick),
+            ToolItem(R.string.action_show_vb_tool, R.drawable.ic_value_block, true, "tool_vb", onValueBlockToolClick),
+            ToolItem(R.string.action_show_bcc_tool, R.drawable.ic_bcc_calc, true, "tool_bcc", onBccToolClick),
+            ToolItem(R.string.action_show_data_conversion_tool, R.drawable.ic_data_conversion, true, "tool_data_conversion", onDataConversionToolClick),
+            ToolItem(R.string.action_show_uid_log_tool, R.drawable.ic_uid_log, true, "tool_uid_log", onUidLogToolClick),
+            ToolItem(R.string.action_show_import_export_tool, R.drawable.ic_import_export, true, "tool_import_export", onImportExportToolClick)
         )
 
         AlertDialog(
@@ -371,21 +372,38 @@ fun MainMenuScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                if (item.iconRes != null) {
-                                    Image(
-                                        painter = painterResource(item.iconRes),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp),
-                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                                    )
-                                    Spacer(modifier = Modifier.width(14.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(34.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(
+                                            if (item.isEnabled) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+                                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (item.iconRes != null) {
+                                        Image(
+                                            painter = painterResource(item.iconRes),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(20.dp),
+                                            colorFilter = ColorFilter.tint(
+                                                if (item.isEnabled) MaterialTheme.colorScheme.primary
+                                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                            )
+                                        )
+                                    }
                                 }
+                                Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = stringResource(item.titleRes),
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium
+                                    ),
                                     color = if (item.isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                 )
                             }
@@ -413,7 +431,7 @@ private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third:
 
 /**
  * Compact horizontal module card inspired by KernelSU Manager.
- * Replaces oversized empty cards with an ergonomic 2-column horizontal layout.
+ * Features an ergonomic horizontal flow, responsive text wrapping, and zero empty void.
  */
 @Composable
 private fun MainActionCard(
@@ -426,13 +444,13 @@ private fun MainActionCard(
     accentColor: Color? = null,
     onClick: () -> Unit
 ) {
-    val cardHeight = if (subtitle != null) 74.dp else 62.dp
+    val cardMinHeight = if (subtitle != null) 74.dp else 58.dp
     val iconSize = if (subtitle != null) 36.dp else 32.dp
     val iconInnerSize = if (subtitle != null) 20.dp else 18.dp
 
     Surface(
         modifier = modifier
-            .height(cardHeight)
+            .defaultMinSize(minHeight = cardMinHeight)
             .clickable(
                 enabled = enabled,
                 role = Role.Button,
@@ -453,8 +471,8 @@ private fun MainActionCard(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 10.dp, vertical = 6.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -486,20 +504,23 @@ private fun MainActionCard(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 13.sp
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.5.sp
                     ),
                     color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 if (!subtitle.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.height(1.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 10.5.sp,
+                            lineHeight = 13.5.sp
+                        ),
                         color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
