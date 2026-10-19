@@ -192,7 +192,7 @@ fun CloneUidScreen(
                                 val filtered = it.filter { c -> c.isDigit() || (c in 'a'..'f') || (c in 'A'..'F') }.uppercase()
                                 onStateChange(state.copy(block0RestInput = filtered))
                             },
-                            label = { Text("Block 0 剩余字节数据") },
+                            label = { Text(stringResource(R.string.dialog_rest_of_block_0_title)) },
                             placeholder = { Text("080400475955D141103607") },
                             singleLine = true,
                             trailingIcon = {
@@ -221,7 +221,7 @@ fun CloneUidScreen(
                                     onStateChange(state.copy(writeKeyInput = filtered))
                                 }
                             },
-                            label = { Text("写入密钥 (6 字节 Hex)") },
+                            label = { Text(stringResource(R.string.dialog_key_for_block_0_title)) },
                             placeholder = { Text("FFFFFFFFFFFF") },
                             singleLine = true,
                             trailingIcon = {

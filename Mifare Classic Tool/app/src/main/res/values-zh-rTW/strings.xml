@@ -229,6 +229,7 @@
         讀取標籤</string>
     <string name="action_help">說明與資訊</string>
     <string name="action_editor_only">「離線」模式</string>
+    <string name="write_tag_safety_notice">寫入可能覆蓋標籤原有資料，請使用專用測試卡，並提前備份。</string>
     <string name="action_ok">確定</string>
     <string name="action_cancel">取消</string>
     <string name="action_choose_file">選擇此檔案</string>
@@ -689,12 +690,17 @@
     <string name="about_section_opensource">開源專案</string>
     <string name="about_section_help_support">說明與支援</string>
     <string name="about_upstream_title">上游原始專案</string>
-    <string name="about_upstream_author">原作者：Gerhard Klostermeier</string>
+    <string name="about_upstream_author">原作者：Gerhard Klostermeier (v4.3.1)</string>
     <string name="about_fork_title">Kotlin 現代化重構專案</string>
     <string name="about_fork_desc">基於 Kotlin + Jetpack Compose 的 UI 2.0 現代重構版</string>
     <string name="about_license_title">開源許可證</string>
     <string name="about_license_desc">GNU 通用公共許可證 v3.0 (GPLv3)</string>
     <string name="about_github_title">GitHub 原始碼倉庫</string>
+    <string name="about_fork_repo_title">目前重構倉庫 (Fork GitHub)</string>
+    <string name="about_upstream_repo_title">上游原版倉庫 (ikarus23 / v4.3.1)</string>
+    <string name="about_fork_issues_title">Fork 問題回報與建議</string>
+    <string name="about_upstream_changelog_title">上游更新記錄 (v4.3.1)</string>
+    <string name="about_upstream_release_title">上游 Release 標籤 (4.3.1)</string>
     <string name="about_issues_title">問題回報與 Bug 提交</string>
     <string name="about_changelog_title">更新記錄與歷史版本</string>
     <string name="about_docs_title">使用說明與 Proxmark 社群</string>

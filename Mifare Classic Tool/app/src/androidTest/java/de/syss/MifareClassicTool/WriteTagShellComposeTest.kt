@@ -37,7 +37,9 @@ class WriteTagShellComposeTest {
             .assertIsDisplayed()
             .performClick()
         assertEquals(1, backClicks)
+        val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        val expectedNotice = context.getString(R.string.write_tag_safety_notice)
         composeTestRule.onNodeWithTag("write_tag_safety_notice")
-            .assertTextContains("Writing may overwrite existing data")
+            .assertTextContains(expectedNotice)
     }
 }
