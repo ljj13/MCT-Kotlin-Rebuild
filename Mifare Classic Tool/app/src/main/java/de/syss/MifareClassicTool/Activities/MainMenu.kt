@@ -53,6 +53,7 @@ import de.syss.MifareClassicTool.Common
 import de.syss.MifareClassicTool.R
 import de.syss.MifareClassicTool.ui.main.MainMenuScreen
 import de.syss.MifareClassicTool.ui.main.MctAboutDialog
+import de.syss.MifareClassicTool.ui.main.MctNfcEnableDialog
 import de.syss.MifareClassicTool.ui.main.NfcHardwareState
 import de.syss.MifareClassicTool.ui.theme.MctTheme
 import java.io.File
@@ -92,6 +93,7 @@ class MainMenu : AppCompatActivity() {
     private val mIsEditorOnlyState = mutableStateOf(false)
     private val mNfcState = mutableStateOf(NfcHardwareState.Ready)
     private val mShowAboutDialogState = mutableStateOf(false)
+    private val mShowNfcEnableDialogState = mutableStateOf(false)
 
     /**
      * Nodes (states) MCT passes through during its startup.
@@ -147,6 +149,24 @@ class MainMenu : AppCompatActivity() {
                     onUidLogToolClick = { startActivity(Intent(this, UidLogTool::class.java)) },
                     onImportExportToolClick = { startActivity(Intent(this, ImportExportTool::class.java)) }
                 )
+
+                if (mShowNfcEnableDialogState.value) {
+                    MctNfcEnableDialog(
+                        onGoToSettings = {
+                            mShowNfcEnableDialogState.value = false
+                            startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
+                        },
+                        onUseEditorOnly = {
+                            mShowNfcEnableDialogState.value = false
+                            useAsEditorOnly(true)
+                            runStartUpNode(StartUpNode.DonateDialog)
+                        },
+                        onExitApp = {
+                            mShowNfcEnableDialogState.value = false
+                            finish()
+                        }
+                    )
+                }
             }
         }
 
@@ -207,7 +227,7 @@ class MainMenu : AppCompatActivity() {
                 val nfcAdapter = Common.getNfcAdapter()
                 if (nfcAdapter == null || !nfcAdapter.isEnabled) {
                     if (!Common.useAsEditorOnly()) {
-                        createNfcEnableDialog().show()
+                        mShowNfcEnableDialogState.value = true
                     } else {
                         runStartUpNode(StartUpNode.DonateDialog)
                     }
