@@ -767,5 +767,14 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 - **NFC 未开启弹窗现代化**：废除旧式系统级白色弹窗，以 `MctTheme` 为基准重构 24dp 圆角 `MctNfcEnableDialog`，100% 保持原有三种操作（转到设置/离线模式/退出应用）语义与状态机流转。
 - **交付物**：Debug APK (13,639,605 字节，已签名可直接安装)，Release APK (9,102,691 字节，未签名)。详见 `docs/p16/P16_4_FEEDBACK_FIXES_REPORT.md`。
 
+## 27. P16.5 MCT UI 2.0 实机反馈精修（四项定点修复）结论
+
+- **WriteTag 警告中文化**：补全 `write_tag_safety_notice` 中文与繁体资源；修改测试动态读取资源；消除 `CloneUidScreen` 中残留的硬编码。
+- **工具箱图标完整性**：为数据转换、UID 日志、导入导出等 8 项工具建立标准矢量 Drawable（`<vector>`），彻底消除 null 图标缺陷，实现全工具统一 34dp 容器与左对齐缩进。
+- **About 仓库链接修正**：经 `git remote -v` 核实当前 Fork 仓库 `https://github.com/ljj13/MCT-Kotlin-Rebuild`；清晰区分当前重构项目与上游 v4.3.1 原版（ikarus23），准确提供 Release/Changelog 链接。
+- **MainMenu 核心卡片空间优化**：重构 `MainActionCard` 自适应最小高度（74dp/58dp），副标题支持 2 行自然换行，卡片间距 10dp，空间紧凑饱满，彻底杜绝文字截断与偏宽空白。
+- **交付物**：Debug APK (13,644,272 字节，已签名可直接安装)，Release APK (9,112,136 字节，未签名)。详见 `docs/p16/P16_5_TARGETED_FIXES_REPORT.md`。
+
+
 
 

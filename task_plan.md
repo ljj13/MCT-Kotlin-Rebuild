@@ -208,3 +208,10 @@
 - [x] **设置页 UI 精修**：设置行内边距缩减至 9dp，长中文标题拆分为“短标题+副说明”，Switch 独立垂直居中，彻底消除 360dp 窄屏长标题折行挤压痛点
 - [x] **NFC 未开启弹窗现代化**：废除旧式白色平台弹窗，基于 MctTheme 重建 24dp 圆角 MctNfcEnableDialog，保留转到设置、离线模式、退出三种原有业务语义
 - [x] **测试与构建度量**：JVM 单元测试 24/24 PASS，Debug APK (13,639,605 字节，已签名)，Release APK (9,102,691 字节，未签名)，产出 `docs/p16/P16_4_FEEDBACK_FIXES_REPORT.md`
+
+### 阶段 20：P16.5 MCT UI 2.0 实机反馈精修（四项定点修复） [complete]
+- [x] **WriteTag 安全警告中文化**：补全 `write_tag_safety_notice` 中文（“写入可能覆盖卡片原有数据，请使用专用测试卡，并提前备份。”）及繁体资源，清理 CloneUidScreen 硬编码，动态适配 Compose 测试
+- [x] **工具箱图标完整性修复**：为数据转换、UID日志、导入导出等 8 个工具建立专属矢量图形（ic_*.xml），统一 34dp squircle 图标容器与完全一致的左侧缩进对齐
+- [x] **About 页面链接修正**：经 `git remote -v` 准确核实 Fork 仓库地址（`https://github.com/ljj13/MCT-Kotlin-Rebuild`），明确划分当前 Fork 现代化版本与上游 v4.3.1 原始项目及标签
+- [x] **MainMenu 核心读写卡片尺寸与排版优化**：重构 MainActionCard 自适应最小高度（74dp/58dp），subtitle 支持 2 行自然换行防截断，卡片间距 10dp，空间利用紧凑饱满
+- [x] **测试与交付度量**：JVM 单元测试 24/24 PASS，Debug APK (13,644,272 字节，已签名)，Release APK (9,112,136 字节，未签名)，产出 `docs/p16/P16_5_TARGETED_FIXES_REPORT.md`

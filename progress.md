@@ -59,3 +59,4 @@
 | 2026-10-18 | P16.2 UI2.0 | KernelSU 风格 UI 2.0 全应用视觉与交互重构 + 语言/暗色缺陷彻底治理 | 完成 | 采纳方案 A；解决语言脱节；补全中文离线帮助与深色 CSS；现代化 About/MainMenu/Preferences；结论 PARTIAL |
 | 2026-10-19 | P16.3 收口 | UI 2.0 离线质量收口 + 语言单元测试补齐 + 人工验收 APK 准备 | 完成 | 抽离 LanguageHelper；JVM 测试 24/24 PASS；产物度量与隔离验证通过；产出 `P16_3_FINAL_REPORT.md` |
 | 2026-10-19 | P16.4 精修 | P0 修复 About 闪退 + 首页紧凑模块/矢量图 + 设置页长标题折行修复 + NFC 弹窗 M3 | 完成 | 根因 AdaptiveIcon 修复；空白缩减 100dp；7 个矢量图；NFC M3 弹窗；产出 `P16_4_FEEDBACK_FIXES_REPORT.md` |
+| 2026-10-19 | P16.5 四项修复 | WriteTag警告中文化 + 工具箱全量矢量图 + About链接修正 + 读写卡片自适应 | 完成 | 补全中文化资源；补齐8个矢量图；区分Fork与上游；自适应防截断；产出 `P16_5_TARGETED_FIXES_REPORT.md` |
