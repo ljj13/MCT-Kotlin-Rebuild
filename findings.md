@@ -759,4 +759,13 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 - **Release 隔离与 R8 实测**：实测 Release Merged Manifest 排除 `DumpEditorPrototype`；R8 保持 DEFERRED（未签名 Release APK 9,090,507 字节；Debug APK 13,637,930 字节）。
 - **人工验收交付物**：提供完整 SHA-256 与签名说明（Debug 已签名可装，Release 未签名不可装），详见 `docs/p16/P16_3_FINAL_REPORT.md`。
 
+## 26. P16.4 MCT UI 2.0 实机反馈修复与 KernelSU 风格精修结论
+
+- **P0 关于闪退根因与修复**：定位于 `MctAboutDialog` 中直接使用 `painterResource(R.mipmap.ic_launcher)` 解析 API 26+ `<adaptive-icon>` XML 抛出 `XmlPullParserException`。修复为加载标准 PNG 光栅图 `R.drawable.ic_launcher_logo`，并在 `MainMenuComposeTest` 中补充打开、关闭与再次打开的回归测试。
+- **首页精修**：重构 `MainActionCard` 为横向模块流，读写卡片高度降至 74dp，次级卡片降至 62dp，纵向空白削减逾 100dp，首页核心入口完全自适应一屏呈现；建立 7 个全新标准矢量图形（`<vector>`）彻底淘汰 2013 年原版模糊旧图。
+- **设置页精修**：设置项上下内边距降至 9dp，长复合标题拆分为“短标题+副说明”，Switch 独立垂直居中，右侧无障碍触控区域完整保留，360dp 窄屏长标题折行挤压痛点彻底根除。
+- **NFC 未开启弹窗现代化**：废除旧式系统级白色弹窗，以 `MctTheme` 为基准重构 24dp 圆角 `MctNfcEnableDialog`，100% 保持原有三种操作（转到设置/离线模式/退出应用）语义与状态机流转。
+- **交付物**：Debug APK (13,639,605 字节，已签名可直接安装)，Release APK (9,102,691 字节，未签名)。详见 `docs/p16/P16_4_FEEDBACK_FIXES_REPORT.md`。
+
+
 

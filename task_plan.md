@@ -201,3 +201,10 @@
 - [x] **发布构建与清单隔离核验**：实测 Release Merged Manifest 排除 DumpEditorPrototype，核实 R8 保持 DEFERRED
 - [x] **产物体积与哈希度量**：Debug APK (13,637,930 字节，已签名可直接装)，Release APK (9,090,507 字节，未签名)
 - [x] **交付报告**：产出 `docs/p16/P16_3_FINAL_REPORT.md`，master 与基线 Tag 不变，不推送不发布
+
+### 阶段 19：P16.4 MCT UI 2.0 实机反馈修复与 KernelSU 风格精修 [complete]
+- [x] **P0 修复 About 按钮闪退**：排查定位自适应图标 AdaptiveIconDrawable 在 Compose painterResource 抛出 XmlPullParserException 的根因，通过光栅化 PNG 资源与安全链接拉起彻底修复，补充打开/关闭/重开回归测试
+- [x] **首页 UI 精修**：重构 MainActionCard 为紧凑横向模块卡片（读写高度 74dp，次级 62dp），纵向空白削减逾 100dp，新增 7 个标准矢量图形（ic_*.xml）淘汰模糊旧图
+- [x] **设置页 UI 精修**：设置行内边距缩减至 9dp，长中文标题拆分为“短标题+副说明”，Switch 独立垂直居中，彻底消除 360dp 窄屏长标题折行挤压痛点
+- [x] **NFC 未开启弹窗现代化**：废除旧式白色平台弹窗，基于 MctTheme 重建 24dp 圆角 MctNfcEnableDialog，保留转到设置、离线模式、退出三种原有业务语义
+- [x] **测试与构建度量**：JVM 单元测试 24/24 PASS，Debug APK (13,639,605 字节，已签名)，Release APK (9,102,691 字节，未签名)，产出 `docs/p16/P16_4_FEEDBACK_FIXES_REPORT.md`
