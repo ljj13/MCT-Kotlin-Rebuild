@@ -744,8 +744,8 @@
     <string name="about_changelog_title">Changelog &amp; Releases</string>
     <string name="about_docs_title">Documentation &amp; Community</string>
     <string name="about_disclaimer">MIFARE is a registered trademark of NXP Semiconductors.</string>
-    <string name="home_action_read_tag_desc">Read Mifare Classic tag sectors</string>
-    <string name="home_action_write_tag_desc">Write blocks, dump or clone tag</string>
+    <string name="home_action_read_tag_desc">Authenticate &amp; read dump</string>
+    <string name="home_action_write_tag_desc">Write, clone or format</string>
     <string name="home_group_manage">Dump &amp; Key Management</string>
     <string name="home_group_tools">Toolbox &amp; Help</string>
     <string name="home_action_open_tools">Toolbox</string>

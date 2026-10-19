@@ -519,8 +519,8 @@
     <string name="about_changelog_title">更新日志与历史版本</string>
     <string name="about_docs_title">使用文档与 Proxmark 社区</string>
     <string name="about_disclaimer">MIFARE 是 NXP Semiconductors 的注册商标。</string>
-    <string name="home_action_read_tag_desc">认证并读取标签转储</string>
-    <string name="home_action_write_tag_desc">写块、克隆或格式化</string>
+    <string name="home_action_read_tag_desc">认证并读取转储</string>
+    <string name="home_action_write_tag_desc">写入、克隆或格式化</string>
     <string name="home_group_manage">文件与转储管理</string>
     <string name="home_group_tools">工具箱与帮助</string>
     <string name="home_action_open_tools">工具箱</string>

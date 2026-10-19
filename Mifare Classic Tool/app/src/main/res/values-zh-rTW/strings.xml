@@ -705,8 +705,8 @@
     <string name="about_changelog_title">更新記錄與歷史版本</string>
     <string name="about_docs_title">使用說明與 Proxmark 社群</string>
     <string name="about_disclaimer">MIFARE 是 NXP Semiconductors 的註冊商標。</string>
-    <string name="home_action_read_tag_desc">認證並讀取標籤傾印</string>
-    <string name="home_action_write_tag_desc">寫入區塊、克隆或格式化</string>
+    <string name="home_action_read_tag_desc">認證並讀取傾印</string>
+    <string name="home_action_write_tag_desc">寫入、克隆或格式化</string>
     <string name="home_group_manage">檔案與傾印管理</string>
     <string name="home_group_tools">工具箱與說明</string>
     <string name="home_action_open_tools">工具箱</string>

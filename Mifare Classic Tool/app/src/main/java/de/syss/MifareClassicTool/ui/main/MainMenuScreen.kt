@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,6 +59,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.syss.MifareClassicTool.R
 import de.syss.MifareClassicTool.ui.components.MctSectionHeader
+import de.syss.MifareClassicTool.ui.components.MctSettingGroup
+import de.syss.MifareClassicTool.ui.components.MctSettingItem
 import de.syss.MifareClassicTool.ui.components.MctStatusCard
 
 enum class NfcHardwareState {
@@ -207,13 +210,13 @@ fun MainMenuScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 2. Core NFC Operations (Read & Write with Clear Visual Hierarchy)
+            // 2. Core NFC Operations (Vertical-Centered Cards, No Squeezed Horizontal Wrapping)
             MctSectionHeader(title = stringResource(R.string.text_rf_tech))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                MainActionCard(
+                CoreActionCard(
                     title = stringResource(R.string.action_read_tag),
                     subtitle = stringResource(R.string.home_action_read_tag_desc),
                     icon = painterResource(R.drawable.ic_nfc_scan),
@@ -224,7 +227,7 @@ fun MainMenuScreen(
                     accentColor = MaterialTheme.colorScheme.primary
                 )
 
-                MainActionCard(
+                CoreActionCard(
                     title = stringResource(R.string.action_write_tag),
                     subtitle = stringResource(R.string.home_action_write_tag_desc),
                     icon = painterResource(R.drawable.ic_nfc_write),
@@ -238,44 +241,41 @@ fun MainMenuScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 3. Editors & Management (Dump & Keys)
-            MctSectionHeader(title = stringResource(R.string.home_group_manage))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            // 3. File Management (Single-Column Grouped List, Zero Ellipsis Truncation)
+            MctSettingGroup(
+                title = stringResource(R.string.home_group_manage),
+                modifier = Modifier.testTag("group_file_management")
             ) {
-                MainActionCard(
+                MctSettingItem(
                     title = stringResource(R.string.action_edit_tag_dump),
-                    subtitle = null,
                     icon = painterResource(R.drawable.ic_dump_edit),
-                    enabled = true,
-                    modifier = Modifier.weight(1f),
-                    testTag = "btn_edit_dump",
-                    onClick = onOpenTagDumpEditorClick
+                    onClick = onOpenTagDumpEditorClick,
+                    testTag = "btn_edit_dump"
                 )
 
-                MainActionCard(
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+                )
+
+                MctSettingItem(
                     title = stringResource(R.string.action_edit_key_dump),
-                    subtitle = null,
                     icon = painterResource(R.drawable.ic_key_edit),
-                    enabled = true,
-                    modifier = Modifier.weight(1f),
-                    testTag = "btn_edit_keys",
-                    onClick = onOpenKeyEditorClick
+                    onClick = onOpenKeyEditorClick,
+                    testTag = "btn_edit_keys"
                 )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 4. Tools & Help
+            // 4. Tools & Help (Compact 2-Column Row)
             MctSectionHeader(title = stringResource(R.string.home_group_tools))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                MainActionCard(
+                SecondaryActionCard(
                     title = stringResource(R.string.action_tools),
-                    subtitle = null,
                     icon = painterResource(R.drawable.ic_toolbox),
                     enabled = true,
                     modifier = Modifier.weight(1f),
@@ -283,9 +283,8 @@ fun MainMenuScreen(
                     onClick = { showToolsDialog = true }
                 )
 
-                MainActionCard(
+                SecondaryActionCard(
                     title = stringResource(R.string.action_help),
-                    subtitle = null,
                     icon = painterResource(R.drawable.ic_help_info),
                     enabled = true,
                     modifier = Modifier.weight(1f),
@@ -294,7 +293,7 @@ fun MainMenuScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // 5. App Footer Info
             Text(
@@ -430,13 +429,13 @@ fun MainMenuScreen(
 private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
 /**
- * Compact horizontal module card inspired by KernelSU Manager.
- * Features an ergonomic horizontal flow, responsive text wrapping, and zero empty void.
+ * Centered vertical 2-column card for primary Read/Write NFC operations.
+ * Solves horizontal text squeezing on 2-column layouts while keeping clean visual prominence.
  */
 @Composable
-private fun MainActionCard(
+private fun CoreActionCard(
     title: String,
-    subtitle: String?,
+    subtitle: String,
     icon: Painter,
     enabled: Boolean,
     modifier: Modifier = Modifier,
@@ -444,13 +443,97 @@ private fun MainActionCard(
     accentColor: Color? = null,
     onClick: () -> Unit
 ) {
-    val cardMinHeight = if (subtitle != null) 74.dp else 58.dp
-    val iconSize = if (subtitle != null) 36.dp else 32.dp
-    val iconInnerSize = if (subtitle != null) 20.dp else 18.dp
-
     Surface(
         modifier = modifier
-            .defaultMinSize(minHeight = cardMinHeight)
+            .defaultMinSize(minHeight = 104.dp)
+            .clickable(
+                enabled = enabled,
+                role = Role.Button,
+                onClickLabel = title,
+                onClick = onClick
+            )
+            .testTag(testTag)
+            .semantics {
+                contentDescription = "$title, $subtitle"
+            },
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            1.dp,
+            if (enabled && accentColor != null) accentColor.copy(alpha = 0.45f)
+            else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(
+                        if (enabled && accentColor != null) accentColor.copy(alpha = 0.14f)
+                        else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    colorFilter = ColorFilter.tint(
+                        if (enabled && accentColor != null) accentColor
+                        else if (enabled) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                ),
+                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp
+                ),
+                color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+/**
+ * Compact horizontal card for secondary tools (Toolbox & Help).
+ */
+@Composable
+private fun SecondaryActionCard(
+    title: String,
+    icon: Painter,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    testTag: String = "",
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier
+            .defaultMinSize(minHeight = 58.dp)
             .clickable(
                 enabled = enabled,
                 role = Role.Button,
@@ -463,68 +546,42 @@ private fun MainActionCard(
             },
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(
-            1.dp,
-            if (enabled && accentColor != null) accentColor.copy(alpha = 0.45f)
-            else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-        )
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(iconSize)
-                    .clip(RoundedCornerShape(9.dp))
-                    .background(
-                        if (enabled && accentColor != null) accentColor.copy(alpha = 0.14f)
-                        else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
-                    ),
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(iconInnerSize),
+                    modifier = Modifier.size(18.dp),
                     colorFilter = ColorFilter.tint(
-                        if (enabled && accentColor != null) accentColor
-                        else if (enabled) MaterialTheme.colorScheme.primary
+                        if (enabled) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
                     )
                 )
             }
-            Spacer(modifier = Modifier.width(9.dp))
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.5.sp
-                    ),
-                    color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (!subtitle.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 10.5.sp,
-                            lineHeight = 13.5.sp
-                        ),
-                        color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.5.sp
+                ),
+                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
