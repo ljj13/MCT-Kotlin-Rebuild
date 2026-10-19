@@ -6,7 +6,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,7 +24,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -109,7 +107,7 @@ fun MctAboutDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Section 1: Application Info
+                // Section 1: Application Info (Clear distinction: Fork vs Upstream)
                 MctSectionHeader(title = stringResource(R.string.about_section_app_info))
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -118,6 +116,15 @@ fun MctAboutDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
+                        AboutInfoRow(
+                            label = stringResource(R.string.about_fork_title),
+                            value = "MCT Kotlin / UI 2.0 (Fork)",
+                            onClick = { openUrl("https://github.com/ljj13/MCT-Kotlin-Rebuild") }
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                        )
                         AboutInfoRow(
                             label = stringResource(R.string.about_upstream_title),
                             value = stringResource(R.string.about_upstream_author),
@@ -137,7 +144,7 @@ fun MctAboutDialog(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Section 2: Open Source Links
+                // Section 2: Open Source Links (Clearly distinguished Fork vs Upstream)
                 MctSectionHeader(title = stringResource(R.string.about_section_opensource))
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -147,7 +154,23 @@ fun MctAboutDialog(
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         AboutLinkRow(
-                            title = stringResource(R.string.about_github_title),
+                            title = stringResource(R.string.about_fork_repo_title),
+                            onClick = { openUrl("https://github.com/ljj13/MCT-Kotlin-Rebuild") }
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                        )
+                        AboutLinkRow(
+                            title = stringResource(R.string.about_fork_issues_title),
+                            onClick = { openUrl("https://github.com/ljj13/MCT-Kotlin-Rebuild/issues") }
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                        )
+                        AboutLinkRow(
+                            title = stringResource(R.string.about_upstream_repo_title),
                             onClick = { openUrl("https://github.com/ikarus23/MifareClassicTool") }
                         )
                         HorizontalDivider(
@@ -155,15 +178,15 @@ fun MctAboutDialog(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                         )
                         AboutLinkRow(
-                            title = stringResource(R.string.about_issues_title),
-                            onClick = { openUrl("https://github.com/ikarus23/MifareClassicTool/issues") }
+                            title = stringResource(R.string.about_upstream_release_title),
+                            onClick = { openUrl("https://github.com/ikarus23/MifareClassicTool/tree/4.3.1") }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 8.dp),
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                         )
                         AboutLinkRow(
-                            title = stringResource(R.string.about_changelog_title),
+                            title = stringResource(R.string.about_upstream_changelog_title),
                             onClick = { openUrl("https://raw.github.com/ikarus23/MifareClassicTool/master/CHANGELOG.txt") }
                         )
                         HorizontalDivider(

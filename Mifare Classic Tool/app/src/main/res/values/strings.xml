@@ -735,6 +735,11 @@
     <string name="about_license_title">License</string>
     <string name="about_license_desc">GNU General Public License v3.0 (GPLv3)</string>
     <string name="about_github_title">GitHub Repository</string>
+    <string name="about_fork_repo_title">MCT Kotlin / UI 2.0 (Fork GitHub)</string>
+    <string name="about_upstream_repo_title">Original MCT (ikarus23 / v4.3.1)</string>
+    <string name="about_fork_issues_title">Fork Issue Tracker &amp; Feedback</string>
+    <string name="about_upstream_changelog_title">Upstream Changelog (v4.3.1)</string>
+    <string name="about_upstream_release_title">Upstream Release Tag (4.3.1)</string>
     <string name="about_issues_title">Bug Tracker &amp; Issues</string>
     <string name="about_changelog_title">Changelog &amp; Releases</string>
     <string name="about_docs_title">Documentation &amp; Community</string>
