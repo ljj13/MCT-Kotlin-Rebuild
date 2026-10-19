@@ -147,10 +147,6 @@ class MainMenu : AppCompatActivity() {
                     onUidLogToolClick = { startActivity(Intent(this, UidLogTool::class.java)) },
                     onImportExportToolClick = { startActivity(Intent(this, ImportExportTool::class.java)) }
                 )
-
-                if (mShowAboutDialogState.value) {
-                    MctAboutDialog(onDismissRequest = { mShowAboutDialogState.value = false })
-                }
             }
         }
 

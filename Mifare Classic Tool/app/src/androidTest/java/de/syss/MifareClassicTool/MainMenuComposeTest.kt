@@ -103,4 +103,49 @@ class MainMenuComposeTest {
         composeTestRule.onNodeWithTag("btn_close_tools").performClick()
         composeTestRule.onNodeWithTag("btn_tools").assertIsDisplayed()
     }
+
+    @Test
+    fun testAboutDialogOpensAndClosesAndReopens() {
+        composeTestRule.setContent {
+            MctTheme {
+                MainMenuScreen(
+                    versionCode = "4.3.1",
+                    isEditorOnly = false,
+                    nfcState = NfcHardwareState.Ready,
+                    onReadTagClick = {},
+                    onWriteTagClick = {},
+                    onOpenTagDumpEditorClick = {},
+                    onOpenKeyEditorClick = {},
+                    onHelpClick = {},
+                    onPreferencesClick = {},
+                    onAboutClick = {},
+                    onEnableNfcClick = {},
+                    onTagInfoClick = {},
+                    onCloneUidClick = {},
+                    onDiffToolClick = {},
+                    onAccessConditionToolClick = {},
+                    onValueBlockToolClick = {},
+                    onBccToolClick = {},
+                    onDataConversionToolClick = {},
+                    onUidLogToolClick = {},
+                    onImportExportToolClick = {}
+                )
+            }
+        }
+
+        // 1. Initial click opens About dialog
+        composeTestRule.onNodeWithTag("btn_about").performClick()
+        composeTestRule.onNodeWithTag("dialog_about").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("btn_about_close").assertIsDisplayed()
+
+        // 2. Click OK closes About dialog
+        composeTestRule.onNodeWithTag("btn_about_close").performClick()
+        composeTestRule.onNodeWithTag("dialog_about").assertDoesNotExist()
+
+        // 3. Repeated click reopens About dialog safely without crash
+        composeTestRule.onNodeWithTag("btn_about").performClick()
+        composeTestRule.onNodeWithTag("dialog_about").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("btn_about_close").performClick()
+        composeTestRule.onNodeWithTag("dialog_about").assertDoesNotExist()
+    }
 }

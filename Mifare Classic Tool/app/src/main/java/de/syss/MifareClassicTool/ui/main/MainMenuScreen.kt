@@ -127,7 +127,10 @@ fun MainMenuScreen(
                         )
                     }
                     IconButton(
-                        onClick = { showAboutDialog = true },
+                        onClick = {
+                            showAboutDialog = true
+                            onAboutClick()
+                        },
                         modifier = Modifier
                             .testTag("btn_about")
                             .semantics {

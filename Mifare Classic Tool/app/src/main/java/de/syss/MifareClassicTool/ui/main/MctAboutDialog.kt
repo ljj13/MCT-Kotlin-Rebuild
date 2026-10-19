@@ -49,7 +49,9 @@ fun MctAboutDialog(
     val context = LocalContext.current
     val openUrl = { url: String ->
         try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
             context.startActivity(intent)
         } catch (_: Exception) {}
     }
@@ -70,8 +72,9 @@ fun MctAboutDialog(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // App Icon & Title Header
+                // Use R.drawable.ic_launcher_logo (raster PNG) to avoid AdaptiveIconDrawable XML crash in painterResource
                 Image(
-                    painter = painterResource(R.mipmap.ic_launcher),
+                    painter = painterResource(R.drawable.ic_launcher_logo),
                     contentDescription = null,
                     modifier = Modifier
                         .size(56.dp)
@@ -89,7 +92,7 @@ fun MctAboutDialog(
                 )
 
                 Text(
-                    text = "v4.3.1 (${Common.getVersionCode()})",
+                    text = "v${Common.getVersionCode() ?: "4.3.1"}",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
