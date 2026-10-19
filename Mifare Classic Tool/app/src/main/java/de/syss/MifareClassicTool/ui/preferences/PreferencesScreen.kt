@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,29 +16,24 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import de.syss.MifareClassicTool.R
-import de.syss.MifareClassicTool.ui.components.MctActionButton
 import de.syss.MifareClassicTool.ui.components.MctSelectionDialog
 import de.syss.MifareClassicTool.ui.components.MctSettingGroup
 import de.syss.MifareClassicTool.ui.components.MctSettingItem
@@ -95,9 +88,9 @@ fun PreferencesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 14.dp, vertical = 4.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Group 1: General & Convenience (日常使用与字典便利)
             MctSettingGroup(
@@ -112,8 +105,8 @@ fun PreferencesScreen(
                 )
 
                 HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
                 )
 
                 MctSwitchItem(
@@ -124,8 +117,8 @@ fun PreferencesScreen(
                 )
 
                 HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
                 )
 
                 MctSwitchItem(
@@ -141,61 +134,29 @@ fun PreferencesScreen(
                 title = stringResource(R.string.pref_group_rf_and_auth),
                 modifier = Modifier.testTag("card_rf_settings")
             ) {
-                // Auto Reconnect
-                MctSettingItem(
-                    title = stringResource(R.string.action_auto_reconnect),
-                    onClick = { onStateChange(state.copy(autoReconnect = !state.autoReconnect)) },
-                    testTag = "cb_auto_reconnect",
-                    trailingContent = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(
-                                onClick = onShowAutoReconnectInfo,
-                                modifier = Modifier.size(36.dp)
-                            ) {
-                                Text(
-                                    text = "ⓘ",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(4.dp))
-                            androidx.compose.material3.Switch(
-                                checked = state.autoReconnect,
-                                onCheckedChange = { onStateChange(state.copy(autoReconnect = it)) }
-                            )
-                        }
-                    }
+                // Auto Reconnect (Short bold title + explanation description + inline info badge)
+                MctSwitchItem(
+                    title = stringResource(R.string.dialog_auto_reconnect_title),
+                    description = stringResource(R.string.action_auto_reconnect),
+                    checked = state.autoReconnect,
+                    onCheckedChange = { onStateChange(state.copy(autoReconnect = it)) },
+                    onInfoClick = onShowAutoReconnectInfo,
+                    testTag = "cb_auto_reconnect"
                 )
 
                 HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
                 )
 
                 // Custom Sector Count
-                MctSettingItem(
-                    title = stringResource(R.string.action_use_custom_sector_count),
-                    onClick = { onStateChange(state.copy(useCustomSectorCount = !state.useCustomSectorCount)) },
-                    testTag = "cb_use_custom_sector_count",
-                    trailingContent = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(
-                                onClick = onShowCustomSectorCountInfo,
-                                modifier = Modifier.size(36.dp)
-                            ) {
-                                Text(
-                                    text = "ⓘ",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(4.dp))
-                            androidx.compose.material3.Switch(
-                                checked = state.useCustomSectorCount,
-                                onCheckedChange = { onStateChange(state.copy(useCustomSectorCount = it)) }
-                            )
-                        }
-                    }
+                MctSwitchItem(
+                    title = stringResource(R.string.dialog_custom_sector_count_title),
+                    description = stringResource(R.string.action_use_custom_sector_count),
+                    checked = state.useCustomSectorCount,
+                    onCheckedChange = { onStateChange(state.copy(useCustomSectorCount = it)) },
+                    onInfoClick = onShowCustomSectorCountInfo,
+                    testTag = "cb_use_custom_sector_count"
                 )
 
                 if (state.useCustomSectorCount) {
@@ -212,41 +173,25 @@ fun PreferencesScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .padding(horizontal = 14.dp, vertical = 6.dp)
                             .testTag("input_custom_sector_count"),
                         singleLine = true
                     )
                 }
 
                 HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
                 )
 
                 // Retry Authentication
-                MctSettingItem(
-                    title = stringResource(R.string.action_retry_authentication),
-                    onClick = { onStateChange(state.copy(useRetryAuthentication = !state.useRetryAuthentication)) },
-                    testTag = "cb_use_retry_auth",
-                    trailingContent = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(
-                                onClick = onShowRetryAuthenticationInfo,
-                                modifier = Modifier.size(36.dp)
-                            ) {
-                                Text(
-                                    text = "ⓘ",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(4.dp))
-                            androidx.compose.material3.Switch(
-                                checked = state.useRetryAuthentication,
-                                onCheckedChange = { onStateChange(state.copy(useRetryAuthentication = it)) }
-                            )
-                        }
-                    }
+                MctSwitchItem(
+                    title = stringResource(R.string.dialog_retry_authentication_title),
+                    description = stringResource(R.string.action_retry_authentication),
+                    checked = state.useRetryAuthentication,
+                    onCheckedChange = { onStateChange(state.copy(useRetryAuthentication = it)) },
+                    onInfoClick = onShowRetryAuthenticationInfo,
+                    testTag = "cb_use_retry_auth"
                 )
 
                 if (state.useRetryAuthentication) {
@@ -263,7 +208,7 @@ fun PreferencesScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .padding(horizontal = 14.dp, vertical = 6.dp)
                             .testTag("input_retry_auth_count"),
                         singleLine = true
                     )
@@ -285,8 +230,8 @@ fun PreferencesScreen(
                 )
 
                 HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
                 )
 
                 // Language Selection Item
@@ -301,8 +246,8 @@ fun PreferencesScreen(
                 )
 
                 HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
                 )
 
                 // UID Format Selection Item (clean vertical modal dialog, solves horizontal squeezing!)
@@ -315,12 +260,12 @@ fun PreferencesScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Action Buttons (Cancel & Save)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 OutlinedButton(
                     onClick = onCancel,
@@ -328,7 +273,7 @@ fun PreferencesScreen(
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)),
                     modifier = Modifier
                         .weight(1f)
-                        .height(48.dp)
+                        .height(44.dp)
                         .testTag("btn_cancel")
                 ) {
                     Text(
@@ -346,7 +291,7 @@ fun PreferencesScreen(
                     ),
                     modifier = Modifier
                         .weight(1.2f)
-                        .height(48.dp)
+                        .height(44.dp)
                         .testTag("btn_save")
                 ) {
                     Text(
@@ -356,7 +301,7 @@ fun PreferencesScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
         }
 
         // Selection Dialogs

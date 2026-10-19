@@ -125,14 +125,15 @@ fun MctSectionHeader(
 ) {
     Text(
         text = title,
-        style = MaterialTheme.typography.labelLarge.copy(
+        style = MaterialTheme.typography.labelMedium.copy(
+            fontSize = 12.5.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp
         ),
         color = MaterialTheme.colorScheme.primary,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 6.dp)
+            .padding(horizontal = 4.dp, vertical = 3.dp)
     )
 }
 
@@ -180,6 +181,7 @@ fun MctSettingItem(
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     testTag: String = "",
+    titleTrailingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null
 ) {
     val clickableModifier = if (onClick != null && enabled) {
@@ -192,44 +194,56 @@ fun MctSettingItem(
         modifier = Modifier
             .fillMaxWidth()
             .then(clickableModifier)
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .padding(horizontal = 14.dp, vertical = 9.dp)
             .testTag(testTag),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (icon != null) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(9.dp))
                     .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(18.dp),
                     colorFilter = ColorFilter.tint(iconTint ?: MaterialTheme.colorScheme.primary)
                 )
             }
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(12.dp))
         }
 
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Medium
-                ),
-                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontSize = 14.5.sp,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                )
+                if (titleTrailingContent != null) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    titleTrailingContent()
+                }
+            }
             if (!description.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 11.5.sp,
+                        lineHeight = 15.sp
+                    ),
                     color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                 )
             }
@@ -244,7 +258,9 @@ fun MctSettingItem(
                 if (valueText != null) {
                     Text(
                         text = valueText,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = 13.5.sp
+                        ),
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -275,7 +291,8 @@ fun MctSwitchItem(
     icon: Painter? = null,
     iconTint: Color? = null,
     enabled: Boolean = true,
-    testTag: String = ""
+    testTag: String = "",
+    onInfoClick: (() -> Unit)? = null
 ) {
     MctSettingItem(
         title = title,
@@ -285,6 +302,24 @@ fun MctSwitchItem(
         enabled = enabled,
         onClick = if (enabled) { { onCheckedChange(!checked) } } else null,
         testTag = testTag,
+        titleTrailingContent = if (onInfoClick != null) {
+            {
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onInfoClick),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "ⓘ",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        } else null,
         trailingContent = {
             Switch(
                 checked = checked,
@@ -378,7 +413,7 @@ fun MctStatusCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -386,8 +421,8 @@ fun MctStatusCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(10.dp))
                         .background(containerColor),
                     contentAlignment = Alignment.Center
                 ) {
@@ -395,25 +430,26 @@ fun MctStatusCard(
                         Image(
                             painter = iconPainter,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(20.dp),
                             colorFilter = ColorFilter.tint(statusColor)
                         )
                     } else {
                         Box(
                             modifier = Modifier
-                                .size(14.dp)
+                                .size(12.dp)
                                 .clip(CircleShape)
                                 .background(statusColor)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.width(14.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleMedium.copy(
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         ),
                         color = MaterialTheme.colorScheme.onSurface
@@ -421,7 +457,9 @@ fun MctStatusCard(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 11.5.sp
+                        ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -431,11 +469,12 @@ fun MctStatusCard(
                     OutlinedButton(
                         onClick = onActionClick,
                         shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.height(34.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                     ) {
                         Text(
                             text = actionText,
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
