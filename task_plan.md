@@ -215,3 +215,10 @@
 - [x] **About 页面链接修正**：经 `git remote -v` 准确核实 Fork 仓库地址（`https://github.com/ljj13/MCT-Kotlin-Rebuild`），明确划分当前 Fork 现代化版本与上游 v4.3.1 原始项目及标签
 - [x] **MainMenu 核心读写卡片尺寸与排版优化**：重构 MainActionCard 自适应最小高度（74dp/58dp），subtitle 支持 2 行自然换行防截断，卡片间距 10dp，空间利用紧凑饱满
 - [x] **测试与交付度量**：JVM 单元测试 24/24 PASS，Debug APK (13,644,272 字节，已签名)，Release APK (9,112,136 字节，未签名)，产出 `docs/p16/P16_5_TARGETED_FIXES_REPORT.md`
+
+### 阶段 21：P16.6 → P17 → P18 跨阶段收口、发布审查与 NFC 卡模拟预研 [complete]
+- [x] **P16.6 首页响应式最终精修与 UI 2.0 冻结**：重构核心读写为纵向居中模块卡片（消除不自然换行），重构文件管理为单列分组列表（彻底消除省略号截断），冻结 UI 2.0 规范，产出 `docs/p16/P16_6_UI_FINAL_REPORT.md`
+- [x] **P17-A 发布前工程质量审计**：核实 Git 75 次提交历史与基线，全量 22 页面功能等价审计，实测 Release Merged Manifest 排除 DumpEditorPrototype，明确 R8 保持 DEFERRED 真实原因，产出 `docs/p17/P17_RELEASE_REVIEW.md`
+- [x] **P17-B Fork 版本规划与候选产物准备**：规划 `v4.3.1-modern.1-preview` 候选版本号，重构中文与英文 `README.md`，从真实 Git 历史编写全量 `CHANGELOG.md`，度量交付 APK 并标记 `USER_ACCEPTANCE_PENDING`，产出 `docs/p17/P17_RELEASE_PREPARATION.md`
+- [x] **P18 NFC 卡模拟技术可行性研究**：深入解构 Android 官方 HCE、ISO-DEP、Crypto1 硬件流密码鸿沟、OPPO/红米硬件档案，深度对比三条实现路线，确立“MCT 作为外设模拟器（ChameleonUltra）前端”为最优路线，产出 `docs/p18/P18_NFC_EMULATION_FEASIBILITY.md`
+- [x] **安全与版本控制**：零实体写卡、零 UID 修改、MCReader 与写卡状态机零改动，保持 master 与既有 Tag 不变，不推送远程不发布正式 Release

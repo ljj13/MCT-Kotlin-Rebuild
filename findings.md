@@ -775,6 +775,28 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
 - **MainMenu 核心卡片空间优化**：重构 `MainActionCard` 自适应最小高度（74dp/58dp），副标题支持 2 行自然换行，卡片间距 10dp，空间紧凑饱满，彻底杜绝文字截断与偏宽空白。
 - **交付物**：Debug APK (13,644,272 字节，已签名可直接安装)，Release APK (9,112,136 字节，未签名)。详见 `docs/p16/P16_5_TARGETED_FIXES_REPORT.md`。
 
+## 28. P16.6 → P17 → P18 跨阶段收口、发布审查与 NFC 卡模拟预研结论
+
+- **P16.6 首页最终修复与 UI 2.0 冻结**：
+  - 核心读写区域重构为 2 列居中卡片（`CoreActionCard`，高度 104dp），文字横向空间充沛，说明精简为“认证并读取转储”与“写入、克隆或格式化”，单行居中优雅呈现，彻底消除了尴尬换行；
+  - 文件管理区域由狭窄双列重构为单列分组列表（`MctSettingGroup`），占满全宽（~330dp），“编辑 / 分析转储文件”与“编辑 / 新建密钥文件”完整显示，彻底消除了省略号截断；
+  - 冻结 KernelSU 风格 UI 2.0，产出 `docs/p16/P16_6_UI_FINAL_REPORT.md`。
+- **P17-A 发布前工程审查**：
+  - 核实 75 次提交，22 个生产 Activity 契约完全保真，NFC 前台分发成对无泄漏；
+  - 实测 Release Merged Manifest 排除 `DumpEditorPrototype`（组件不可启动）；
+  - 明确 R8 因动态资源收缩缺陷保持 DEFERRED；
+  - 产出 `docs/p17/P17_RELEASE_REVIEW.md`。
+- **P17-B 发布候选准备**：
+  - 建议候选版本号为 `v4.3.1-modern.1-preview`，推荐 Preview/Beta 发布策略；
+  - 全新重写 `README.zh-CN.md` 与 `README.md`，从真实 Git 历史梳理编写 `CHANGELOG.md`；
+  - 标记状态为 `USER_ACCEPTANCE_PENDING`，交付 Debug APK (13,644,272 字节，已签名) 与 Release APK (9,112,136 字节，未签名)；
+  - 产出 `docs/p17/P17_RELEASE_PREPARATION.md`。
+- **P18 NFC 卡模拟可行性研究**：
+  - 明确普通 Android 手机**无法直接模拟 MIFARE Classic 物理卡片**的根本协议瓶颈（Crypto1 硬件流密码工作在 ISO 14443-3A 层，而 Android HCE 仅工作在 ISO 14443-4 APDU/AID 层，且 HCE 强制随机 UID）；
+  - 确立最佳工程演进路线：**采纳路线 B（MCT 作为外设模拟器前端）**，未来版本通过蓝牙 BLE 控制 ChameleonUltra 等便携硬件实现全协议卡模拟；
+  - 产出 `docs/p18/P18_NFC_EMULATION_FEASIBILITY.md`。
+
+
 
 
 
