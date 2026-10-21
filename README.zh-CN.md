@@ -1,11 +1,12 @@
-# MIFARE Classic Tool (MCT) - Kotlin & UI 2.0 现代化重构版
+# MIFARE Classic Tool (MCT) - Kotlin & UI 2.0 现代化重构版 (v4.0.0)
 
+[![Release](https://img.shields.io/badge/Release-v4.0.0-blue.svg)](https://github.com/ljj13/MCT-Kotlin-Rebuild/releases)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple.svg)](https://kotlinlang.org)
 [![Compose Material 3](https://img.shields.io/badge/Compose-Material%203-green.svg)](https://developer.android.com/jetpack/compose)
 [![MinSdk](https://img.shields.io/badge/minSdk-21%20(Android%205.0)-orange.svg)](https://developer.android.com)
 
-本仓库是基于 Gerhard Klostermeier 原版开源项目 [MifareClassicTool](https://github.com/ikarus23/MifareClassicTool) 进行全面现代化重构的 Fork 版本。
+本仓库是基于 Gerhard Klostermeier 原版开源项目 [MifareClassicTool (v4.3.1)](https://github.com/ikarus23/MifareClassicTool) 进行全面现代化重构的 Fork 版本，首个独立正式里程碑版本设定为 **v4.0.0 (versionCode 71)**。
 
 > **声明**：本项目为独立的开源现代化重构版本，非上游官方发行版。原版 MCT 的著作权属于原作者 Gerhard Klostermeier 与相关贡献者，本项目严格遵循 **GNU 通用公共许可证 v3.0 (GPLv3)** 协议开源。
 

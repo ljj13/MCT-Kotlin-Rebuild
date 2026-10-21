@@ -4,7 +4,7 @@
 
 ---
 
-## [v4.3.1-modern.1-preview] - 2026-10-20 (Release Candidate)
+## [v4.0.0] - 2026-10-21 (MCT Modern Release, versionCode 71, based on upstream v4.3.1)
 
 ### 1. Kotlin 架构完全重构 (Kotlin Migration)
 - **100% Kotlin 代码库迁移**：全量 26 个核心业务类、Activity 与工具算法从遗留 Java 完整迁移至 Kotlin 2.2.10，消除了隐式空指针风险，源码净缩减逾 2,800 行；
