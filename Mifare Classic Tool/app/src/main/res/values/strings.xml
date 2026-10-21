@@ -220,6 +220,7 @@
     <!-- Actions (Buttons, Checkboxs, etc. -->
     <string name="action_read_tag">Read Tag</string>
     <string name="action_write_tag">Write Tag</string>
+    <string name="write_tag_safety_notice">Writing may overwrite existing data. Use a dedicated test tag and back up first.</string>
     <string name="action_edit_tag_dump">Edit/Analyze Dump File</string>
     <string name="action_edit_key_dump">Edit/Add Key File</string>
     <string name="action_tools">Tools</string>
@@ -712,5 +713,62 @@
         <item>简体中文 (zh)</item>
         <item>正體中文 (zh-TW)</item>
     </string-array>
+
+    <!-- UI 2.0 Strings -->
+    <string name="text_language_follow_system">Follow System</string>
+    <string name="pref_group_rf_and_auth">RF Communication &amp; Authentication</string>
+    <string name="pref_group_daily_and_keys">General &amp; Key Files</string>
+    <string name="pref_group_display_and_ui">Display &amp; Language</string>
+    <string name="pref_custom_sector_count_label">Sector Count (1-40)</string>
+    <string name="pref_retry_auth_count_label">Retry Count (1-1000)</string>
+    <string name="pref_uid_format_title">UID Display Format</string>
+    <string name="pref_uid_format_dialog_title">Select UID Display Format</string>
+    <string name="pref_theme_dialog_title">Select Theme</string>
+    <string name="pref_language_dialog_title">Select App Language</string>
+    <string name="about_section_app_info">Application Info</string>
+    <string name="about_section_opensource">Open Source Project</string>
+    <string name="about_section_help_support">Help &amp; Support</string>
+    <string name="about_upstream_title">Upstream Project</string>
+    <string name="about_upstream_author">Original MCT by Gerhard Klostermeier</string>
+    <string name="about_fork_title">Kotlin Modernization Fork</string>
+    <string name="about_fork_desc">Modern Kotlin + Jetpack Compose UI 2.0</string>
+    <string name="about_license_title">License</string>
+    <string name="about_license_desc">GNU General Public License v3.0 (GPLv3)</string>
+    <string name="about_github_title">GitHub Repository</string>
+    <string name="about_fork_repo_title">MCT Kotlin v1.0.0 (Fork GitHub)</string>
+    <string name="about_upstream_repo_title">Original MCT (ikarus23 / v4.3.1)</string>
+    <string name="about_fork_issues_title">Fork Issue Tracker &amp; Feedback</string>
+    <string name="about_upstream_changelog_title">Upstream Changelog (v4.3.1)</string>
+    <string name="about_upstream_release_title">Upstream Release Tag (4.3.1)</string>
+    <string name="about_issues_title">Bug Tracker &amp; Issues</string>
+    <string name="about_changelog_title">Changelog &amp; Releases</string>
+    <string name="about_docs_title">Documentation &amp; Community</string>
+    <string name="about_disclaimer">MIFARE is a registered trademark of NXP Semiconductors.</string>
+    <string name="home_action_read_tag_desc">Authenticate &amp; read dump</string>
+    <string name="home_action_write_tag_desc">Write, clone or format</string>
+    <string name="home_group_manage">Dump &amp; Key Management</string>
+    <string name="home_group_tools">Toolbox &amp; Help</string>
+    <string name="home_action_open_tools">Toolbox</string>
+    <string name="home_action_open_tools_desc">NFC utilities, calculators &amp; converters</string>
+    <string name="home_action_import_export">Import / Export</string>
+    <string name="home_action_import_export_desc">Manage backup &amp; share files</string>
+    <string name="home_action_uid_log">UID Log</string>
+    <string name="home_action_uid_log_desc">Historical scanned UID records</string>
+    <string name="nfc_status_ready_title">NFC Ready</string>
+    <string name="nfc_status_ready_desc">Tap a MIFARE Classic tag to read dump</string>
+    <string name="nfc_status_disabled_title">NFC Disabled</string>
+    <string name="nfc_status_disabled_desc">Enable NFC in device system settings</string>
+    <string name="nfc_status_editor_title">Editor-Only Mode</string>
+    <string name="nfc_status_editor_desc">NFC is unavailable; offline editing is supported</string>
+    <string name="nfc_status_unsupported_title">MIFARE Classic Unsupported</string>
+    <string name="nfc_status_unsupported_desc">Device NFC hardware lacks MIFARE Classic support</string>
+    <string name="nfc_status_enable_button">Settings</string>
+    <string name="dialog_clear_uid_log">Are you sure you want to clear all UID logs? This cannot be undone.</string>
+    <string name="dialog_delete_file">Are you sure you want to delete \"%1$s\"? This cannot be undone.</string>
+    <string name="text_file_name">File Name</string>
+    <string name="text_file_chooser_empty">Click the + button to create a new file</string>
+    <string name="text_dump_files">Dump Files</string>
+    <string name="text_key_files">Key Files</string>
+    <string name="text_choose_file_type">Choose File Format</string>
 
 </resources>

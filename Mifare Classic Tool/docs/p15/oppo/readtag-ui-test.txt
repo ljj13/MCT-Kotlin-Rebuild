@@ -1,0 +1,68 @@
+INSTRUMENTATION_STATUS: class=de.syss.MifareClassicTool.ReadTagComposeTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+de.syss.MifareClassicTool.ReadTagComposeTest:
+INSTRUMENTATION_STATUS: test=testReadFailureAndCancelDoNotStartAnotherRead
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=de.syss.MifareClassicTool.ReadTagComposeTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Failed to assert the following: (Text + EditableText contains 'Tag removed' (ignoreCase: false))
+Semantics of the node:
+Node #24 at (l=112.0, t=588.0, r=1144.0, b=672.0)px, Tag: 'read_tag_message'
+Text = '[Error: Tag removed while reading]'
+Actions = [SetTextSubstitution, ShowTextSubstitution, ClearTextSubstitution, GetTextLayoutResult]
+Has 1 sibling
+Selector used: (TestTag = 'read_tag_message')
+
+	at androidx.compose.ui.test.AssertionsKt.assert(Assertions.kt:265)
+	at androidx.compose.ui.test.AssertionsKt.assert$default(Assertions.kt:255)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains(Assertions.kt:209)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains$default(Assertions.kt:204)
+	at de.syss.MifareClassicTool.ReadTagComposeTest.testReadFailureAndCancelDoNotStartAnotherRead(ReadTagComposeTest.kt:44)
+
+INSTRUMENTATION_STATUS: stream=
+Error in testReadFailureAndCancelDoNotStartAnotherRead(de.syss.MifareClassicTool.ReadTagComposeTest):
+java.lang.AssertionError: Failed to assert the following: (Text + EditableText contains 'Tag removed' (ignoreCase: false))
+Semantics of the node:
+Node #24 at (l=112.0, t=588.0, r=1144.0, b=672.0)px, Tag: 'read_tag_message'
+Text = '[Error: Tag removed while reading]'
+Actions = [SetTextSubstitution, ShowTextSubstitution, ClearTextSubstitution, GetTextLayoutResult]
+Has 1 sibling
+Selector used: (TestTag = 'read_tag_message')
+
+	at androidx.compose.ui.test.AssertionsKt.assert(Assertions.kt:265)
+	at androidx.compose.ui.test.AssertionsKt.assert$default(Assertions.kt:255)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains(Assertions.kt:209)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains$default(Assertions.kt:204)
+	at de.syss.MifareClassicTool.ReadTagComposeTest.testReadFailureAndCancelDoNotStartAnotherRead(ReadTagComposeTest.kt:44)
+
+INSTRUMENTATION_STATUS: test=testReadFailureAndCancelDoNotStartAnotherRead
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 0.968
+There was 1 failure:
+1) testReadFailureAndCancelDoNotStartAnotherRead(de.syss.MifareClassicTool.ReadTagComposeTest)
+java.lang.AssertionError: Failed to assert the following: (Text + EditableText contains 'Tag removed' (ignoreCase: false))
+Semantics of the node:
+Node #24 at (l=112.0, t=588.0, r=1144.0, b=672.0)px, Tag: 'read_tag_message'
+Text = '[Error: Tag removed while reading]'
+Actions = [SetTextSubstitution, ShowTextSubstitution, ClearTextSubstitution, GetTextLayoutResult]
+Has 1 sibling
+Selector used: (TestTag = 'read_tag_message')
+
+	at androidx.compose.ui.test.AssertionsKt.assert(Assertions.kt:265)
+	at androidx.compose.ui.test.AssertionsKt.assert$default(Assertions.kt:255)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains(Assertions.kt:209)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains$default(Assertions.kt:204)
+	at de.syss.MifareClassicTool.ReadTagComposeTest.testReadFailureAndCancelDoNotStartAnotherRead(ReadTagComposeTest.kt:44)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

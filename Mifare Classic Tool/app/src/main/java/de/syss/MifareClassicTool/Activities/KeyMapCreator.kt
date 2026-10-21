@@ -17,34 +17,26 @@
 
 package de.syss.MifareClassicTool.Activities
 
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.AlertDialog
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.text.InputFilter
-import android.text.InputType
-import android.text.TextUtils.TruncateAt
 import android.util.Log
-import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup.LayoutParams
 import android.view.WindowManager
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.widget.AppCompatCheckBox
-import androidx.appcompat.widget.AppCompatEditText
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.mutableStateOf
 import de.syss.MifareClassicTool.Activities.Preferences.Preference
 import de.syss.MifareClassicTool.Common
 import de.syss.MifareClassicTool.MCReader
 import de.syss.MifareClassicTool.R
+import de.syss.MifareClassicTool.ui.keymap.KeyFileChoice
+import de.syss.MifareClassicTool.ui.keymap.KeyMapCreatorScreen
+import de.syss.MifareClassicTool.ui.keymap.KeyMapCreatorUiState
+import de.syss.MifareClassicTool.ui.theme.MctTheme
 import java.io.File
 import java.util.ArrayList
 import java.util.Arrays
@@ -72,35 +64,31 @@ class KeyMapCreator : BasicActivity() {
         private const val DEFAULT_SECTOR_RANGE_TO: Int = 15
     }
 
-    private lateinit var mCreateKeyMap: Button
-    private lateinit var mCancel: Button
-    private lateinit var mKeyFilesGroup: LinearLayout
-    private lateinit var mSectorRange: TextView
     private val mHandler = Handler(Looper.getMainLooper())
+    private val mUiState = mutableStateOf(KeyMapCreatorUiState())
     private var mProgressStatus: Int = 0
-    private lateinit var mProgressBar: ProgressBar
-    private var mIsCreatingKeyMap: Boolean = false
+    @Volatile private var mIsCreatingKeyMap: Boolean = false
+    private var mDestroyed = false
+    private var mWorkerBusy = false
     private var mKeyDirPath: File? = null
     private var mFirstSector: Int = 0
     private var mLastSector: Int = 0
     private var mUseKeysFromDump: Boolean = false
     private var currentReader: MCReader? = null
+    private var mSectorChooserEnabled: Boolean = true
+    private var mCreateButtonText: String = ""
+    private var mKeyFilesLoaded: Boolean = false
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_create_key_map)
-        mCreateKeyMap = findViewById(R.id.buttonCreateKeyMap)
-        mCancel = findViewById(R.id.buttonCreateKeyMapCancel)
-        mSectorRange = findViewById(R.id.textViewCreateKeyMapFromTo)
-        mKeyFilesGroup = findViewById(R.id.linearLayoutCreateKeyMapKeyFiles)
-        mProgressBar = findViewById(R.id.progressBarCreateKeyMap)
+        supportActionBar?.hide()
+        mCreateButtonText = getString(R.string.action_create_key_map)
+        var sectorRange = getString(R.string.text_sector_range_all)
 
         val currentIntent = intent
         if (currentIntent.hasExtra(EXTRA_SECTOR_CHOOSER)) {
-            val changeSectorRange = findViewById<Button>(R.id.buttonCreateKeyMapChangeRange)
-            val value = currentIntent.getBooleanExtra(EXTRA_SECTOR_CHOOSER, true)
-            changeSectorRange.isEnabled = value
+            mSectorChooserEnabled = currentIntent.getBooleanExtra(EXTRA_SECTOR_CHOOSER, true)
         }
         var custom = false
         val sharedPref = getPreferences(Context.MODE_PRIVATE)
@@ -120,22 +108,52 @@ class KeyMapCreator : BasicActivity() {
             to = "" + currentIntent.getIntExtra(EXTRA_SECTOR_CHOOSER_TO, 15)
             custom = true
         }
-        if (custom) {
-            if (from == "-1") {
-                mSectorRange.setText(R.string.text_sector_range_all)
-            } else {
-                mSectorRange.text = "$from - $to"
-            }
+        if (custom && from != "-1") {
+            sectorRange = "$from - $to"
         }
 
+        var title = getString(R.string.action_create_key_map)
         if (currentIntent.hasExtra(EXTRA_TITLE)) {
-            title = currentIntent.getStringExtra(EXTRA_TITLE)
+            title = currentIntent.getStringExtra(EXTRA_TITLE) ?: title
         }
         if (currentIntent.hasExtra(EXTRA_BUTTON_TEXT)) {
-            mCreateKeyMap.text = currentIntent.getStringExtra(EXTRA_BUTTON_TEXT)
+            mCreateButtonText = currentIntent.getStringExtra(EXTRA_BUTTON_TEXT) ?: mCreateButtonText
         }
         if (currentIntent.hasExtra(EXTRA_USE_KEYS_FROM_DUMP)) {
             mUseKeysFromDump = currentIntent.getBooleanExtra(EXTRA_USE_KEYS_FROM_DUMP, false)
+        }
+        mUiState.value = KeyMapCreatorUiState(
+            title = title,
+            sectorRange = sectorRange,
+            sectorChooserEnabled = mSectorChooserEnabled,
+            createButtonText = mCreateButtonText
+        )
+        setContent {
+            MctTheme {
+                val state = mUiState.value
+                KeyMapCreatorScreen(
+                    state = state,
+                    onBackClick = { onCancelCreateKeyMap() },
+                    onToggleKeyFile = { name, checked -> toggleKeyFile(name, checked) },
+                    onSelectAll = { selectKeyFiles(true) },
+                    onSelectNone = { selectKeyFiles(false) },
+                    onChangeRangeClick = { openRangeDialog() },
+                    onRangeFromChange = { value ->
+                        mUiState.value = mUiState.value.copy(rangeFrom = value.filter(Char::isDigit).take(2))
+                    },
+                    onRangeToChange = { value ->
+                        mUiState.value = mUiState.value.copy(rangeTo = value.filter(Char::isDigit).take(2))
+                    },
+                    onSaveRangeDefaultChange = { checked ->
+                        mUiState.value = mUiState.value.copy(saveRangeAsDefault = checked)
+                    },
+                    onConfirmRange = { confirmRange() },
+                    onReadAllSectors = { applyAllSectors() },
+                    onDismissRange = { mUiState.value = mUiState.value.copy(showRangeDialog = false) },
+                    onCreateClick = { onCreateKeyMap() },
+                    onCancelClick = { onCancelCreateKeyMap() }
+                )
+            }
         }
     }
 
@@ -146,7 +164,18 @@ class KeyMapCreator : BasicActivity() {
         )
         if (!autoReconnect) {
             mIsCreatingKeyMap = false
+            // Keep the completion callback: it releases the busy gate and restores
+            // controls after the worker closes its connection. Progress callbacks
+            // are already guarded by the cancellation flag.
         }
+    }
+
+    override fun onDestroy() {
+        mDestroyed = true
+        mIsCreatingKeyMap = false
+        currentReader?.cancelCreateKeyMap()
+        mHandler.removeCallbacksAndMessages(null)
+        super.onDestroy()
     }
 
     override fun onStart() {
@@ -185,60 +214,64 @@ class KeyMapCreator : BasicActivity() {
                 selectedFiles = ArrayList(Arrays.asList(*selectedFilesChain.split("/").toTypedArray()))
             }
         }
-        mKeyFilesGroup.removeAllViews()
+        if (mKeyFilesLoaded) {
+            return
+        }
+        val choices = ArrayList<KeyFileChoice>()
         val keyFiles = keyDir.listFiles()
         if (keyFiles != null) {
             Arrays.sort(keyFiles)
             for (f in keyFiles) {
-                val c = AppCompatCheckBox(this)
-                c.text = f.name
-                if (selectLastUsedKeyFiles && selectedFiles != null && selectedFiles.contains(f.name)) {
-                    c.isChecked = true
-                }
-                mKeyFilesGroup.addView(c)
+                val checked = selectLastUsedKeyFiles && selectedFiles != null && selectedFiles.contains(f.name)
+                choices.add(KeyFileChoice(f.name, checked))
             }
         }
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    fun onSelectAll(view: View) {
-        selectKeyFiles(true)
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    fun onSelectNone(view: View) {
-        selectKeyFiles(false)
+        mKeyFilesLoaded = true
+        mUiState.value = mUiState.value.copy(keyFiles = choices)
     }
 
     private fun selectKeyFiles(allOrNone: Boolean) {
-        for (i in 0 until mKeyFilesGroup.childCount) {
-            val c = mKeyFilesGroup.getChildAt(i) as AppCompatCheckBox
-            c.isChecked = allOrNone
+        if (mWorkerBusy) {
+            return
         }
+        mUiState.value = mUiState.value.copy(
+            keyFiles = mUiState.value.keyFiles.map { it.copy(checked = allOrNone) }
+        )
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun onCancelCreateKeyMap(view: View) {
+    private fun toggleKeyFile(name: String, checked: Boolean) {
+        if (mWorkerBusy) {
+            return
+        }
+        mUiState.value = mUiState.value.copy(
+            keyFiles = mUiState.value.keyFiles.map {
+                if (it.name == name) it.copy(checked = checked) else it
+            }
+        )
+    }
+
+    private fun onCancelCreateKeyMap() {
         if (mIsCreatingKeyMap) {
             mIsCreatingKeyMap = false
             currentReader?.cancelCreateKeyMap()
-            mCancel.isEnabled = false
+            mUiState.value = mUiState.value.copy(cancelEnabled = false, statusMessage = getString(R.string.action_cancel))
         } else {
             finish()
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun onCreateKeyMap(view: View) {
+    private fun onCreateKeyMap() {
+        if (mWorkerBusy) {
+            return
+        }
         val saveLastUsedKeyFiles = Common.getPreferences().getBoolean(
             Preference.SaveLastUsedKeyFiles.toString(), true
         )
         val lastSelectedKeyFiles = StringBuilder()
         val fileNames = ArrayList<String>()
-        for (i in 0 until mKeyFilesGroup.childCount) {
-            val c = mKeyFilesGroup.getChildAt(i) as AppCompatCheckBox
-            if (c.isChecked) {
-                fileNames.add(c.text.toString())
+        for (choice in mUiState.value.keyFiles) {
+            if (choice.checked) {
+                fileNames.add(choice.name)
             }
         }
         if (fileNames.isNotEmpty()) {
@@ -286,11 +319,11 @@ class KeyMapCreator : BasicActivity() {
                 }
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-                if (mSectorRange.text.toString() == getString(R.string.text_sector_range_all)) {
+                if (mUiState.value.sectorRange == getString(R.string.text_sector_range_all)) {
                     mFirstSector = 0
                     mLastSector = reader.sectorCount - 1
                 } else {
-                    val fromAndTo = mSectorRange.text.toString().split(" ")
+                    val fromAndTo = mUiState.value.sectorRange.split(" ")
                     mFirstSector = fromAndTo[0].toInt()
                     mLastSector = fromAndTo[2].toInt()
                 }
@@ -302,11 +335,17 @@ class KeyMapCreator : BasicActivity() {
                 Common.setKeyMapRange(mFirstSector, mLastSector)
 
                 mProgressStatus = -1
-                mProgressBar.max = (mLastSector - mFirstSector) + 1
-                mCreateKeyMap.isEnabled = false
+                val progressMax = (mLastSector - mFirstSector) + 1
                 mIsCreatingKeyMap = true
-                val message = "$numberOfLoadedKeys " + getString(R.string.info_keys_loaded_please_wait)
-                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                mWorkerBusy = true
+                mUiState.value = mUiState.value.copy(
+                    scanning = true,
+                    createEnabled = false,
+                    cancelEnabled = true,
+                    progress = 0,
+                    progressMax = progressMax,
+                    statusMessage = "$numberOfLoadedKeys " + getString(R.string.info_keys_loaded_please_wait)
+                )
                 createKeyMap(reader, this)
             } else {
                 Toast.makeText(this, R.string.info_mapping_no_keyfile_found, Toast.LENGTH_LONG).show()
@@ -318,32 +357,53 @@ class KeyMapCreator : BasicActivity() {
 
     private fun createKeyMap(reader: MCReader, context: Context) {
         Thread {
-            while (mProgressStatus < mLastSector) {
-                mProgressStatus = reader.buildNextKeyMapPart()
-                if (mProgressStatus == -1 || !mIsCreatingKeyMap) {
-                    break
+            try {
+                while (mProgressStatus < mLastSector) {
+                    mProgressStatus = reader.buildNextKeyMapPart()
+                    if (mProgressStatus == -1 || !mIsCreatingKeyMap) {
+                        break
+                    }
+                    val completedSector = mProgressStatus
+                    mHandler.post {
+                        if (!isFinishing && !mDestroyed && mIsCreatingKeyMap) {
+                            mUiState.value = mUiState.value.copy(
+                                progress = (completedSector - mFirstSector) + 1
+                            )
+                        }
+                    }
                 }
-                mHandler.post {
-                    mProgressBar.progress = (mProgressStatus - mFirstSector) + 1
-                }
-            }
-
-            mHandler.post {
-                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                mProgressBar.progress = 0
-                mCreateKeyMap.isEnabled = true
+            } finally {
                 reader.close()
+            }
+            mHandler.post {
+                mWorkerBusy = false
+                currentReader = null
+                if (isFinishing || mDestroyed) {
+                    mIsCreatingKeyMap = false
+                    return@post
+                }
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                mUiState.value = mUiState.value.copy(
+                    progress = 0,
+                    scanning = false,
+                    createEnabled = true,
+                    cancelEnabled = true
+                )
                 if (mIsCreatingKeyMap && mProgressStatus != -1) {
                     keyMapCreated(reader)
                 } else if (mIsCreatingKeyMap && mProgressStatus == -1) {
                     Common.setKeyMap(null)
                     Common.setKeyMapRange(-1, -1)
-                    mCancel.isEnabled = true
+                    mUiState.value = mUiState.value.copy(
+                        statusMessage = getString(R.string.info_key_map_error)
+                    )
                     Toast.makeText(context, R.string.info_key_map_error, Toast.LENGTH_LONG).show()
                 } else {
                     Common.setKeyMap(null)
                     Common.setKeyMapRange(-1, -1)
-                    mCancel.isEnabled = true
+                    mUiState.value = mUiState.value.copy(
+                        statusMessage = getString(R.string.action_cancel)
+                    )
                 }
                 mIsCreatingKeyMap = false
             }
@@ -362,101 +422,62 @@ class KeyMapCreator : BasicActivity() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
-    @Suppress("UNUSED_PARAMETER")
-    fun onChangeSectorRange(view: View) {
-        val ll = LinearLayout(this)
-        val llv = LinearLayout(this)
-        val pad = Common.dpToPx(10)
-        llv.setPadding(pad, pad, pad, pad)
-        llv.orientation = LinearLayout.VERTICAL
-        llv.gravity = Gravity.CENTER
-        ll.gravity = Gravity.CENTER
+    private fun openRangeDialog() {
+        if (mIsCreatingKeyMap || !mSectorChooserEnabled) {
+            return
+        }
+        val current = mUiState.value.sectorRange
+        val parts = current.split(" ")
+        val from = if (parts.size >= 3) parts[0] else ""
+        val to = if (parts.size >= 3) parts[2] else ""
+        mUiState.value = mUiState.value.copy(
+            showRangeDialog = true,
+            rangeFrom = from,
+            rangeTo = to,
+            saveRangeAsDefault = false
+        )
+    }
 
-        val tvFrom = TextView(this)
-        tvFrom.text = getString(R.string.text_from) + ": "
-        tvFrom.textSize = 18f
-        val tvTo = TextView(this)
-        tvTo.text = " " + getString(R.string.text_to) + ": "
-        tvTo.textSize = 18f
+    private fun confirmRange() {
+        val state = mUiState.value
+        var txtFrom = "$DEFAULT_SECTOR_RANGE_FROM"
+        var txtTo = "$DEFAULT_SECTOR_RANGE_TO"
+        var noFrom = false
+        if (state.rangeFrom.isNotEmpty()) {
+            txtFrom = state.rangeFrom
+        } else {
+            noFrom = true
+        }
+        if (state.rangeTo.isNotEmpty()) {
+            txtTo = state.rangeTo
+        } else if (noFrom) {
+            applyAllSectors()
+            return
+        }
+        val intFrom = txtFrom.toIntOrNull()
+        val intTo = txtTo.toIntOrNull()
+        if (intFrom == null || intTo == null || intFrom > intTo || intFrom < 0 || intTo > MAX_SECTOR_COUNT - 1) {
+            Toast.makeText(this, R.string.info_invalid_range, Toast.LENGTH_LONG).show()
+            return
+        }
+        mUiState.value = state.copy(
+            sectorRange = "$txtFrom - $txtTo",
+            showRangeDialog = false
+        )
+        if (state.saveRangeAsDefault) {
+            saveMappingRange(txtFrom, txtTo)
+        }
+    }
 
-        val saveAsDefault = AppCompatCheckBox(this)
-        saveAsDefault.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
-        saveAsDefault.setText(R.string.action_save_as_default)
-        saveAsDefault.textSize = 18f
-        tvFrom.setTextColor(saveAsDefault.currentTextColor)
-        tvTo.setTextColor(saveAsDefault.currentTextColor)
-
-        val f = arrayOf<InputFilter>(InputFilter.LengthFilter(2))
-        val from = AppCompatEditText(this)
-        from.ellipsize = TruncateAt.END
-        from.maxLines = 1
-        from.setSingleLine()
-        from.inputType = InputType.TYPE_CLASS_NUMBER
-        from.minimumWidth = 60
-        from.filters = f
-        from.gravity = Gravity.CENTER_HORIZONTAL
-
-        val to = AppCompatEditText(this)
-        to.ellipsize = TruncateAt.END
-        to.maxLines = 1
-        to.setSingleLine()
-        to.inputType = InputType.TYPE_CLASS_NUMBER
-        to.minimumWidth = 60
-        to.filters = f
-        to.gravity = Gravity.CENTER_HORIZONTAL
-
-        ll.addView(tvFrom)
-        ll.addView(from)
-        ll.addView(tvTo)
-        ll.addView(to)
-        llv.addView(ll)
-        llv.addView(saveAsDefault)
-        val err = Toast.makeText(this, R.string.info_invalid_range, Toast.LENGTH_LONG)
-
-        AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_mapping_range_title)
-            .setMessage(R.string.dialog_mapping_range)
-            .setView(llv)
-            .setPositiveButton(R.string.action_ok) { _, _ ->
-                var txtFrom = "$DEFAULT_SECTOR_RANGE_FROM"
-                var txtTo = "$DEFAULT_SECTOR_RANGE_TO"
-                var noFrom = false
-                val fromStr = from.text?.toString() ?: ""
-                val toStr = to.text?.toString() ?: ""
-                if (fromStr.isNotEmpty()) {
-                    txtFrom = fromStr
-                } else {
-                    noFrom = true
-                }
-                if (toStr.isNotEmpty()) {
-                    txtTo = toStr
-                } else if (noFrom) {
-                    mSectorRange.setText(R.string.text_sector_range_all)
-                    if (saveAsDefault.isChecked) {
-                        saveMappingRange("", "")
-                    }
-                    return@setPositiveButton
-                }
-                val intFrom = txtFrom.toInt()
-                val intTo = txtTo.toInt()
-                if (intFrom > intTo || intFrom < 0 || intTo > MAX_SECTOR_COUNT - 1) {
-                    err.show()
-                } else {
-                    mSectorRange.text = "$txtFrom - $txtTo"
-                    if (saveAsDefault.isChecked) {
-                        saveMappingRange(txtFrom, txtTo)
-                    }
-                }
-            }
-            .setNeutralButton(R.string.action_read_all_sectors) { _, _ ->
-                mSectorRange.setText(R.string.text_sector_range_all)
-                if (saveAsDefault.isChecked) {
-                    saveMappingRange("", "")
-                }
-            }
-            .setNegativeButton(R.string.action_cancel) { _, _ -> }
-            .show()
+    private fun applyAllSectors() {
+        val save = mUiState.value.saveRangeAsDefault
+        mUiState.value = mUiState.value.copy(
+            sectorRange = getString(R.string.text_sector_range_all),
+            showRangeDialog = false
+        )
+        if (save) {
+            saveMappingRange("", "")
+        }
     }
 
     private fun saveMappingRange(from: String, to: String) {

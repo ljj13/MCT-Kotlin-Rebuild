@@ -1,0 +1,36 @@
+# MCT Kotlin v1.0.0 (4.3.1) Release Verification & Checksums
+# Generated: 2026-10-22 02:15:05 +08:00
+# ApplicationId: de.syss.MifareClassicTool
+# VersionCode: 71
+# VersionName: 1.0.0
+# MinSdk: 21 (Android 5.0)
+# TargetSdk: 35 (Android 15)
+# CompileSdk: 35
+# Upstream Baseline: Mifare Classic Tool v4.3.1 (versionCode 70, ikarus23)
+
+## 1. Official Release APK (Signed with MCT-Kotlin-release.p12 - Ready for Public Distribution)
+File: MCT-Kotlin-v1.0.0.apk
+Path: Mifare Classic Tool/app/build/outputs/apk/release/MCT-Kotlin-v1.0.0.apk
+Size: 9175311 bytes
+SHA-256: F409477C895443685B8A491AF3A49B634EE4A3ADCD71EA94D29267C162B9431B
+Signature: V1 + V2 Signed (Release Keystore)
+Signer Certificate SHA-256: 1B:5D:A7:2B:57:85:97:71:A7:51:75:E6:4D:82:54:72:07:5F:C6:01:6A:E6:C1:8F:1B:A5:CE:DE:A4:76:91:04
+Apksigner Verification: VERIFIED (V1: true, V2: true)
+
+## 2. Debug APK (Pre-signed with Android SDK Debug Keystore - For development/testing)
+File: app-debug.apk
+Path: Mifare Classic Tool/app/build/outputs/apk/debug/app-debug.apk
+Size: 12950920 bytes
+SHA-256: 3E0D0682F40576F83DE0D4E406709F583F5D939503D2B07CBFB2465E4DF3BA69
+Signature: V1 + V2 Signed (Debug Keystore)
+
+## 3. Unsigned Release Build Artifact
+File: app-release-unsigned.apk
+Path: Mifare Classic Tool/app/build/outputs/apk/release/app-release-unsigned.apk
+Size: 9113928 bytes
+SHA-256: 060A22A5E7336502975D0CF6AC4BC560D67E3F4878F491738F78006CECD7B1FA
+
+## Checksums (SHA-256)
+F409477C895443685B8A491AF3A49B634EE4A3ADCD71EA94D29267C162B9431B  MCT-Kotlin-v1.0.0.apk
+3E0D0682F40576F83DE0D4E406709F583F5D939503D2B07CBFB2465E4DF3BA69  app-debug.apk
+060A22A5E7336502975D0CF6AC4BC560D67E3F4878F491738F78006CECD7B1FA  app-release-unsigned.apk

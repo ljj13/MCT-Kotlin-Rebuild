@@ -42,10 +42,13 @@ import android.widget.RadioButton
 import android.widget.SimpleAdapter
 import android.widget.TextView
 import android.widget.Toast
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.widget.TextViewCompat
 import de.syss.MifareClassicTool.Common
 import de.syss.MifareClassicTool.MCReader
 import de.syss.MifareClassicTool.R
+import de.syss.MifareClassicTool.ui.theme.MctTheme
+import de.syss.MifareClassicTool.ui.writetag.WriteTagShell
 import java.io.File
 import java.io.Serializable
 import java.nio.ByteBuffer
@@ -98,6 +101,7 @@ class WriteTag : BasicActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_write_tag)
+        supportActionBar?.hide()
 
         mSectorTextBlock = findViewById(R.id.editTextWriteTagSector)
         mBlockTextBlock = findViewById(R.id.editTextWriteTagBlock)
@@ -152,6 +156,12 @@ class WriteTag : BasicActivity() {
             factoryFormat.isEnabled = false
             val writeDumpButton = findViewById<Button>(R.id.buttonWriteTagDump)
             writeDumpButton.setText(R.string.action_write_dump)
+        }
+
+        findViewById<ComposeView>(R.id.composeViewWriteTagShell).setContent {
+            MctTheme {
+                WriteTagShell(onBackClick = { finish() })
+            }
         }
     }
 

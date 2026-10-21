@@ -229,6 +229,7 @@
         讀取標籤</string>
     <string name="action_help">說明與資訊</string>
     <string name="action_editor_only">「離線」模式</string>
+    <string name="write_tag_safety_notice">寫入可能覆蓋標籤原有資料，請使用專用測試卡，並提前備份。</string>
     <string name="action_ok">確定</string>
     <string name="action_cancel">取消</string>
     <string name="action_choose_file">選擇此檔案</string>
@@ -673,5 +674,62 @@
     <string name="hint_custom_sector_count">例如 16 代表 1K</string>
     <string name="hint_custom_retry_authentication_count">重試次數</string>
     <string name="hint_key">十六進位，每行 6 位元組</string>
+
+    <!-- UI 2.0 Strings (Traditional Chinese) -->
+    <string name="text_language_follow_system">跟隨系統</string>
+    <string name="pref_group_rf_and_auth">讀寫通訊與認證設定</string>
+    <string name="pref_group_daily_and_keys">日常使用與字典便利</string>
+    <string name="pref_group_display_and_ui">外觀主題與語言</string>
+    <string name="pref_custom_sector_count_label">扇區數量 (1-40)</string>
+    <string name="pref_retry_auth_count_label">重試次數 (1-1000)</string>
+    <string name="pref_uid_format_title">UID 顯示格式</string>
+    <string name="pref_uid_format_dialog_title">選擇 UID 顯示格式</string>
+    <string name="pref_theme_dialog_title">選擇外觀主題</string>
+    <string name="pref_language_dialog_title">選擇應用語言</string>
+    <string name="about_section_app_info">應用資訊</string>
+    <string name="about_section_opensource">開源專案</string>
+    <string name="about_section_help_support">說明與支援</string>
+    <string name="about_upstream_title">上游原始專案</string>
+    <string name="about_upstream_author">原作者：Gerhard Klostermeier (v4.3.1)</string>
+    <string name="about_fork_title">Kotlin 現代化重構專案</string>
+    <string name="about_fork_desc">基於 Kotlin + Jetpack Compose 的 UI 2.0 現代重構版</string>
+    <string name="about_license_title">開源許可證</string>
+    <string name="about_license_desc">GNU 通用公共許可證 v3.0 (GPLv3)</string>
+    <string name="about_github_title">GitHub 原始碼倉庫</string>
+    <string name="about_fork_repo_title">目前重構倉庫 (MCT Kotlin v1.0.0)</string>
+    <string name="about_upstream_repo_title">上游原版倉庫 (ikarus23 / v4.3.1)</string>
+    <string name="about_fork_issues_title">Fork 問題回報與建議</string>
+    <string name="about_upstream_changelog_title">上游更新記錄 (v4.3.1)</string>
+    <string name="about_upstream_release_title">上游 Release 標籤 (4.3.1)</string>
+    <string name="about_issues_title">問題回報與 Bug 提交</string>
+    <string name="about_changelog_title">更新記錄與歷史版本</string>
+    <string name="about_docs_title">使用說明與 Proxmark 社群</string>
+    <string name="about_disclaimer">MIFARE 是 NXP Semiconductors 的註冊商標。</string>
+    <string name="home_action_read_tag_desc">認證並讀取傾印</string>
+    <string name="home_action_write_tag_desc">寫入、克隆或格式化</string>
+    <string name="home_group_manage">檔案與傾印管理</string>
+    <string name="home_group_tools">工具箱與說明</string>
+    <string name="home_action_open_tools">工具箱</string>
+    <string name="home_action_open_tools_desc">NFC 計算器與資料轉換工具集</string>
+    <string name="home_action_import_export">匯入 / 匯出</string>
+    <string name="home_action_import_export_desc">傾印與金鑰檔案備份管理</string>
+    <string name="home_action_uid_log">UID 記錄</string>
+    <string name="home_action_uid_log_desc">歷史已讀取標籤 UID 記錄</string>
+    <string name="nfc_status_ready_title">NFC 已就緒</string>
+    <string name="nfc_status_ready_desc">貼附 MIFARE Classic 標籤即可讀取傾印</string>
+    <string name="nfc_status_disabled_title">NFC 未啟用</string>
+    <string name="nfc_status_disabled_desc">請在系統設定中開啟 NFC 開關</string>
+    <string name="nfc_status_editor_title">僅編輯器模式</string>
+    <string name="nfc_status_editor_desc">NFC 未啟用，支援傾印與金鑰離線編輯</string>
+    <string name="nfc_status_unsupported_title">裝置不支援 MIFARE Classic</string>
+    <string name="nfc_status_unsupported_desc">裝置硬體缺少 MIFARE Classic 控制晶片支援</string>
+    <string name="nfc_status_enable_button">去開啟</string>
+    <string name="dialog_clear_uid_log">確定要清除所有 UID 記錄嗎？此操作無法撤銷。</string>
+    <string name="dialog_delete_file">確定要刪除檔案 \"%1$s\" 嗎？此操作無法撤銷。</string>
+    <string name="text_file_name">檔案名稱</string>
+    <string name="text_file_chooser_empty">點擊右上角 + 按鈕即可建立新檔案</string>
+    <string name="text_dump_files">傾印檔案</string>
+    <string name="text_key_files">金鑰檔案</string>
+    <string name="text_choose_file_type">選擇檔案格式</string>
 
 </resources>

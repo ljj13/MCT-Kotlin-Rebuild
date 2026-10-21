@@ -18,25 +18,27 @@
 package de.syss.MifareClassicTool.Activities
 
 import android.os.Bundle
-import android.webkit.WebView
-import de.syss.MifareClassicTool.R
+import androidx.activity.compose.setContent
+import de.syss.MifareClassicTool.ui.help.HelpAndInfoScreen
+import de.syss.MifareClassicTool.ui.theme.MctTheme
 
 /**
  * In-App (offline) help and info.
+ * Retains BasicActivity NFC foreground dispatch and offline HTML WebView rendering.
  * @author Gerhard Klostermeier
  */
 class HelpAndInfo : BasicActivity() {
 
-    /**
-     * Initialize the layout and the web view (browser) on local
-     * help website.
-     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_help)
+        supportActionBar?.hide()
 
-        // Init. help from local website.
-        val wv = findViewById<WebView>(R.id.webViewHelpText)
-        wv.loadUrl("file:///android_asset/help/help.html")
+        setContent {
+            MctTheme {
+                HelpAndInfoScreen(
+                    onBackClick = { finish() }
+                )
+            }
+        }
     }
 }

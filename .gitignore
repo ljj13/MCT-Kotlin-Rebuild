@@ -4,10 +4,18 @@ Mifare Classic Tool/doc/
 # Andoird Studio stuff
 Mifare Classic Tool/**/*.iml
 Mifare Classic Tool/.gradle
+Mifare Classic Tool/.kotlin/
 Mifare Classic Tool/local.properties
 Mifare Classic Tool/.idea/
 Mifare Classic Tool/**/build
 Mifare Classic Tool/app/release
+
+# JVM crash dumps (regenerable debug artifacts)
+**/hs_err_pid*.log
+
+# Release signing scripts / private scripts
+sign_release.ps1
+publish_release.ps1
 
 # built application files
 *.apk

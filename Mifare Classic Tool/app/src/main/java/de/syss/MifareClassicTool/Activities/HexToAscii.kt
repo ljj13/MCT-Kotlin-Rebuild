@@ -18,56 +18,36 @@
 package de.syss.MifareClassicTool.Activities
 
 import android.os.Bundle
-import android.text.TextUtils
-import android.widget.TextView
-import de.syss.MifareClassicTool.Common
-import de.syss.MifareClassicTool.R
+import androidx.activity.compose.setContent
+import de.syss.MifareClassicTool.ui.hextoascii.HexToAsciiScreen
+import de.syss.MifareClassicTool.ui.theme.MctTheme
 
 /**
- * Display a (hex) dump as 7-Bit US-ASCII.
- * This Activity will be shown from the [DumpEditor], if the user
- * clicks the corresponding menu item.
+ * Display a (hex) dump as 7-Bit US-ASCII using Jetpack Compose Material 3.
+ * Retains BasicActivity NFC lifecycle and hardware contract.
  * @author Gerhard Klostermeier
  */
 class HexToAscii : BasicActivity() {
 
-    /**
-     * Initialize the activity with the data from the Intent
-     * ([DumpEditor.EXTRA_DUMP]) by displaying them as
-     * US-ASCII. Non printable ASCII characters will be displayed as ".".
-     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_hex_to_ascii)
+        supportActionBar?.hide()
 
-        if (intent.hasExtra(DumpEditor.EXTRA_DUMP)) {
-            val dump = intent.getStringArrayExtra(DumpEditor.EXTRA_DUMP)
-            if (!dump.isNullOrEmpty()) {
-                val s = System.getProperty("line.separator") ?: "\n"
-                var ascii: CharSequence = ""
-                for (line in dump) {
-                    if (line.startsWith("+")) {
-                        // Header.
-                        val sectorNumber = line.split(": ")[1]
-                        ascii = TextUtils.concat(
-                            ascii, Common.colorString(
-                                getString(R.string.text_sector) + ": " + sectorNumber,
-                                Common.getThemeAccentColor(this)
-                            ), s
-                        )
-                    } else {
-                        // Data.
-                        var converted = Common.hex2Ascii(line)
-                        if (converted == null) {
-                            converted = getString(R.string.text_invalid_data)
-                        }
-                        ascii = TextUtils.concat(ascii, " ", converted, s)
-                    }
-                }
-                val tv = findViewById<TextView>(R.id.textViewHexToAscii)
-                tv.text = ascii
-            }
+        val dump = if (intent != null && intent.hasExtra(DumpEditor.EXTRA_DUMP)) {
+            val d = intent.getStringArrayExtra(DumpEditor.EXTRA_DUMP)
             intent = null
+            d
+        } else {
+            null
+        }
+
+        setContent {
+            MctTheme {
+                HexToAsciiScreen(
+                    dump = dump,
+                    onBackClick = { finish() }
+                )
+            }
         }
     }
 }

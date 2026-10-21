@@ -24,6 +24,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.SharedPreferences.Editor
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.NameNotFoundException
 import android.content.res.AssetManager
@@ -39,16 +40,22 @@ import android.view.ContextMenu.ContextMenuInfo
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.text.HtmlCompat
 import de.syss.MifareClassicTool.Common
 import de.syss.MifareClassicTool.R
+import de.syss.MifareClassicTool.ui.main.MainMenuScreen
+import de.syss.MifareClassicTool.ui.main.MctAboutDialog
+import de.syss.MifareClassicTool.ui.main.MctNfcEnableDialog
+import de.syss.MifareClassicTool.ui.main.NfcHardwareState
+import de.syss.MifareClassicTool.ui.theme.MctTheme
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -56,7 +63,9 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * Main App entry point showing the main menu.
+ * Main App entry point showing the modernized Material 3 main menu.
+ * Retains all original NFC lifecycle, onNewIntent, StartUpNode state machine,
+ * and Activity dispatch logic.
  * @author Gerhard Klostermeier
  */
 class MainMenu : AppCompatActivity() {
@@ -70,11 +79,21 @@ class MainMenu : AppCompatActivity() {
     private var mDonateDialogWasShown = false
     private var mInfoExternalNfcDialogWasShown = false
     private var mHasNoNfc = false
-    private lateinit var mReadTag: Button
-    private lateinit var mWriteTag: Button
-    private lateinit var mKeyEditor: Button
-    private lateinit var mDumpEditor: Button
     private var mOldIntent: Intent? = null
+
+    private val mNfcStateReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == NfcAdapter.ACTION_ADAPTER_STATE_CHANGED) {
+                mNfcState.value = getNfcHardwareState()
+            }
+        }
+    }
+
+    // Compose observable state
+    private val mIsEditorOnlyState = mutableStateOf(false)
+    private val mNfcState = mutableStateOf(NfcHardwareState.Ready)
+    private val mShowAboutDialogState = mutableStateOf(false)
+    private val mShowNfcEnableDialogState = mutableStateOf(false)
 
     /**
      * Nodes (states) MCT passes through during its startup.
@@ -85,19 +104,10 @@ class MainMenu : AppCompatActivity() {
         HandleNewIntent
     }
 
-    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main_menu)
-
-        // Show App version and footer.
-        val tv = findViewById<TextView>(R.id.textViewMainFooter)
-        tv.text = getString(R.string.app_version) + ": " + Common.getVersionCode()
-
-        // Add the context menu to the tools button.
-        val tools = findViewById<Button>(R.id.buttonMainTools)
-        registerForContextMenu(tools)
+        supportActionBar?.hide()
 
         // Restore state.
         if (savedInstanceState != null) {
@@ -112,11 +122,53 @@ class MainMenu : AppCompatActivity() {
             }
         }
 
-        // Bind main layout buttons.
-        mReadTag = findViewById(R.id.buttonMainReadTag)
-        mWriteTag = findViewById(R.id.buttonMainWriteTag)
-        mKeyEditor = findViewById(R.id.buttonMainEditKeyDump)
-        mDumpEditor = findViewById(R.id.buttonMainEditCardDump)
+        mIsEditorOnlyState.value = Common.useAsEditorOnly()
+        mNfcState.value = getNfcHardwareState()
+
+        setContent {
+            MctTheme {
+                MainMenuScreen(
+                    versionCode = Common.getVersionCode() ?: "",
+                    isEditorOnly = mIsEditorOnlyState.value,
+                    nfcState = mNfcState.value,
+                    onReadTagClick = { onShowReadTag(null) },
+                    onWriteTagClick = { onShowWriteTag(null) },
+                    onOpenTagDumpEditorClick = { onOpenTagDumpEditor(null) },
+                    onOpenKeyEditorClick = { onOpenKeyEditor(null) },
+                    onHelpClick = { onShowHelp(null) },
+                    onPreferencesClick = { onShowPreferences() },
+                    onAboutClick = { onShowAboutDialog() },
+                    onEnableNfcClick = { startActivity(Intent(Settings.ACTION_NFC_SETTINGS)) },
+                    onTagInfoClick = { startActivity(Intent(this, TagInfoTool::class.java)) },
+                    onCloneUidClick = { startActivity(Intent(this, CloneUidTool::class.java)) },
+                    onDiffToolClick = { startActivity(Intent(this, DiffTool::class.java)) },
+                    onAccessConditionToolClick = { startActivity(Intent(this, AccessConditionTool::class.java)) },
+                    onValueBlockToolClick = { startActivity(Intent(this, ValueBlockTool::class.java)) },
+                    onBccToolClick = { startActivity(Intent(this, BccTool::class.java)) },
+                    onDataConversionToolClick = { startActivity(Intent(this, DataConversionTool::class.java)) },
+                    onUidLogToolClick = { startActivity(Intent(this, UidLogTool::class.java)) },
+                    onImportExportToolClick = { startActivity(Intent(this, ImportExportTool::class.java)) }
+                )
+
+                if (mShowNfcEnableDialogState.value) {
+                    MctNfcEnableDialog(
+                        onGoToSettings = {
+                            mShowNfcEnableDialogState.value = false
+                            startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
+                        },
+                        onUseEditorOnly = {
+                            mShowNfcEnableDialogState.value = false
+                            useAsEditorOnly(true)
+                            runStartUpNode(StartUpNode.DonateDialog)
+                        },
+                        onExitApp = {
+                            mShowNfcEnableDialogState.value = false
+                            finish()
+                        }
+                    )
+                }
+            }
+        }
 
         initFolders()
         copyStdKeysFiles()
@@ -128,6 +180,18 @@ class MainMenu : AppCompatActivity() {
         outState.putBoolean("info_external_nfc_dialog_was_shown", mInfoExternalNfcDialogWasShown)
         outState.putBoolean("has_no_nfc", mHasNoNfc)
         outState.putParcelable("old_intent", mOldIntent)
+    }
+
+    private fun getNfcHardwareState(): NfcHardwareState {
+        val adapter = NfcAdapter.getDefaultAdapter(this)
+        Common.setNfcAdapter(adapter)
+        return when {
+            Common.useAsEditorOnly() -> NfcHardwareState.EditorOnly
+            adapter == null -> NfcHardwareState.Unsupported
+            !adapter.isEnabled -> NfcHardwareState.Disabled
+            !Common.hasMifareClassicSupport() -> NfcHardwareState.Unsupported
+            else -> NfcHardwareState.Ready
+        }
     }
 
     private fun runStartUpNode(startUpNode: StartUpNode) {
@@ -163,7 +227,7 @@ class MainMenu : AppCompatActivity() {
                 val nfcAdapter = Common.getNfcAdapter()
                 if (nfcAdapter == null || !nfcAdapter.isEnabled) {
                     if (!Common.useAsEditorOnly()) {
-                        createNfcEnableDialog().show()
+                        mShowNfcEnableDialogState.value = true
                     } else {
                         runStartUpNode(StartUpNode.DonateDialog)
                     }
@@ -258,8 +322,8 @@ class MainMenu : AppCompatActivity() {
 
     private fun useAsEditorOnly(useAsEditorOnly: Boolean) {
         Common.setUseAsEditorOnly(useAsEditorOnly)
-        mReadTag.isEnabled = !useAsEditorOnly
-        mWriteTag.isEnabled = !useAsEditorOnly
+        mIsEditorOnlyState.value = useAsEditorOnly
+        mNfcState.value = getNfcHardwareState()
     }
 
     private fun setTheme() {
@@ -479,15 +543,29 @@ class MainMenu : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        mKeyEditor.isEnabled = true
-        mDumpEditor.isEnabled = true
         useAsEditorOnly(Common.useAsEditorOnly())
+        mNfcState.value = getNfcHardwareState()
         runStartUpNode(StartUpNode.FirstUseDialog)
+        try {
+            androidx.core.content.ContextCompat.registerReceiver(
+                this,
+                mNfcStateReceiver,
+                android.content.IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED),
+                androidx.core.content.ContextCompat.RECEIVER_EXPORTED
+            )
+        } catch (e: Exception) {
+            Log.w(LOG_TAG, "Failed to register NFC state receiver", e)
+        }
     }
 
     override fun onPause() {
         super.onPause()
         Common.disableNfcForegroundDispatch(this)
+        try {
+            unregisterReceiver(mNfcStateReceiver)
+        } catch (e: Exception) {
+            // Receiver might not be registered
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -505,29 +583,31 @@ class MainMenu : AppCompatActivity() {
     }
 
     @Suppress("UNUSED_PARAMETER")
-    fun onShowReadTag(view: View) {
+    fun onShowReadTag(view: View? = null) {
         val intent = Intent(this, ReadTag::class.java)
         startActivity(intent)
     }
 
     @Suppress("UNUSED_PARAMETER")
-    fun onShowWriteTag(view: View) {
+    fun onShowWriteTag(view: View? = null) {
         val intent = Intent(this, WriteTag::class.java)
         startActivity(intent)
     }
 
     @Suppress("UNUSED_PARAMETER")
-    fun onShowHelp(view: View) {
+    fun onShowHelp(view: View? = null) {
         val intent = Intent(this, HelpAndInfo::class.java)
         startActivity(intent)
     }
 
-    fun onShowTools(view: View) {
-        openContextMenu(view)
+    fun onShowTools(view: View? = null) {
+        if (view != null) {
+            openContextMenu(view)
+        }
     }
 
     @Suppress("UNUSED_PARAMETER")
-    fun onOpenTagDumpEditor(view: View) {
+    fun onOpenTagDumpEditor(view: View? = null) {
         val file = Common.getFile(Common.DUMPS_DIR)
         val files = file.listFiles()
         if (file.isDirectory && (files == null || files.isEmpty())) {
@@ -542,7 +622,7 @@ class MainMenu : AppCompatActivity() {
     }
 
     @Suppress("UNUSED_PARAMETER")
-    fun onOpenKeyEditor(view: View) {
+    fun onOpenKeyEditor(view: View? = null) {
         val intent = Intent(this, FileChooser::class.java)
         intent.putExtra(FileChooser.EXTRA_DIR, Common.getFile(Common.KEYS_DIR).absolutePath)
         intent.putExtra(FileChooser.EXTRA_TITLE, getString(R.string.text_open_key_file_title))
@@ -558,18 +638,7 @@ class MainMenu : AppCompatActivity() {
     }
 
     private fun onShowAboutDialog() {
-        val styledText = HtmlCompat.fromHtml(
-            getString(R.string.dialog_about_mct, Common.getVersionCode()),
-            HtmlCompat.FROM_HTML_MODE_LEGACY
-        )
-        val ad = AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_about_mct_title)
-            .setMessage(styledText)
-            .setIcon(R.mipmap.ic_launcher)
-            .setPositiveButton(R.string.action_ok) { _, _ -> }
-            .create()
-        ad.show()
-        (ad.findViewById<TextView>(android.R.id.message))?.movementMethod = LinkMovementMethod.getInstance()
+        mShowAboutDialogState.value = true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
