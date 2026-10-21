@@ -796,6 +796,25 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
   - 确立最佳工程演进路线：**采纳路线 B（MCT 作为外设模拟器前端）**，未来版本通过蓝牙 BLE 控制 ChameleonUltra 等便携硬件实现全协议卡模拟；
   - 产出 `docs/p18/P18_NFC_EMULATION_FEASIBILITY.md`。
 
+## 31. MCT v1.0.0（4.3.1）版本重定名与正式发布收口结论
+
+- **版本命名正式收口**：
+  - 废弃旧 `4.0.0` 与 `4.3.1-modern.1-preview` 命名规划，确立本 Fork 首个独立大版本为 **MCT Kotlin 1.0.0（4.3.1）**；
+  - `build.gradle` 设定 `versionCode = 71`、`versionName = "1.0.0"`，About 对话框显示 `1.0.0（4.3.1）`；
+  - 同步重写 `README.md`、`README.zh-CN.md`、`CHANGELOG.md` 与 `P17_RELEASE_PREPARATION.md`。
+- **发布构建与隔离验证**：
+  - `feature/compose-modernization` 候选分支全量 JVM 单元测试 24/24 PASS；
+  - Debug APK (`12,950,920` 字节, SHA-256: `3E0D0682F40576F83DE0D4E406709F583F5D939503D2B07CBFB2465E4DF3BA69`)；
+  - Release APK (`9,113,928` 字节, SHA-256: `060A22A5E7336502975D0CF6AC4BC560D67E3F4878F491738F78006CECD7B1FA`)；
+  - 命名产物为 `MCT-Kotlin-v1.0.0.apk`（unsigned），生成对应 `SHA256SUMS.txt`；
+  - 实测 Release Manifest 中 `DumpEditorPrototype` = False，且绝对不含 P18 HCE 实验代码。
+- **签名审计与发布停止结论 (`V1_RELEASE_BLOCKED_SIGNING`)**：
+  - 经全面审计，本地与仓库中无长期正式 Release Keystore；
+  - 按用户任务红线，禁止使用 Debug 证书或自动生成临时私钥发布，停止 Tag/push/Release 流程；
+  - 准确报告 `V1_RELEASE_BLOCKED_SIGNING`，提供本地生成正式签名的安全交互指引；
+  - `feature/nfc-emulation` 分支保持物理独立，master 与历史基线 Tag `v4.3.1-kotlin-migration-baseline` 绝对未修改。
+
+
 
 
 

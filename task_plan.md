@@ -222,3 +222,10 @@
 - [x] **P17-B Fork 版本规划与候选产物准备**：规划 `v4.3.1-modern.1-preview` 候选版本号，重构中文与英文 `README.md`，从真实 Git 历史编写全量 `CHANGELOG.md`，度量交付 APK 并标记 `USER_ACCEPTANCE_PENDING`，产出 `docs/p17/P17_RELEASE_PREPARATION.md`
 - [x] **P18 NFC 卡模拟技术可行性研究**：深入解构 Android 官方 HCE、ISO-DEP、Crypto1 硬件流密码鸿沟、OPPO/红米硬件档案，深度对比三条实现路线，确立“MCT 作为外设模拟器（ChameleonUltra）前端”为最优路线，产出 `docs/p18/P18_NFC_EMULATION_FEASIBILITY.md`
 - [x] **安全与版本控制**：零实体写卡、零 UID 修改、MCReader 与写卡状态机零改动，保持 master 与既有 Tag 不变，不推送远程不发布正式 Release
+
+### 阶段 24：MCT v1.0.0（4.3.1）版本重定名与正式发布收口 [complete]
+- [x] **废弃旧版号并确立最终命名**：正式废弃旧 `4.0.0` 与 `4.3.1-modern.1-preview`，确立 Fork 独立首发版本为 `MCT Kotlin 1.0.0（4.3.1）`（Git Tag `v1.0.0`, versionName `1.0.0`, versionCode `71`, About `1.0.0（4.3.1）`）
+- [x] **全量元数据与文档对齐**：更新 `build.gradle`、`MctAboutDialog.kt`、`README.md`、`README.zh-CN.md`、`CHANGELOG.md` 与 `P17_RELEASE_PREPARATION.md`
+- [x] **全量构建与隔离核验**：运行 JVM 单元测试 24/24 PASS，Debug / Release / AndroidTest 编译打包成功，实测 Release Manifest 排除 DumpEditorPrototype，确认零 P18 代码混入候选包
+- [x] **正式签名审计与停止条件执行**：核实本地尚无长期正式 Release Keystore；按规程坚决不使用 Debug 证书或生成临时私钥冒充正式发布，停止 Tag/推送/Release，判定为 `V1_RELEASE_BLOCKED_SIGNING`，输出 `SHA256SUMS.txt` 与未签名 Release / 已签名 Debug APK，提供本地签名创建指引
+- [x] **分支物理隔离保护**：`feature/compose-modernization` 与 `feature/nfc-emulation` 严格隔离，保持 master 与历史基线 Tag 不变
