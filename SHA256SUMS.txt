@@ -1,31 +1,32 @@
-# MCT Modern v4.0.0 Release Verification & Checksums
-# Generated: 2026-10-21 23:40:03 +08:00
+# MCT Kotlin v1.0.0 (4.3.1) Release Verification & Checksums
+# Generated: 2026-10-22 01:04:10 +08:00
 # ApplicationId: de.syss.MifareClassicTool
 # VersionCode: 71
-# VersionName: 4.0.0
+# VersionName: 1.0.0
 # MinSdk: 21 (Android 5.0)
 # TargetSdk: 35 (Android 15)
 # CompileSdk: 35
 # Upstream Baseline: Mifare Classic Tool v4.3.1 (versionCode 70, ikarus23)
 
-## 1. Debug APK (Pre-signed with Android SDK Debug Keystore - Ready for user testing/acceptance)
+## 1. Debug APK (Pre-signed with Android SDK Debug Keystore - Ready for user direct test/acceptance)
 File: app-debug.apk
 Path: Mifare Classic Tool/app/build/outputs/apk/debug/app-debug.apk
-Size: 12950958 bytes
-SHA-256: 93C7EDB1D8650723FC290B0FA1AA90475F1A65E8E8732C7FDCDD2A402FBC6294
+Size: 12950920 bytes
+SHA-256: 3E0D0682F40576F83DE0D4E406709F583F5D939503D2B07CBFB2465E4DF3BA69
 Signature: V1 + V2 Signed (Debug Keystore)
 Signer Certificate SHA-256: 404ed14700fcba044f43e0b561fb5f0b54960a925b38d2dfb802a8506b1e5772
 Apksigner Verification: VERIFIED (V1: true, V2: true)
 
-## 2. Release APK (Production build artifact - Unsigned)
-File: app-release-unsigned.apk (MCT-Modern-v4.0.0-unsigned.apk)
-Path: Mifare Classic Tool/app/build/outputs/apk/release/app-release-unsigned.apk
-Size: 9114308 bytes
-SHA-256: 603836E591C0F83382C53C514AB0FBE5E43FF2E32DD4F80DE21866C9CE760B06
+## 2. Release APK (Production build artifact - Unsigned, pending official release keystore)
+File: MCT-Kotlin-v1.0.0.apk (app-release-unsigned.apk)
+Path: Mifare Classic Tool/app/build/outputs/apk/release/MCT-Kotlin-v1.0.0.apk
+Size: 9113928 bytes
+SHA-256: 060A22A5E7336502975D0CF6AC4BC560D67E3F4878F491738F78006CECD7B1FA
 Signature: Unsigned (Pending user official release keystore configuration)
 Apksigner Verification: DOES NOT VERIFY (Missing signature, prohibited from public installation until signed)
 
 ## Checksums (SHA-256)
-93C7EDB1D8650723FC290B0FA1AA90475F1A65E8E8732C7FDCDD2A402FBC6294  app-debug.apk
-603836E591C0F83382C53C514AB0FBE5E43FF2E32DD4F80DE21866C9CE760B06  app-release-unsigned.apk
-603836E591C0F83382C53C514AB0FBE5E43FF2E32DD4F80DE21866C9CE760B06  MCT-Modern-v4.0.0-unsigned.apk
+3E0D0682F40576F83DE0D4E406709F583F5D939503D2B07CBFB2465E4DF3BA69  app-debug.apk
+060A22A5E7336502975D0CF6AC4BC560D67E3F4878F491738F78006CECD7B1FA  app-release-unsigned.apk
+060A22A5E7336502975D0CF6AC4BC560D67E3F4878F491738F78006CECD7B1FA  MCT-Kotlin-v1.0.0.apk
+060A22A5E7336502975D0CF6AC4BC560D67E3F4878F491738F78006CECD7B1FA  MCT-Kotlin-v1.0.0-unsigned.apk

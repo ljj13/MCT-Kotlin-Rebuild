@@ -1,12 +1,12 @@
-# MIFARE Classic Tool (MCT) - Kotlin & UI 2.0 Modernization Fork (v4.0.0)
+# MIFARE Classic Tool (MCT) - Kotlin v1.0.0 (4.3.1) Modernization Fork
 
-[![Release](https://img.shields.io/badge/Release-v4.0.0-blue.svg)](https://github.com/ljj13/MCT-Kotlin-Rebuild/releases)
+[![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/ljj13/MCT-Kotlin-Rebuild/releases)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple.svg)](https://kotlinlang.org)
 [![Compose Material 3](https://img.shields.io/badge/Compose-Material%203-green.svg)](https://developer.android.com/jetpack/compose)
 [![MinSdk](https://img.shields.io/badge/minSdk-21%20(Android%205.0)-orange.svg)](https://developer.android.com)
 
-A modernized, high-performance Android NFC application for reading, writing, and analyzing MIFARE Classic RFID tags, completely rewritten in **Kotlin** with a **KernelSU-inspired Material 3 UI 2.0**. Initial independent release milestone: **v4.0.0 (versionCode 71)** based on upstream v4.3.1.
+A modernized, high-performance Android NFC application for reading, writing, and analyzing MIFARE Classic RFID tags, completely rewritten in **Kotlin** with a **KernelSU-inspired Material 3 UI 2.0**. Initial independent release milestone: **MCT Kotlin v1.0.0 (4.3.1) (versionCode 71)** based on upstream v4.3.1.
 
 > **Note**: This project is an independent modernization fork of the original open-source [MifareClassicTool](https://github.com/ikarus23/MifareClassicTool) created by Gerhard Klostermeier. It is licensed under the **GNU General Public License v3.0 (GPLv3)**.
 

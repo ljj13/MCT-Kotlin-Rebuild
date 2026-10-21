@@ -696,7 +696,7 @@
     <string name="about_license_title">開源許可證</string>
     <string name="about_license_desc">GNU 通用公共許可證 v3.0 (GPLv3)</string>
     <string name="about_github_title">GitHub 原始碼倉庫</string>
-    <string name="about_fork_repo_title">目前重構倉庫 (Fork GitHub)</string>
+    <string name="about_fork_repo_title">目前重構倉庫 (MCT Kotlin v1.0.0)</string>
     <string name="about_upstream_repo_title">上游原版倉庫 (ikarus23 / v4.3.1)</string>
     <string name="about_fork_issues_title">Fork 問題回報與建議</string>
     <string name="about_upstream_changelog_title">上游更新記錄 (v4.3.1)</string>

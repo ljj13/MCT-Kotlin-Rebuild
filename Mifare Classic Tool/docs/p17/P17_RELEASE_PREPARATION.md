@@ -1,33 +1,39 @@
-# P17-B Fork 版本规划与发布候选准备报告 (P17_RELEASE_PREPARATION.md)
+# P17-B Fork 版本规划与发布候选准备报告 (v1.0.0 (4.3.1))
 
-> 分支：`feature/compose-modernization` (HEAD `951330b`)
-> 阶段目标：明确 Fork 版本命名与发布定位，完成项目文档与元数据准备，构建并度量最新发布候选产物，确立人工验收与正式发布边界。
+> 分支：`feature/compose-modernization`
+> 阶段目标：落实用户关于放弃旧版号、建立独立版本序列的正式决策，确立 **MCT Kotlin 1.0.0（4.3.1）** 最终发布规范，完成元数据更新与发布候选材料准备。
 
 ---
 
-## 一、Fork 版本定位、安装升级策略与命名规划
+## 一、Fork 独立版本体系与最终命名决策
 
-### 1.1 现有安装与签名升级策略分析
+### 1.1 最终版本命名决议
+用户已正式决定废弃之前暂定的 `4.0.0` 与 `4.3.1-modern.1-preview` 命名方案，为本项目确立独立的版本序列：
+- **正式发布名称**：**MCT Kotlin 1.0.0（4.3.1）**
+  - `1.0.0`：代表当前 Kotlin + Jetpack Compose 现代化 Fork 自身的独立首发大版本；
+  - `4.3.1`：标注对齐的原始上游 Mifare Classic Tool 基础版本；
+- **具体参数配置表**：
+
+| 项目 | 最终设置 | 说明 |
+| :--- | :--- | :--- |
+| **Git Tag** | `v1.0.0` | 最终合并至 master 后的不可变正式版本标签 |
+| **versionName** | `1.0.0` | 写入 `app/build.gradle` 的正式版本字符串 |
+| **versionCode** | `71` | 严格单调递增于上游官方的 `70`，确保升级路径畅通 |
+| **About 版本显示** | `1.0.0（4.3.1）` | 呈现于应用关于对话框的来源标识 |
+| **GitHub Release 标题**| `MCT Kotlin v1.0.0（4.3.1）` | GitHub 正式 Release 标题 |
+| **正式发布 APK 文件名**| `MCT-Kotlin-v1.0.0.apk` | 最终签名的正式发布产物 |
+
+> **历史记录废弃说明**：早期阶段性报告中关于 `v4.0.0` 的叙述属于当时探索记录，已全部正式废弃，统一收口为 `v1.0.0（4.3.1）`。上游历史基线 Tag `v4.3.1-kotlin-migration-baseline` 保持不可变，绝不修改或覆盖。
+
+### 1.2 现有安装与签名升级策略分析
 - **签名不兼容现状**：
   - 上游官方 Release APK 采用原作者 Gerhard Klostermeier 的私有签名密钥；
   - 当前 Fork 的 Debug APK 采用 Android SDK 本地 Debug Keystore 自动签名；
   - 当前 Fork 的 Release APK 处于未签名状态（`unsigned`）；
   - **升级约束**：因签名证书不一致，Android 底层 `PackageManager` 强制拦截直接覆盖安装（报 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`）。用户若已安装官方原版，必须先在原版中通过“导出”功能备份转储与密钥文件，卸载原版后再安装本 Fork 版本。
-- **versionCode 递增规则与升级路径**：
+- **versionCode 递增保证**：
   - 上游官方 v4.3.1 对应的 `versionCode` 为 **`70`**；
-  - Android 规范要求应用升级时 `versionCode` 必须严格单调递增，否则触发 `INSTALL_FAILED_VERSION_DOWNGRADE`；
-  - **首个独立 Preview 版本号建议**：
-    - 建议 `versionCode` 正式设定为 **`71`**（严格递增于官方 70，确保后续升级通道通畅）；
-    - 建议 `versionName` 设定为 **`v4.3.1-modern.1-preview`**（明确对齐上游 4.3.1 协议基础，同时清晰标示为现代化分支首个预览里程碑）；
-  - **当前分支与 APK 保全原则**：
-    - 当前开发分支 `app/build.gradle` 暂保持 `versionCode 70` 与 `versionName '4.3.1'`，与已交付人工验收的 APK 产物保持严格指纹对应；
-    - 不在未获正式发布批准前提前修改已交付 APK，不建立未授权的正式 Git Tag；
-    - 待用户人工验收完成并下达发布指令后，在发布准备提交流程中统一变更为 `versionCode 71`。
-
-### 1.2 区分上游版本与 Fork 自身版本
-- **上游原始版本**：`Mifare Classic Tool v4.3.1 (versionCode 70)`，由 Gerhard Klostermeier 发布于 2024 年；
-- **当前 Fork 现状**：已经历 100% Kotlin 迁移、Jetpack Compose Material 3 引入、KernelSU 风格 UI 2.0 深度精修、完整中文化与离线帮助重构、以及专业编辑器混合架构保护；
-- **长期版本演进定位**：未来稳定版建议递增主版本号（例如 `v4.4.0-modern.1`，`versionCode 72+`），与上游官方版本树彻底清晰解耦。
+  - 本次发布设定为 **`71`**，确保后续升级通道畅通，绝不发生 `INSTALL_FAILED_VERSION_DOWNGRADE`。
 
 ---
 

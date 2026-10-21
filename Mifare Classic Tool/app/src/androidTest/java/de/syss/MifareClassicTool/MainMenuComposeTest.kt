@@ -23,7 +23,7 @@ class MainMenuComposeTest {
         composeTestRule.setContent {
             MctTheme {
                 MainMenuScreen(
-                    versionCode = "4.0.0",
+                    versionCode = "1.0.0",
                     isEditorOnly = false,
                     nfcState = NfcHardwareState.Ready,
                     onReadTagClick = {},
@@ -65,7 +65,7 @@ class MainMenuComposeTest {
         composeTestRule.setContent {
             MctTheme {
                 MainMenuScreen(
-                    versionCode = "4.0.0",
+                    versionCode = "1.0.0",
                     isEditorOnly = false,
                     nfcState = NfcHardwareState.Ready,
                     onReadTagClick = {},
@@ -109,7 +109,7 @@ class MainMenuComposeTest {
         composeTestRule.setContent {
             MctTheme {
                 MainMenuScreen(
-                    versionCode = "4.0.0",
+                    versionCode = "1.0.0",
                     isEditorOnly = false,
                     nfcState = NfcHardwareState.Ready,
                     onReadTagClick = {},

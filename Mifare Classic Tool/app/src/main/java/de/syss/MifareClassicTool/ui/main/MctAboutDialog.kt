@@ -90,7 +90,7 @@ fun MctAboutDialog(
                 )
 
                 Text(
-                    text = "v${Common.getVersionCode() ?: "4.0.0"} (71)",
+                    text = "1.0.0（4.3.1）",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
@@ -118,7 +118,7 @@ fun MctAboutDialog(
                     Column(modifier = Modifier.padding(12.dp)) {
                         AboutInfoRow(
                             label = stringResource(R.string.about_fork_title),
-                            value = "MCT Modern v4.0.0 (Fork)",
+                            value = "MCT Kotlin v1.0.0 (Fork)",
                             onClick = { openUrl("https://github.com/ljj13/MCT-Kotlin-Rebuild") }
                         )
                         HorizontalDivider(
