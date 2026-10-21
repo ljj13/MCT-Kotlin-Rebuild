@@ -229,3 +229,10 @@
 - [x] **全量构建与隔离核验**：运行 JVM 单元测试 24/24 PASS，Debug / Release / AndroidTest 编译打包成功，实测 Release Manifest 排除 DumpEditorPrototype，确认零 P18 代码混入候选包
 - [x] **正式签名审计与停止条件执行**：核实本地尚无长期正式 Release Keystore；按规程坚决不使用 Debug 证书或生成临时私钥冒充正式发布，停止 Tag/推送/Release，判定为 `V1_RELEASE_BLOCKED_SIGNING`，输出 `SHA256SUMS.txt` 与未签名 Release / 已签名 Debug APK，提供本地签名创建指引
 - [x] **分支物理隔离保护**：`feature/compose-modernization` 与 `feature/nfc-emulation` 严格隔离，保持 master 与历史基线 Tag 不变
+
+### 阶段 25：MCT Kotlin v1.0.0（4.3.1）正式签名、合并、Tag 与 GitHub 发布 [complete]
+- [x] **正式签名校验**：用户在本地终端安全运行 `sign_release.ps1`，成功使用正式 Keystore（`MCT-Kotlin-release.p12`，alias: `mct-kotlin`）完成签名，apksigner 校验通过，证书 SHA-256 严格匹配 `1B:5D:A7:2B:57:85:97:71:A7:51:75:E6:4D:82:54:72:07:5F:C6:01:6A:E6:C1:8F:1B:A5:CE:DE:A4:76:91:04`
+- [x] **产物度量与校验材料更新**：正式签名产物 `MCT-Kotlin-v1.0.0.apk`（9,175,311 字节，SHA-256: `F409477C895443685B8A491AF3A49B634EE4A3ADCD71EA94D29267C162B9431B`），更新并提交 `SHA256SUMS.txt`
+- [x] **主干合并与不可变标签**：显式执行 `git merge --no-ff feature/compose-modernization` 合并至 `master`，在 master HEAD（`100fb8c`）创建 annotated Tag `v1.0.0`
+- [x] **推送与 GitHub Release**：推送 `master` 与 `v1.0.0` 至用户 Fork 远程仓库（`ljj13/MCT-Kotlin-Rebuild`），通过 `gh release create` 正式发布 Pre-release：`https://github.com/ljj13/MCT-Kotlin-Rebuild/releases/tag/v1.0.0`，完整上传已签名 APK 与校验文件
+- [x] **P18 隔离核验**：确认 v1.0.0 正式发布包中零 P18 代码，`feature/nfc-emulation` 保持独立研发状态，判定状态为 `V1_RELEASED` 与 `P18_POC_COMPLETED`

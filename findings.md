@@ -814,6 +814,24 @@ P14 的 `DumpEditorPrototypeComposeTest` 不能记为通过。它在 `pnq47xf689
   - 准确报告 `V1_RELEASE_BLOCKED_SIGNING`，提供本地生成正式签名的安全交互指引；
   - `feature/nfc-emulation` 分支保持物理独立，master 与历史基线 Tag `v4.3.1-kotlin-migration-baseline` 绝对未修改。
 
+## 32. MCT Kotlin v1.0.0（4.3.1）GitHub 正式发布结果 (`V1_RELEASED`)
+
+- **正式签名与指纹验证**：
+  - 用户在本地终端安全运行 `sign_release.ps1`，成功使用正式 Keystore（`MCT-Kotlin-release.p12`）完成 V1+V2 签名；
+  - 经 `apksigner verify --verbose --print-certs` 校验，证书 SHA-256 严格匹配：`1B:5D:A7:2B:57:85:97:71:A7:51:75:E6:4D:82:54:72:07:5F:C6:01:6A:E6:C1:8F:1B:A5:CE:DE:A4:76:91:04`；
+  - 产出最终签名 APK `MCT-Kotlin-v1.0.0.apk`（大小 `9,175,311` 字节，SHA-256: `F409477C895443685B8A491AF3A49B634EE4A3ADCD71EA94D29267C162B9431B`）。
+- **合并 master 与创建 Tag**：
+  - 在 `master` 上显式执行 `git merge --no-ff feature/compose-modernization`，生成合并提交 `100fb8c`；
+  - 创建不可变 annotated Tag `v1.0.0`，包含完整的版本说明与上游基线致敬；
+  - 成功将 `master` 与 `v1.0.0` 推送至用户 Fork 远程仓库（`https://github.com/ljj13/MCT-Kotlin-Rebuild.git`）。
+- **GitHub Release 发布成功**：
+  - 成功创建 GitHub Pre-release：`https://github.com/ljj13/MCT-Kotlin-Rebuild/releases/tag/v1.0.0`；
+  - 完整上传附件 `MCT-Kotlin-v1.0.0.apk` 与 `SHA256SUMS.txt`；
+  - 最终状态判定为 **`V1_RELEASED`**。
+- **P18 研发状态**：
+  - `feature/nfc-emulation` 严格隔离未混入 master，状态为 **`P18_POC_COMPLETED`**。
+
+
 
 
 
