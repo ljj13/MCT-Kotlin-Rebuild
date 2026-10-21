@@ -13,6 +13,10 @@ Mifare Classic Tool/app/release
 # JVM crash dumps (regenerable debug artifacts)
 **/hs_err_pid*.log
 
+# Release signing scripts / private scripts
+sign_release.ps1
+publish_release.ps1
+
 # built application files
 *.apk
 *.ap_
